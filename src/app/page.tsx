@@ -1,11 +1,5 @@
 import Image from 'next/image';
-import {
-  ArrowRight,
-  BedDouble,
-  Building,
-  MapPin,
-  Sparkles,
-} from 'lucide-react';
+import { ArrowRight, BedDouble, Building, MapPin, Sparkles } from 'lucide-react';
 
 import { accommodations, collections } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,9 +10,7 @@ import AccommodationCard from '@/components/AccommodationCard';
 import AIRecommendations from '@/components/AIRecommendations';
 
 export default function Home() {
-  const topRatedAccommodations = [...accommodations].sort(
-    (a, b) => b.rating - a.rating
-  );
+  const topRatedAccommodations = [...accommodations].sort((a, b) => b.rating - a.rating);
 
   return (
     <div className="flex flex-col gap-16 md:gap-24">
@@ -38,8 +30,8 @@ export default function Home() {
             Find Your Next Stay
           </h1>
           <p className="max-w-2xl text-lg md:text-xl text-primary-foreground/90">
-            Unforgettable properties for your next vacation or business trip.
-            Discover a place you'll love to stay.
+            Unforgettable properties for your next vacation or business trip. Discover a place
+            you'll love to stay.
           </p>
           <Card className="w-full max-w-4xl mt-4">
             <CardContent className="p-4 md:p-6">
@@ -57,8 +49,8 @@ export default function Home() {
               Explore Our Collections
             </h2>
             <p className="text-muted-foreground mt-2 max-w-2xl">
-              Discover accommodations perfectly tailored to your travel style,
-              from urban lofts to secluded beach houses.
+              Discover accommodations perfectly tailored to your travel style, from urban lofts to
+              secluded beach houses.
             </p>
           </div>
           <Button variant="ghost" className="mt-4 md:mt-0">
@@ -79,10 +71,7 @@ export default function Home() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {topRatedAccommodations.slice(0, 8).map((accommodation) => (
-            <AccommodationCard
-              key={accommodation.id}
-              accommodation={accommodation}
-            />
+            <AccommodationCard key={accommodation.id} accommodation={accommodation} />
           ))}
         </div>
       </section>
@@ -93,28 +82,24 @@ export default function Home() {
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 text-primary">
               <Sparkles className="h-8 w-8" />
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">
-                Personalized for You
-              </h2>
+              <h2 className="font-headline text-3xl md:text-4xl font-bold">Personalized for You</h2>
             </div>
             <p className="text-muted-foreground">
-              Our AI can help you find the perfect stay based on your unique
-              tastes. Tell us what you're looking for, and we'll do the rest.
+              Our AI can help you find the perfect stay based on your unique tastes. Tell us what
+              you're looking for, and we'll do the rest.
             </p>
             <AIRecommendations />
           </div>
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 text-primary">
               <MapPin className="h-8 w-8" />
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">
-                Explore the Area
-              </h2>
+              <h2 className="font-headline text-3xl md:text-4xl font-bold">Explore the Area</h2>
             </div>
             <p className="text-muted-foreground">
               Discover accommodations in your desired location with our interactive map.
             </p>
             <Card className="overflow-hidden h-[400px] lg:h-full">
-               <Image
+              <Image
                 src="https://placehold.co/800x600.png"
                 alt="Map of accommodations"
                 width={800}

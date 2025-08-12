@@ -11,7 +11,11 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky && husky install"
+    "prepare": "husky && husky install",
+    "lint:src": "eslint src --fix && prettier --write src",
+    "lint:functions": "eslint functions --fix && prettier --write functions",
+    "lint:root": "eslint . --ext .js,.mjs,.cjs --fix && prettier --write .",
+    "lint:all": "npm run lint:src && npm run lint:functions && npm run lint:root"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",

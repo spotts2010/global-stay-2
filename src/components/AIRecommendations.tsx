@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { Bot, Loader2 } from 'lucide-react';
@@ -24,7 +24,7 @@ const AIRecommendations = () => {
     const preferences = formData.get('preferences') as string;
 
     const result = await handleGetRecommendations({ searchHistory, preferences });
-    
+
     if (result.error) {
       setError(result.error);
     } else if (result.recommendations) {
@@ -67,7 +67,7 @@ const AIRecommendations = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between items-center">
-          <p className='text-xs text-muted-foreground'>Powered by Generative AI</p>
+          <p className="text-xs text-muted-foreground">Powered by Generative AI</p>
           <Button type="submit" disabled={loading}>
             {loading ? (
               <>

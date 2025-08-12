@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Image from 'next/image';
 import { useState } from 'react';
@@ -18,11 +18,11 @@ export default function PhotoGallery({ images, imageHints }: PhotoGalleryProps) 
   const openModal = (image: string) => {
     setSelectedImage(image);
     setIsModalOpen(true);
-  }
+  };
 
   const closeModal = () => {
     setIsModalOpen(false);
-  }
+  };
 
   return (
     <>
@@ -56,7 +56,7 @@ export default function PhotoGallery({ images, imageHints }: PhotoGalleryProps) 
             ))}
           </div>
         </div>
-         <Button 
+        <Button
           variant="secondary"
           className="absolute bottom-4 right-4"
           onClick={() => openModal(selectedImage)}
@@ -78,7 +78,7 @@ export default function PhotoGallery({ images, imageHints }: PhotoGalleryProps) 
               <span className="sr-only">Close gallery</span>
             </Button>
             <div className="p-4 flex-shrink-0">
-               <Image
+              <Image
                 src={selectedImage}
                 alt="Selected accommodation view"
                 width={1200}
@@ -89,18 +89,18 @@ export default function PhotoGallery({ images, imageHints }: PhotoGalleryProps) 
             <div className="flex-1 overflow-y-auto p-4 border-t">
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                 {images.map((src, index) => (
-                   <Image
-                      key={index}
-                      src={src}
-                      alt={`Thumbnail ${index + 1}`}
-                      width={150}
-                      height={100}
-                      className={cn(
-                        "object-cover w-full h-full cursor-pointer rounded-md hover:opacity-75",
-                        selectedImage === src && "ring-2 ring-primary ring-offset-2"
-                      )}
-                      onClick={() => setSelectedImage(src)}
-                    />
+                  <Image
+                    key={index}
+                    src={src}
+                    alt={`Thumbnail ${index + 1}`}
+                    width={150}
+                    height={100}
+                    className={cn(
+                      'object-cover w-full h-full cursor-pointer rounded-md hover:opacity-75',
+                      selectedImage === src && 'ring-2 ring-primary ring-offset-2'
+                    )}
+                    onClick={() => setSelectedImage(src)}
+                  />
                 ))}
               </div>
             </div>

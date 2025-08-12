@@ -1,57 +1,60 @@
-import * as functions from "firebase-functions";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// index.js
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Load environment variables from .env in local development
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
-export const getFullGeminiResponse = functions.https.onRequest(async (req, res) => {
+const functions = require('firebase-functions');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const admin = require('firebase-admin');
+
+admin.initializeApp();
+
+// Get API key from either .env (local) or Firebase Functions config (production)
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || functions.config().gemini?.api_key; // fixed key name
+
+if (!GEMINI_API_KEY) {
+  throw new Error('❌ Missing Gemini API key. Set it in .env or Firebase config.');
+}
+
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const db = admin.firestore();
+
+exports.getFullGeminiResponse = functions.https.onRequest(async (req, res) => {
+  // Trigger redeploy to pick up new config
   try {
-    const userPrompt = req.body.prompt || "Explain quantum computing simply.";
+    const { prompt, sessionId } = req.body;
 
-    // SYSTEM & USER INSTRUCTIONS
-    const systemInstruction = `
-      You are a helpful AI that always provides a COMPLETE and CLEAR response.
-      Do not stop mid-sentence or mid-code.
-      If you provide code, always finish it and close all formatting.
-      Avoid using triple backticks (\`\`\`) unless specifically asked; if you do, always close them.
-      If the answer is long, break it into sections and continue until all sections are done.
-    `;
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-pro",
-      generationConfig: {
-        maxOutputTokens: 2048, // Adjust higher if you need long responses
-        temperature: 0.7,
-      },
-      safetySettings: [
-        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-      ],
-    });
-
-    // Generate response
-    const result = await model.generateContent({
-      contents: [
-        { role: "system", parts: [{ text: systemInstruction }] },
-        { role: "user", parts: [{ text: userPrompt }] }
-      ]
-    });
-
-    // Get text safely
-    let output = result.response?.text() || "";
-
-    // SAFEGUARD: If output ends abruptly, ask Gemini to continue
-    if (!output.trim().endsWith(".") && !output.trim().endsWith("```")) {
-      const contResult = await model.generateContent({
-        contents: [
-          { role: "system", parts: [{ text: "Continue exactly where you left off in the last answer." }] }
-        ]
-      });
-      output += "\n" + (contResult.response?.text() || "");
+    if (!prompt || !sessionId) {
+      return res.status(400).send({ error: 'Missing prompt or sessionId' });
     }
 
-    res.json({ output });
+    // Load previous history for this session
+    const sessionRef = db.collection('chatSessions').doc(sessionId);
+    const sessionSnap = await sessionRef.get();
+    const history = sessionSnap.exists ? sessionSnap.data().history : [];
 
+    // Start chat session with history
+    const chat = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' }).startChat({
+      history,
+    });
+
+    // Send the new user message
+    const result = await chat.sendMessage(prompt);
+    const reply = result.response.text();
+
+    // Update Firestore history
+    const newHistory = [
+      ...history,
+      { role: 'user', parts: [{ text: prompt }] },
+      { role: 'model', parts: [{ text: reply }] },
+    ];
+    await sessionRef.set({ history: newHistory });
+
+    res.status(200).send({ response: reply });
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    res.status(500).json({ error: error.message });
+    console.error('Error generating Gemini response:', error);
+    res.status(500).send({ error: error.message });
   }
 });
