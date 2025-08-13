@@ -9,13 +9,17 @@
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --max-warnings=0 --fix && prettier --write .",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky && husky install",
-    "lint:src": "eslint src --fix && prettier --write src",
-    "lint:functions": "eslint functions --fix && prettier --write functions",
-    "lint:root": "eslint . --ext .js,.mjs,.cjs --fix && prettier --write .",
-    "lint:all": "npm run lint:src && npm run lint:functions && npm run lint:root"
+    "prepare": "husky install"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
@@ -62,13 +66,18 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.33.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^9.33.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.4.6",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "genkit-cli": "^1.14.1",
     "globals": "^16.3.0",
     "husky": "^8.0.0",

@@ -1,5 +1,13 @@
-import Image from 'next/image';
-import { Star, MapPin, Wifi, Car, Utensils, Award, Users } from 'lucide-react';
+import _Image from 'next/image';
+import {
+  Star,
+  MapPin,
+  Wifi as _Wifi,
+  Car as _Car,
+  Utensils as _Utensils,
+  Award,
+  Users as _Users,
+} from 'lucide-react';
 
 import { accommodations } from '@/lib/data';
 import { Button } from '@/components/ui/button';

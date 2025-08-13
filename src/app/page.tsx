@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { ArrowRight, BedDouble, Building, MapPin, Sparkles } from 'lucide-react';
+import { ArrowRight, MapPin, Sparkles } from 'lucide-react';
 
 import { accommodations, collections } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,7 +31,7 @@ export default function Home() {
           </h1>
           <p className="max-w-2xl text-lg md:text-xl text-primary-foreground/90">
             Unforgettable properties for your next vacation or business trip. Discover a place
-            you'll love to stay.
+            you&apos;ll love to stay.
           </p>
           <Card className="w-full max-w-4xl mt-4">
             <CardContent className="p-4 md:p-6">
@@ -86,7 +86,7 @@ export default function Home() {
             </div>
             <p className="text-muted-foreground">
               Our AI can help you find the perfect stay based on your unique tastes. Tell us what
-              you're looking for, and we'll do the rest.
+              you&apos;re looking for, and we&apos;ll do the rest.
             </p>
             <AIRecommendations />
           </div>

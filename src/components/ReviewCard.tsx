@@ -1,6 +1,5 @@
 import { Star, UserCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Card, CardContent, CardHeader } from './ui/card';
 
 type Review = {
   id: string;
