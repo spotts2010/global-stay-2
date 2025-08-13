@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import * as React from 'react';
 import { format } from 'date-fns';
@@ -9,11 +9,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -32,15 +28,18 @@ const AccommodationSearchForm = () => {
     const formData = new FormData(event.currentTarget);
     const location = formData.get('location');
     const guests = formData.get('guests');
-    
+
     toast({
       title: 'Search Submitted',
-      description: `Location: ${location}, Dates: ${date ? `${format(date.from!, "LLL dd, y")} to ${date.to ? format(date.to, "LLL dd, y") : ""}` : "Not set"}, Guests: ${guests}`,
+      description: `Location: ${location}, Dates: ${date ? `${format(date.from!, 'LLL dd, y')} to ${date.to ? format(date.to, 'LLL dd, y') : ''}` : 'Not set'}, Guests: ${guests}`,
     });
   };
 
   return (
-    <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-[2fr_1.5fr_1fr_auto] gap-4 items-center">
+    <form
+      onSubmit={handleSearch}
+      className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-[2fr_1.5fr_1fr_auto] gap-4 items-center"
+    >
       <div className="relative">
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input name="location" placeholder="Where are you going?" className="pl-10" />
@@ -60,8 +59,7 @@ const AccommodationSearchForm = () => {
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, 'LLL dd, y')} -{' '}
-                  {format(date.to, 'LLL dd, y')}
+                  {format(date.from, 'LLL dd, y')} - {format(date.to, 'LLL dd, y')}
                 </>
               ) : (
                 format(date.from, 'LLL dd, y')
@@ -84,7 +82,7 @@ const AccommodationSearchForm = () => {
       </Popover>
 
       <div className="relative">
-         <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Select name="guests" defaultValue="2">
           <SelectTrigger className="pl-10">
             <SelectValue placeholder="Number of guests" />

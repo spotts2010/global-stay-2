@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
@@ -21,7 +21,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
         setFavorites(JSON.parse(storedFavorites));
       }
     } catch (error) {
-      console.error("Could not read favorites from localStorage", error);
+      console.error('Could not read favorites from localStorage', error);
     }
   }, []);
 
@@ -29,7 +29,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     try {
       localStorage.setItem('global-stay-favorites', JSON.stringify(favorites));
     } catch (error) {
-      console.error("Could not save favorites to localStorage", error);
+      console.error('Could not save favorites to localStorage', error);
     }
   }, [favorites]);
 
@@ -40,7 +40,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
   const removeFavorite = (id: string) => {
     setFavorites((prev) => prev.filter((favId) => favId !== id));
   };
-  
+
   const isFavorite = (id: string) => {
     return favorites.includes(id);
   };

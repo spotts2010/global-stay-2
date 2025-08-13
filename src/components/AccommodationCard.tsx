@@ -1,6 +1,7 @@
-"use client";
+'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { Heart, MapPin, Star } from 'lucide-react';
 import type { Accommodation } from '@/lib/data';
 import {
@@ -34,36 +35,47 @@ const AccommodationCard = ({ accommodation }: AccommodationCardProps) => {
   };
 
   return (
-    <Card className="w-full overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+    <Card className="w-full overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
       <CardHeader className="p-0">
-        <div className="relative aspect-video">
-          <Image
-            src={accommodation.image}
-            alt={accommodation.name}
-            fill
-            className="object-cover"
-            data-ai-hint={accommodation.imageHint}
-          />
-          <Button
-            size="icon"
-            variant="secondary"
-            className="absolute top-3 right-3 rounded-full h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white"
-            onClick={toggleFavorite}
-            aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <Heart
-              className={cn(
-                'h-5 w-5 text-black/50 transition-colors',
-                favorite && 'fill-red-500 text-red-500'
-              )}
+        <Link
+          href={`/accommodation/${accommodation.id}`}
+          className="block"
+          aria-label={`View details for ${accommodation.name}`}
+        >
+          <div className="relative aspect-video">
+            <Image
+              src={accommodation.image}
+              alt={accommodation.name}
+              fill
+              className="object-cover"
+              data-ai-hint={accommodation.imageHint}
             />
-          </Button>
-        </div>
+          </div>
+        </Link>
+        <Button
+          size="icon"
+          variant="secondary"
+          className="absolute top-3 right-3 rounded-full h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white z-10"
+          onClick={toggleFavorite}
+          aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Heart
+            className={cn(
+              'h-5 w-5 text-black/50 transition-colors',
+              favorite && 'fill-red-500 text-red-500'
+            )}
+          />
+        </Button>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className="p-4 flex-grow">
         <div className="flex justify-between items-start">
-          <CardTitle className="font-headline text-xl font-bold leading-tight group-hover:text-primary transition-colors">
-            {accommodation.name}
+          <CardTitle className="font-headline text-xl font-bold leading-tight">
+            <Link
+              href={`/accommodation/${accommodation.id}`}
+              className="hover:text-primary transition-colors"
+            >
+              {accommodation.name}
+            </Link>
           </CardTitle>
           <div className="flex items-center gap-1 text-sm font-bold text-foreground shrink-0 pl-2">
             <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
@@ -77,12 +89,12 @@ const AccommodationCard = ({ accommodation }: AccommodationCardProps) => {
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
         <div>
-          <span className="text-2xl font-bold text-primary">
-            ${accommodation.price}
-          </span>
+          <span className="text-2xl font-bold text-primary">${accommodation.price}</span>
           <span className="text-sm text-muted-foreground">/night</span>
         </div>
-        <Button>View Details</Button>
+        <Button asChild>
+          <Link href={`/accommodation/${accommodation.id}`}>View Details</Link>
+        </Button>
       </CardFooter>
     </Card>
   );

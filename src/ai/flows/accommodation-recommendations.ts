@@ -8,13 +8,11 @@
  * - AccommodationRecommendationsOutput - The return type for the getAccommodationRecommendations function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const AccommodationRecommendationsInputSchema = z.object({
-  searchHistory: z
-    .string()
-    .describe('The user search history.'),
+  searchHistory: z.string().describe('The user search history.'),
   preferences: z.string().describe('The user preferences.'),
 });
 export type AccommodationRecommendationsInput = z.infer<
@@ -22,9 +20,7 @@ export type AccommodationRecommendationsInput = z.infer<
 >;
 
 const AccommodationRecommendationsOutputSchema = z.object({
-  recommendations: z
-    .string()
-    .describe('The list of recommended accommodations.'),
+  recommendations: z.string().describe('The list of recommended accommodations.'),
 });
 export type AccommodationRecommendationsOutput = z.infer<
   typeof AccommodationRecommendationsOutputSchema
@@ -38,8 +34,8 @@ export async function getAccommodationRecommendations(
 
 const prompt = ai.definePrompt({
   name: 'accommodationRecommendationsPrompt',
-  input: {schema: AccommodationRecommendationsInputSchema},
-  output: {schema: AccommodationRecommendationsOutputSchema},
+  input: { schema: AccommodationRecommendationsInputSchema },
+  output: { schema: AccommodationRecommendationsOutputSchema },
   prompt: `You are an AI expert in recommending accommodations based on user search history and preferences.
 
   Based on the user's search history and preferences, provide a list of recommended accommodations.
@@ -57,8 +53,8 @@ const accommodationRecommendationsFlow = ai.defineFlow(
     inputSchema: AccommodationRecommendationsInputSchema,
     outputSchema: AccommodationRecommendationsOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const { output } = await prompt(input);
     return output!;
   }
 );
