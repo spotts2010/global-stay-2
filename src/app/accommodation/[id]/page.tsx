@@ -1,4 +1,5 @@
-import _Image from 'next/image';
+
+import Image from 'next/image';
 import {
   Star,
   MapPin,
@@ -99,6 +100,24 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
                 </div>
               ))}
             </div>
+          </div>
+          
+          <Separator className="my-6" />
+
+          {/* Location & Map Section */}
+          <div>
+            <h2 className="font-headline text-2xl font-bold mb-4">Location</h2>
+            <div className="aspect-video rounded-lg overflow-hidden border">
+                <Image
+                    src="https://placehold.co/800x450.png"
+                    alt="Map showing accommodation location"
+                    width={800}
+                    height={450}
+                    className="w-full h-full object-cover"
+                    data-ai-hint="map location"
+                />
+            </div>
+            <p className="text-muted-foreground mt-2">{accommodation.location}</p>
           </div>
 
           <Separator className="my-6" />
