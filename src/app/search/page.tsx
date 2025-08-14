@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -6,11 +5,9 @@ import AccommodationCard from '@/components/AccommodationCard';
 import FilterPanel from '@/components/FilterPanel';
 import { accommodations } from '@/lib/data';
 import type { Accommodation } from '@/lib/data';
-import { Button } from '@/components/ui/button';
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -19,14 +16,20 @@ import {
 
 const ITEMS_PER_PAGE = 8;
 
+interface FilterState {
+  priceRange: [number, number];
+  propertyType: string;
+  rating: number;
+}
+
 export default function SearchPage() {
-  const [filteredAccommodations, setFilteredAccommodations] = useState<Accommodation[]>(accommodations);
+  const [filteredAccommodations, setFilteredAccommodations] =
+    useState<Accommodation[]>(accommodations);
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(filteredAccommodations.length / ITEMS_PER_PAGE);
 
-  const handleFilterChange = (filters: any) => {
-    // TODO: Implement actual filtering logic based on the filters object
+  const handleFilterChange = (filters: FilterState) => {
     console.log('Applying filters:', filters);
     // For now, we'll just reset to the full list.
     // Replace this with real filtering logic.
