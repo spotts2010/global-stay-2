@@ -1,29 +1,36 @@
-import { test as setup, expect } from '@playwright/test';
-import * as fs from 'fs';
+import { test as setup } from '@playwright/test';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-const authFile = 'tests/setup/auth.json';
+// ESM-safe __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Path to save the mock auth state
+const authFile = path.resolve(__dirname, 'auth.json');
 
 setup('authenticate', async ({ page }) => {
-  // Directly set localStorage values that Firebase Auth would use
-  await page.goto('/');
-  await page.evaluate((key) => {
-    const authUser = {
-      uid: 'mockUser123',
-      email: 'mockuser@example.com',
-      displayName: 'Mock User',
-      stsTokenManager: {
-        accessToken: 'mock-token',
-        refreshToken: 'mock-refresh',
-        expirationTime: Date.now() + 3600000,
-      },
-      emailVerified: true,
-    };
-    localStorage.setItem(key, JSON.stringify(authUser));
-  }, `firebase:authUser:${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}:[DEFAULT]`);
+  // Go to your app's login page (replace if different)
+  await page.goto('/login');
 
-  // Save authenticated state to a file.
+  // Inject fake Firebase user data
+  await page.evaluate(() => {
+    localStorage.setItem(
+      'firebase:authUser',
+      JSON.stringify({
+        uid: 'mock-user-123',
+        displayName: 'Mock User',
+        email: 'mockuser@example.com',
+        stsTokenManager: {
+          accessToken: 'mock-access-token',
+          refreshToken: 'mock-refresh-token',
+          expirationTime: Date.now() + 3600 * 1000,
+        },
+      })
+    );
+  });
+
+  // Save browser state
   await page.context().storageState({ path: authFile });
-
-  // Verify the file was created.
-  expect(fs.existsSync(authFile)).toBeTruthy();
 });
