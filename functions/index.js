@@ -24,7 +24,9 @@ export const getFullGeminiResponse = onRequest(async (req, res) => {
     const sessionSnap = await sessionRef.get();
     const history = sessionSnap.exists ? sessionSnap.data().history : [];
 
-    const chat = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' }).startChat({ history });
+    const chat = genAI
+      .getGenerativeModel({ model: 'googleai/gemini-1.5-pro' })
+      .startChat({ history });
 
     const result = await chat.sendMessage(prompt);
     const reply = result.response.text();
