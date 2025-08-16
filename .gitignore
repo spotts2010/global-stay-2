@@ -26,12 +26,16 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# local env files
-.env*.local
-!.env.example.local
+# local env files (never commit secrets)
+.env
+.env.*    # ignore all env files
+!.env.example   # keep an example for documentation
 
 # vercel
 .vercel
+
+# firebase
+.firebase/
 
 # typescript
 *.tsbuildinfo
