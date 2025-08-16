@@ -66,4 +66,83 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Inputs */
+  input,
+  select,
+  textarea,
+  button {
+    @apply text-foreground focus:outline-none focus:ring-2 focus:ring-primary;
+  }
+
+  input[type='date'],
+  input[type='text'],
+  input[type='number'] {
+    @apply text-foreground;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Scoped search bar styles */
+  .search-bar {
+    @apply flex w-full items-center gap-2 rounded-md shadow-md border border-border bg-white;
+  }
+
+  /* --- React Day Picker (scoped to rdp-custom) --- */
+  .rdp-custom {
+    --rdp-accent-color: theme('colors.blue.600');
+    --rdp-background-color: theme('colors.blue.100');
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  .rdp-custom .rdp-day {
+    @apply text-slate-700 hover:bg-blue-50 rounded-md;
+  }
+
+  .rdp-custom .rdp-day_selected,
+  .rdp-custom .rdp-day_selected:focus-visible,
+  .rdp-custom .rdp-day_selected:hover {
+    @apply bg-blue-600 text-white;
+  }
+
+  .rdp-custom .rdp-day_range_start,
+  .rdp-custom .rdp-day_range_end {
+    @apply bg-blue-600 text-white;
+  }
+
+  .rdp-custom .rdp-day_range_middle {
+    @apply bg-blue-100 text-blue-700;
+  }
+
+  /* Month caption + dropdowns */
+  .rdp-custom .rdp-caption {
+    @apply flex items-center justify-between mb-2 text-slate-800 font-medium;
+  }
+
+  .rdp-custom .rdp-caption_label {
+    @apply text-slate-800 font-semibold;
+  }
+
+  .rdp-custom .rdp-caption_dropdowns {
+    @apply flex items-center gap-2;
+  }
+
+  .rdp-custom .rdp-caption_dropdowns select {
+    @apply border border-slate-300 rounded-md p-1 text-sm text-slate-700 bg-white;
+  }
+
+  /* Weekday header */
+  .rdp-custom .rdp-head_cell {
+    @apply text-slate-600 text-xs font-medium;
+  }
+
+  /* Navigation buttons */
+  .rdp-custom .rdp-nav {
+    @apply flex items-center gap-1;
+  }
+
+  .rdp-custom .rdp-nav_button {
+    @apply inline-flex items-center justify-center rounded-md p-1 text-slate-600 hover:bg-slate-100;
+  }
 }

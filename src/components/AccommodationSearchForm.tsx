@@ -1,108 +1,160 @@
 'use client';
 
 import * as React from 'react';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon, MapPin, Users, Search } from 'lucide-react';
-import type { DateRange } from 'react-day-picker';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { MapPin, Calendar, Users, Search } from 'lucide-react';
+import { DayPicker, DateRange } from 'react-day-picker';
+import 'react-day-picker/dist/style.css';
 
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+function formatRangeUK(range: DateRange | undefined) {
+  if (!range?.from || !range?.to) return '';
+  const fmt = (d: Date) =>
+    d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return `${fmt(range.from)} – ${fmt(range.to)}`;
+}
 
-const AccommodationSearchForm = () => {
-  const [date, setDate] = React.useState<DateRange | undefined>();
-  const { toast } = useToast();
+export default function AccommodationSearchForm() {
+  const router = useRouter();
+  const params = useSearchParams();
 
-  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const location = formData.get('location');
-    const guests = formData.get('guests');
+  // Prefill state from query params
+  const [location, setLocation] = React.useState(() => params.get('location') ?? '');
+  const [guests, setGuests] = React.useState<number>(() => {
+    const g = parseInt(params.get('guests') ?? '2', 10);
+    return Number.isFinite(g) && g > 0 ? g : 2;
+  });
+  const [range, setRange] = React.useState<DateRange | undefined>(() => {
+    const from = params.get('from');
+    const to = params.get('to');
+    if (!from || !to) return undefined;
+    const f = new Date(from);
+    const t = new Date(to);
+    return isNaN(+f) || isNaN(+t) ? undefined : { from: f, to: t };
+  });
 
-    toast({
-      title: 'Search Submitted',
-      description: `Location: ${location}, Dates: ${date ? `${format(date.from!, 'LLL dd, y')} to ${date.to ? format(date.to, 'LLL dd, y') : ''}` : 'Not set'}, Guests: ${guests}`,
-    });
-  };
+  // Date popover (headless)
+  const pickerRef = React.useRef<HTMLDivElement | null>(null);
+  const [open, setOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!pickerRef.current) return;
+      if (!pickerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [open]);
+
+  const isLarge =
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : true;
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const search = new URLSearchParams();
+    if (location.trim()) search.set('location', location.trim());
+    if (range?.from) search.set('from', range.from.toISOString());
+    if (range?.to) search.set('to', range.to.toISOString());
+    search.set('guests', String(guests));
+    router.push(`/results?${search.toString()}`);
+  }
 
   return (
     <form
-      onSubmit={handleSearch}
-      className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-[2fr_1.5fr_1fr_auto] gap-4 items-center"
+      onSubmit={onSubmit}
+      className="mx-auto mt-6 w-full max-w-4xl rounded-md shadow-md border border-slate-200 bg-white"
+      aria-label="Accommodation search"
     >
-      <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input name="location" placeholder="Where are you going?" className="pl-10" />
-      </div>
-
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            id="date"
-            variant={'outline'}
-            className={cn(
-              'w-full justify-start text-left font-normal',
-              !date && 'text-muted-foreground'
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {date?.from ? (
-              date.to ? (
-                <>
-                  {format(date.from, 'LLL dd, y')} - {format(date.to, 'LLL dd, y')}
-                </>
-              ) : (
-                format(date.from, 'LLL dd, y')
-              )
-            ) : (
-              <span>Pick a date range</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            initialFocus
-            mode="range"
-            defaultMonth={date?.from}
-            selected={date}
-            onSelect={setDate}
-            numberOfMonths={2}
+      <div className="flex items-stretch divide-x divide-slate-200">
+        {/* Location */}
+        <div className="flex min-w-0 flex-1 items-center gap-2 px-4 h-14">
+          <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+          <input
+            type="text"
+            inputMode="search"
+            autoComplete="off"
+            placeholder="Where are you going?"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="min-w-0 flex-1 bg-transparent text-[15px] text-slate-800 placeholder:text-slate-400 outline-none"
+            aria-label="Location"
           />
-        </PopoverContent>
-      </Popover>
+        </div>
 
-      <div className="relative">
-        <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Select name="guests" defaultValue="2">
-          <SelectTrigger className="pl-10">
-            <SelectValue placeholder="Number of guests" />
-          </SelectTrigger>
-          <SelectContent>
-            {[...Array(8)].map((_, i) => (
-              <SelectItem key={i + 1} value={String(i + 1)}>
-                {i + 1} guest{i > 0 ? 's' : ''}
-              </SelectItem>
+        {/* Dates */}
+        <div className="relative flex items-center gap-2 px-4 h-14" ref={pickerRef}>
+          <Calendar className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="truncate bg-transparent text-left text-[15px] text-slate-800 placeholder:text-slate-400 outline-none"
+            aria-haspopup="dialog"
+            aria-expanded={open}
+          >
+            {range?.from && range?.to ? formatRangeUK(range) : 'Pick a date range'}
+          </button>
+
+          {open && (
+            <div className="absolute left-0 top-full z-50 mt-2 rounded-md border border-slate-200 bg-white p-3 shadow-xl">
+              <DayPicker
+                mode="range"
+                selected={range}
+                onSelect={setRange}
+                numberOfMonths={isLarge ? 2 : 1}
+                pagedNavigation
+                weekStartsOn={1}
+                captionLayout="buttons" /* ✅ valid value; restores navigation */
+                className="rdp-custom"
+              />
+              <div className="mt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="rounded-md px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+                  onClick={() => setRange(undefined)}
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
+                  onClick={() => setOpen(false)}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Guests */}
+        <div className="flex items-center gap-2 px-4 h-14">
+          <Users className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+          <select
+            value={guests}
+            onChange={(e) => setGuests(parseInt(e.target.value, 10))}
+            aria-label="Guests"
+            className="bg-transparent text-[15px] text-slate-800 outline-none"
+          >
+            {Array.from({ length: 8 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n} {n === 1 ? 'guest' : 'guests'}
+              </option>
             ))}
-          </SelectContent>
-        </Select>
-      </div>
+          </select>
+        </div>
 
-      <Button type="submit" className="w-full md:w-auto" size="lg">
-        <Search className="h-5 w-5" />
-        <span className="md:hidden lg:inline ml-2">Search</span>
-      </Button>
+        {/* Search */}
+        <div className="flex items-center px-2">
+          <button
+            type="submit"
+            className="inline-flex h-10 items-center gap-2 rounded-md bg-blue-600 px-4 text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <Search className="w-4 h-4" aria-hidden />
+            <span className="text-[15px] font-medium">Search</span>
+          </button>
+        </div>
+      </div>
     </form>
   );
-};
-
-export default AccommodationSearchForm;
+}
