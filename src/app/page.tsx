@@ -17,7 +17,7 @@ export default function Home() {
   );
 
   return (
-    <div className="flex flex-col gap-16 md:gap-24">
+    <div className="flex flex-col gap-16 md:gap-24 pb-16">
       {/* Hero Section */}
       <section
         className="relative h-[60vh] md:h-[70vh] flex items-center justify-center text-center text-white"
