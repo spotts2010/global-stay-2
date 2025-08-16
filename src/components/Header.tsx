@@ -23,7 +23,7 @@ const Header = () => {
           <Button variant="ghost" asChild>
             <Link href="/favorites" className="relative">
               <Heart className="mr-2 h-4 w-4" />
-              Favorites
+              Favourites
               {favorites.length > 0 && (
                 <Badge
                   variant="destructive"

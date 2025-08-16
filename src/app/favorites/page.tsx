@@ -13,7 +13,7 @@ export default function FavoritesPage() {
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
       <div className="mb-8">
-        <h1 className="font-headline text-4xl md:text-5xl font-bold">Your Favorites</h1>
+        <h1 className="font-headline text-4xl md:text-5xl font-bold">Your Favourites</h1>
         <p className="text-muted-foreground mt-2 text-lg">A collection of places you've saved.</p>
       </div>
 
@@ -26,7 +26,7 @@ export default function FavoritesPage() {
       ) : (
         <div className="flex flex-col items-center justify-center text-center py-20 border-2 border-dashed rounded-lg">
           <Heart className="h-16 w-16 text-muted-foreground/50 mb-4" />
-          <h2 className="font-headline text-2xl font-bold">No Favorites Yet</h2>
+          <h2 className="font-headline text-2xl font-bold">No Favourites Yet</h2>
           <p className="text-muted-foreground mt-2 max-w-md">
             Click the heart icon on any listing to save it here for later.
           </p>

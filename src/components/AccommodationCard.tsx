@@ -57,7 +57,7 @@ const AccommodationCard = ({ accommodation }: AccommodationCardProps) => {
           variant="secondary"
           className="absolute top-3 right-3 rounded-full h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white z-10"
           onClick={toggleFavorite}
-          aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+          aria-label={favorite ? 'Remove from favourites' : 'Add to favourites'}
         >
           <Heart
             className={cn(

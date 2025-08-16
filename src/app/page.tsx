@@ -40,7 +40,7 @@ export default function Home() {
             Find Your Next Stay
           </h1>
           <p className="max-w-2xl text-lg md:text-xl text-primary-foreground/90">
-            Unforgettable properties for your next vacation or business trip. Discover a place
+            Unforgettable properties for your next holiday or business trip. Discover a place
             you&apos;ll love to stay.
           </p>
           <Card className="w-full max-w-4xl mt-4">
@@ -59,8 +59,8 @@ export default function Home() {
               Explore Our Collections
             </h2>
             <p className="text-muted-foreground mt-2 max-w-2xl">
-              Discover accommodations perfectly tailored to your travel style, from urban lofts to
-              secluded beach houses.
+              Discover accommodations perfectly tailored to your travelling style, from urban lofts
+              to secluded beach houses.
             </p>
           </div>
           <Button
@@ -107,7 +107,7 @@ export default function Home() {
                 id="personalized-heading"
                 className="font-headline text-3xl md:text-4xl font-bold"
               >
-                Personalized for You
+                Personalised for You
               </h2>
             </div>
             <p className="text-muted-foreground">
