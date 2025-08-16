@@ -24,9 +24,9 @@ export default defineConfig({
 
   projects: [
     // 1️⃣ Setup project to generate mock auth.json
-    { 
+    {
       name: 'setup',
-      testMatch: /.*\.setup\.ts/ 
+      testMatch: /.*\.setup\.ts/,
     },
 
     // 2️⃣ Chromium tests that depend on auth state
