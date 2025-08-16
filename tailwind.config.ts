@@ -18,8 +18,8 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        body: ['"PT Sans"', 'sans-serif'],
-        headline: ['"Playfair Display"', 'serif'],
+        body: ['"Quicksand"', 'sans-serif'],
+        headline: ['"Quicksand"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
