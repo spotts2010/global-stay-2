@@ -51,7 +51,7 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
   ];
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12">
+    <div className="container mx-auto px-4 md:px-6 py-12 pb-16">
       <PhotoGallery
         images={[
           accommodation.image,

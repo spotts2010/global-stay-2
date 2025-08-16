@@ -14,7 +14,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12 max-w-2xl">
+    <div className="container mx-auto px-4 md:px-6 py-12 max-w-2xl pb-16">
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-2xl">Your Profile</CardTitle>

@@ -11,7 +11,7 @@ export default function FavoritesPage() {
   const favoriteAccommodations = accommodations.filter((acc) => favorites.includes(acc.id));
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12">
+    <div className="container mx-auto px-4 md:px-6 py-12 pb-16">
       <div className="mb-8">
         <h1 className="font-headline text-4xl md:text-5xl font-bold">Your Favourites</h1>
         <p className="text-muted-foreground mt-2 text-lg">A collection of places you've saved.</p>

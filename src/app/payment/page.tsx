@@ -15,7 +15,7 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12 max-w-lg">
+    <div className="container mx-auto px-4 md:px-6 py-12 max-w-lg pb-16">
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-3xl">Complete Your Payment</CardTitle>

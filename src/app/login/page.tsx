@@ -78,7 +78,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container mx-auto flex items-center justify-center min-h-[80vh] px-4">
+    <div className="container mx-auto flex items-center justify-center min-h-[80vh] px-4 pb-16">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-2xl">Welcome Back</CardTitle>
