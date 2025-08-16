@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,11 +15,7 @@ import { Button } from './ui/button';
 import { Star } from 'lucide-react';
 
 type FilterPanelProps = {
-  onFilterChange: (filters: {
-    priceRange: number[];
-    propertyType: string;
-    rating: number;
-  }) => void;
+  onFilterChange: (filters: { priceRange: number[]; propertyType: string; rating: number }) => void;
 };
 
 const FilterPanel = ({ onFilterChange }: FilterPanelProps) => {
@@ -106,7 +101,7 @@ const FilterPanel = ({ onFilterChange }: FilterPanelProps) => {
             ))}
           </div>
         </div>
-        
+
         <Button variant="ghost" onClick={handleReset} className="w-full mt-4">
           Reset Filters
         </Button>

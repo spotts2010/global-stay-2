@@ -1,4 +1,13 @@
 // src/lib/__mocks__/firebase.ts
+import type { FirebaseApp } from 'firebase/app';
+import type { Auth } from 'firebase/auth';
+import type {
+  CollectionReference,
+  DocumentReference,
+  Firestore,
+  DocumentData,
+} from 'firebase/firestore';
+import type { FirebaseStorage } from 'firebase/storage';
 
 // ---- Sample Mock Data ----
 const mockAccommodations = [
@@ -27,28 +36,33 @@ const mockBookings = [
 ];
 
 // ---- Firebase App Mocks ----
-export const app = {} as any;
+export const app = {} as FirebaseApp;
 export const getApps = jest.fn(() => []); // No apps initialized yet
 export const getApp = jest.fn(() => app);
 export const initializeApp = jest.fn(() => app);
 
 // ---- Firebase Auth Mocks ----
-export const getAuth = jest.fn(() => ({
-  currentUser: {
-    uid: 'mockUser123',
-    email: 'mockuser@example.com',
-    displayName: 'Mock User',
-  },
-}));
+export const getAuth = jest.fn(
+  () =>
+    ({
+      currentUser: {
+        uid: 'mockUser123',
+        email: 'mockuser@example.com',
+        displayName: 'Mock User',
+      },
+    }) as Auth
+);
 export const GoogleAuthProvider = jest.fn();
 
 // ---- Firestore Mocks ----
-export const db = {} as any;
+export const db = {} as Firestore;
 export const getFirestore = jest.fn(() => db);
 
-export const collection = jest.fn((_db, path) => ({ path }));
+export const collection = jest.fn(
+  (_db: Firestore, path: string) => ({ path }) as CollectionReference
+);
 
-export const getDocs = jest.fn(async (colRef) => {
+export const getDocs = jest.fn(async (colRef: CollectionReference) => {
   if (colRef.path === 'accommodations') {
     return {
       docs: mockAccommodations.map((item) => ({
@@ -68,9 +82,11 @@ export const getDocs = jest.fn(async (colRef) => {
   return { docs: [] };
 });
 
-export const doc = jest.fn((_db, path, id) => ({ path, id }));
+export const doc = jest.fn(
+  (_db: Firestore, path: string, id: string) => ({ path, id }) as DocumentReference
+);
 
-export const getDoc = jest.fn(async (docRef) => {
+export const getDoc = jest.fn(async (docRef: DocumentReference<DocumentData>) => {
   if (docRef.path === 'accommodations' && docRef.id === 'acc1') {
     return { exists: () => true, id: 'acc1', data: () => mockAccommodations[0] };
   }
@@ -81,4 +97,4 @@ export const getDoc = jest.fn(async (docRef) => {
 });
 
 // ---- Storage Mock ----
-export const getStorage = jest.fn(() => ({}));
+export const getStorage = jest.fn(() => ({}) as FirebaseStorage);

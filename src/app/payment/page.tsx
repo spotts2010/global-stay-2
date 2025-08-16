@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,8 +28,8 @@ export default function PaymentPage() {
             <div className="space-y-2">
               <Label htmlFor="card-number">Card Number</Label>
               <div className="relative">
-                 <Input id="card-number" placeholder="•••• •••• •••• ••••" required />
-                 <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input id="card-number" placeholder="•••• •••• •••• ••••" required />
+                <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -43,16 +42,16 @@ export default function PaymentPage() {
                 <Input id="cvc" placeholder="•••" required />
               </div>
             </div>
-             <div className="space-y-2">
-                <Label htmlFor="name-on-card">Name on Card</Label>
-                <Input id="name-on-card" placeholder="John Doe" required />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="name-on-card">Name on Card</Label>
+              <Input id="name-on-card" placeholder="John Doe" required />
+            </div>
 
             <Button type="submit" className="w-full text-lg" size="lg">
               Pay $XXX.XX
             </Button>
             <p className="text-xs text-center text-muted-foreground">
-                Powered by Stripe. Your payment is secure.
+              Powered by Stripe. Your payment is secure.
             </p>
           </form>
         </CardContent>

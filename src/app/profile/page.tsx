@@ -1,4 +1,3 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,7 +44,11 @@ export default function ProfilePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">New Password</Label>
-              <Input id="password" type="password" placeholder="Leave blank to keep current password" />
+              <Input
+                id="password"
+                type="password"
+                placeholder="Leave blank to keep current password"
+              />
             </div>
             <Button type="submit">Save Changes</Button>
           </form>

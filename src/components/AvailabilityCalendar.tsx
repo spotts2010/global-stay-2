@@ -20,9 +20,11 @@ export default function AvailabilityCalendar() {
         disabled={(day) =>
           day < new Date() ||
           unavailableDates.some((unavailableDate) => {
-            return day.getFullYear() === unavailableDate.getFullYear() &&
-                   day.getMonth() === unavailableDate.getMonth() &&
-                   day.getDate() === unavailableDate.getDate();
+            return (
+              day.getFullYear() === unavailableDate.getFullYear() &&
+              day.getMonth() === unavailableDate.getMonth() &&
+              day.getDate() === unavailableDate.getDate()
+            );
           })
         }
         className="rounded-md"

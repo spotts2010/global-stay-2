@@ -40,7 +40,7 @@ const placeholderBookings: Booking[] = [
  */
 export async function fetchBookings(userId: string): Promise<Booking[]> {
   console.log(`Fetching bookings for user: ${userId}`);
-  
+
   // In a real application, you would query Firestore here:
   // const bookingsRef = collection(db, 'users', userId, 'bookings');
   // const q = query(bookingsRef);
