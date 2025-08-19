@@ -1,10 +1,15 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // By default, deny all reads and writes.
-    // This is a secure default. We will open up access to specific
-    // collections as we build the app's features.
+    // Allow public read access for accommodation listings
+    match /accommodations/{accommodationId} {
+      allow read: if true;
+      allow write: if false; // Keep writes private
+    }
+
+    // Default to deny all other access to prevent unintended data exposure
     match /{document=**} {
       allow read, write: if false;
     }

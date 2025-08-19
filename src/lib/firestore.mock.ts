@@ -4,21 +4,7 @@
  * instead of making real calls to Firebase.
  */
 
-type Accommodation = {
-  id: string;
-  name: string;
-  location: string;
-  price: number;
-  rating: number;
-};
-
-type Booking = {
-  id: string;
-  accommodationId: string;
-  dates: string[];
-  guests: number;
-  totalPrice: number;
-};
+import type { Accommodation, Booking } from './data';
 
 /**
  * Fetch mock accommodations from localStorage

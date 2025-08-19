@@ -8,4 +8,4 @@ This project is being developed in Firebase Studio. To get started with developm
 
 ### In Progress
 
-- **Accommodation Listings**: Display properties with images, pricing, and descriptions.
+- **Accommodation Listings**: Display properties with images, pricing, and descriptions. Connected to live data source.

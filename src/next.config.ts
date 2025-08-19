@@ -18,13 +18,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Allow cross-origin requests from the Firebase Studio preview environment
-  // to fix server startup issues.
-  experimental: {
-    allowedDevOrigins: [
-      'https://9000-firebase-studio-1753950960099.cluster-m7dwy2bmizezqukxkuxd55k5ka.cloudworkstations.dev',
-    ],
-  },
 };
 
 export default nextConfig;

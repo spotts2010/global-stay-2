@@ -1,11 +1,12 @@
 'use client';
 // src/lib/firebase.ts
+
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
-// Define a type for our mock module
+// Optional: mock type for testing
 interface MockFirebase {
   app: FirebaseApp;
   auth: Auth;
@@ -20,15 +21,13 @@ let googleProvider: GoogleAuthProvider;
 let db: Firestore;
 let storage: FirebaseStorage;
 
-// Type assertion for the window object
+// Type assertion for the window object (mock for tests)
 const windowWithMock =
   typeof window !== 'undefined'
     ? (window as Window & { __mockFirebase?: MockFirebase })
     : undefined;
 
 if (process.env.NODE_ENV === 'test' || windowWithMock?.__mockFirebase) {
-  // In a test environment or if the mock is present, use it.
-  // This is primarily for Playwright tests where we inject the mock.
   const mock = windowWithMock?.__mockFirebase;
   if (mock) {
     app = mock.app;
@@ -37,9 +36,6 @@ if (process.env.NODE_ENV === 'test' || windowWithMock?.__mockFirebase) {
     db = mock.db;
     storage = mock.storage;
   } else {
-    // This branch is for Jest environment
-    // Note: Jest setup will globally mock these modules.
-    // This code block might not even run in Jest, but is here for completeness.
     (async () => {
       const mockFirebase = await import('./__mocks__/firebase');
       app = mockFirebase.app;
@@ -50,7 +46,7 @@ if (process.env.NODE_ENV === 'test' || windowWithMock?.__mockFirebase) {
     })();
   }
 } else {
-  // Real Firebase config for production/development
+  // Real Firebase initialization
   const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,

@@ -9,21 +9,42 @@ import {
   Users as _Users,
 } from 'lucide-react';
 
-import { accommodations } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import PhotoGallery from '@/components/PhotoGallery';
 import AmenityIcon from '@/components/AmenityIcon';
 import ReviewCard from '@/components/ReviewCard';
 import { Separator } from '@/components/ui/separator';
+import { fetchAccommodationById } from '@/lib/firestore';
+import type { Accommodation } from '@/lib/data';
 
-export default function AccommodationDetailPage({ params }: { params: { id: string } }) {
-  // TODO: Replace with a dynamic fetch from Firestore using the provided ID
-  const accommodation = accommodations.find((acc) => acc.id === params.id);
+export default async function AccommodationDetailPage({ params }: { params: { id: string } }) {
+  let accommodation: Accommodation | null = null;
+  let fetchError = false;
+
+  try {
+    accommodation = await fetchAccommodationById(params.id);
+  } catch (error) {
+    console.error(`Failed to fetch accommodation for id ${params.id}:`, error);
+    fetchError = true;
+  }
+
+  if (fetchError) {
+    return (
+      <div className="container mx-auto px-4 md:px-6 py-12 text-center pb-16">
+        <h1 className="font-headline text-2xl font-bold text-destructive">
+          An Error Occurred
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          We couldn&apos;t load the accommodation details. Please try again later.
+        </p>
+      </div>
+    );
+  }
 
   if (!accommodation) {
     return (
-      <div className="container mx-auto px-4 md:px-6 py-12 text-center">
+      <div className="container mx-auto px-4 md:px-6 py-12 text-center pb-16">
         <h1 className="font-headline text-2xl font-bold">Accommodation not found</h1>
         <p className="text-muted-foreground mt-2">
           The listing you are looking for does not exist or has been moved.

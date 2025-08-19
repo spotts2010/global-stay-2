@@ -1,4 +1,4 @@
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase'; // Use server-safe firebase config
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import type { Accommodation, Booking } from './data';
 import { getMockAccommodations, getMockBookings } from './firestore.mock';
@@ -13,11 +13,16 @@ export async function fetchAccommodations(): Promise<Accommodation[]> {
   if (isTestEnv) {
     return getMockAccommodations();
   }
-  const snapshot = await getDocs(collection(db, 'accommodations'));
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Accommodation[];
+  try {
+    const snapshot = await getDocs(collection(db, 'accommodations'));
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Accommodation[];
+  } catch (error) {
+    console.error('Error fetching accommodations:', error);
+    return []; // Return empty array on error
+  }
 }
 
 /**
@@ -27,9 +32,14 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
   if (isTestEnv) {
     return getMockAccommodations().find((acc) => acc.id === id) || null;
   }
-  const ref = doc(db, 'accommodations', id);
-  const snapshot = await getDoc(ref);
-  return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Accommodation) : null;
+  try {
+    const ref = doc(db, 'accommodations', id);
+    const snapshot = await getDoc(ref);
+    return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Accommodation) : null;
+  } catch (error) {
+    console.error(`Error fetching accommodation by ID (${id}):`, error);
+    return null; // Return null on error
+  }
 }
 
 /**
@@ -43,11 +53,16 @@ export async function fetchBookings(userId: string): Promise<Booking[]> {
         !(b as Booking & { userId?: string }).userId
     );
   }
-  const snapshot = await getDocs(collection(db, 'bookings'));
-  // In a real scenario, you'd query by userId
-  const bookings = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-  return bookings.filter((b) => (b as Booking & { userId: string }).userId === userId) as Booking[];
+  try {
+    const snapshot = await getDocs(collection(db, 'bookings'));
+    // In a real scenario, you'd query by userId
+    const bookings = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    return bookings.filter((b) => (b as Booking & { userId: string }).userId === userId) as Booking[];
+  } catch (error) {
+    console.error(`Error fetching bookings for user (${userId}):`, error);
+    return []; // Return empty array on error
+  }
 }

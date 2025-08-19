@@ -1,42 +1,25 @@
 // src/app/page.tsx
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ArrowRight, MapPin, Sparkles } from 'lucide-react';
 
-import { accommodations, collections, type Accommodation, type Collection } from '@/lib/data';
-import { Card } from '@/components/ui/card';
+import { collections, type Collection } from '@/lib/data';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import AccommodationSearchForm from '@/components/AccommodationSearchForm';
 import CuratedCollectionCard from '@/components/CuratedCollectionCard';
 import AccommodationCard from '@/components/AccommodationCard';
 import AIRecommendations from '@/components/AIRecommendations';
+import { fetchAccommodations } from '@/lib/firestore';
+import type { Accommodation } from '@/lib/data';
 
-export default function Home() {
-  const router = useRouter();
+export default async function Home() {
+  const accommodations: Accommodation[] = await fetchAccommodations();
 
   // Explicit typing for better DX
   const topRatedAccommodations: Accommodation[] = [...accommodations].sort(
     (a, b) => b.rating - a.rating
   );
-
-  // Handle search submission and push query to /results
-  const handleSearch = (params: {
-    location: string;
-    startDate?: string;
-    endDate?: string;
-    guests: number;
-  }) => {
-    const searchParams = new URLSearchParams();
-    if (params.location) searchParams.set('location', params.location);
-    if (params.startDate) searchParams.set('startDate', params.startDate);
-    if (params.endDate) searchParams.set('endDate', params.endDate);
-    if (params.guests) searchParams.set('guests', params.guests.toString());
-
-    router.push(`/results?${searchParams.toString()}`);
-  };
 
   return (
     <div className="flex flex-col gap-16 md:gap-24 pb-16">
@@ -48,7 +31,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/50 z-10" />
         <Image
           src="https://placehold.co/1920x1080.png"
-          alt="A luxurious hotel lobby interior with modern décor"
+          alt="A luxurious hotel lobby interior with modern decor"
           data-ai-hint="hotel lobby"
           fill
           priority
@@ -68,7 +51,7 @@ export default function Home() {
 
           {/* Search form with shadow + rounded corners, no background or padding */}
           <div className="w-full max-w-4xl mt-4 shadow-lg rounded-lg">
-            <AccommodationSearchForm onSearch={handleSearch} />
+            <AccommodationSearchForm />
           </div>
         </div>
       </section>
@@ -111,11 +94,17 @@ export default function Home() {
         >
           Top-rated Stays
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {topRatedAccommodations.slice(0, 8).map((accommodation) => (
-            <AccommodationCard key={accommodation.id} accommodation={accommodation} />
-          ))}
-        </div>
+        {accommodations.length === 0 ? (
+          <div className="text-center text-destructive">
+            Could not load top-rated stays. Please try again later.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {topRatedAccommodations.slice(0, 8).map((accommodation) => (
+              <AccommodationCard key={accommodation.id} accommodation={accommodation} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* AI & Map Section */}
