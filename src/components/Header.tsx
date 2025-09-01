@@ -22,7 +22,6 @@ const Header = () => {
   const user = {
     name: 'Sam Potts',
     email: 'sam.expression@gmail.com',
-    imageUrl: 'https://placehold.co/100x100.png',
   };
 
   const getInitials = (name: string) => {
@@ -63,7 +62,7 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar>
-                    <AvatarImage src={user.imageUrl} alt={user.name} />
+                    <AvatarImage src={undefined} alt={user.name} />
                     <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                   </Avatar>
                 </Button>

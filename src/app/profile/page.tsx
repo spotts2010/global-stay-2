@@ -9,7 +9,6 @@ export default function ProfilePage() {
   const user = {
     name: 'Jane Doe',
     email: 'jane.doe@example.com',
-    imageUrl: 'https://placehold.co/100x100.png',
   };
 
   const getInitials = (name: string) => {
@@ -29,7 +28,7 @@ export default function ProfilePage() {
         <CardContent className="space-y-6">
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={user.imageUrl} alt={user.name} data-ai-hint="person face" />
+              <AvatarImage src={undefined} alt={user.name} data-ai-hint="person face" />
               <AvatarFallback className="text-2xl font-bold">
                 {getInitials(user.name)}
               </AvatarFallback>

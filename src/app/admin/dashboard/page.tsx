@@ -30,7 +30,7 @@ const hostProperties = [
     location: 'Malibu, California',
     status: 'Published',
     price: 850,
-    image: 'https://placehold.co/100x100.png',
+    image: 'https://picsum.photos/100/100',
     imageHint: 'beachfront villa',
   },
   {
@@ -39,7 +39,7 @@ const hostProperties = [
     location: 'SoHo, New York',
     status: 'Draft',
     price: 450,
-    image: 'https://placehold.co/100x100.png',
+    image: 'https://picsum.photos/100/100',
     imageHint: 'city loft',
   },
 ];
