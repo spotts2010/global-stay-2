@@ -6,7 +6,7 @@ import {
   ChevronDown,
   ChevronRight,
   User,
-  Shield,
+  ShieldCheck,
   Users,
   CreditCard,
   Gift,
@@ -19,7 +19,6 @@ import {
   Heart,
   HelpCircle,
   FileText,
-  ShieldCheck,
   Package2,
   PanelLeft,
   PanelRight,
@@ -39,7 +38,7 @@ const menuItems: NavItem[] = [
     label: 'Manage Account',
     children: [
       { href: '/account/profile', label: 'Personal Details', icon: User },
-      { href: '/account/settings', label: 'Security Settings', icon: Shield },
+      { href: '/account/settings', label: 'Security Settings', icon: ShieldCheck },
       { href: '/account/travel-partners', label: 'My Travel Partners', icon: Users },
     ],
   },
@@ -123,7 +122,7 @@ function CollapsibleMenu({
           hasActiveChild && 'bg-accent text-primary'
         )}
       >
-        {!isCollapsed && <span className="flex-1 text-left">{item.label}</span>}
+        {!isCollapsed && <span className="flex-1 text-left text-sm">{item.label}</span>}
         {!isCollapsed &&
           (isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />)}
       </button>
@@ -141,7 +140,7 @@ function CollapsibleMenu({
               )}
             >
               {child.icon && <child.icon className="h-4 w-4" />}
-              <span>{child.label}</span>
+              <span className="text-xs">{child.label}</span>
             </Link>
           ))}
         </div>

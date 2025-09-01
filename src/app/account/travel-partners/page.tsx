@@ -1,16 +1,241 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+'use client';
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Users,
+  PlusCircle,
+  UserPlus,
+  Hourglass,
+  FilePen,
+  Trash2,
+  UserCheck,
+  UserX,
+} from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+
+type Partner = {
+  id: string;
+  name: string;
+  relationship: 'Family Member' | 'Work Colleague' | 'Friend';
+  email: boolean;
+  mobile: boolean;
+};
+
+const partners: Partner[] = [
+  {
+    id: '1',
+    name: 'Julia Nolte',
+    relationship: 'Family Member',
+    email: true,
+    mobile: false,
+  },
+  {
+    id: '2',
+    name: 'Jane Doe',
+    relationship: 'Work Colleague',
+    email: true,
+    mobile: true,
+  },
+  {
+    id: '3',
+    name: 'Bob Hope',
+    relationship: 'Friend',
+    email: true,
+    mobile: false,
+  },
+];
+
+const getInitials = (name: string) =>
+  name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase();
 
 export default function TravelPartnersPage() {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl">My Travel Partners</CardTitle>
-        <CardDescription>Manage your travel partners here.</CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between">
+        <div>
+          <CardTitle className="font-headline text-2xl flex items-center gap-2">
+            <Users className="h-6 w-6 text-primary" />
+            My Travel Partners
+          </CardTitle>
+          <CardDescription>
+            Manage family members and invite partners to speed up bookings.
+          </CardDescription>
+        </div>
+        <div className="flex items-center gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Family Member
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Feature Coming Soon</DialogTitle>
+                <DialogDescription>
+                  This functionality is currently under development. Please check back later.
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Invite a Partner
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Feature Coming Soon</DialogTitle>
+                <DialogDescription>
+                  This functionality is currently under development. Please check back later.
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
-          <p>Travel partners will be available here soon.</p>
-        </div>
+        <Accordion type="single" collapsible className="w-full space-y-4">
+          {/* Approved Partners Section */}
+          <AccordionItem
+            value="item-1"
+            className="p-4 bg-background border rounded-lg hover:bg-accent/50"
+          >
+            <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+              <div className="flex items-center gap-2">
+                <UserCheck className="h-5 w-5 text-green-500" />
+                Approved Partners
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({partners.length})
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-4">
+              <div className="border rounded-lg bg-card">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-bold">Name</TableHead>
+                      <TableHead className="font-bold">Relationship</TableHead>
+                      <TableHead className="font-bold">Email</TableHead>
+                      <TableHead className="font-bold">Mobile</TableHead>
+                      <TableHead className="font-bold">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {partners.map((partner) => (
+                      <TableRow key={partner.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar>
+                              <AvatarImage src={undefined} />
+                              <AvatarFallback>{getInitials(partner.name)}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{partner.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {partner.relationship}
+                        </TableCell>
+                        <TableCell>
+                          <Checkbox checked={partner.email} disabled />
+                        </TableCell>
+                        <TableCell>
+                          <Checkbox checked={partner.mobile} disabled />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <FilePen className="h-4 w-4" />
+                              <span className="sr-only">Edit</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Delete</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Pending Invitations Section */}
+          <AccordionItem
+            value="item-2"
+            className="p-4 bg-background border rounded-lg hover:bg-accent/50"
+          >
+            <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+              <div className="flex items-center gap-2">
+                <Hourglass className="h-5 w-5 text-amber-500" />
+                Pending Invitations
+                <span className="text-sm font-normal text-muted-foreground">(0)</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-4">
+              <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+                <p>You have no pending invitations.</p>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Request Denied Section */}
+          <AccordionItem
+            value="item-3"
+            className="p-4 bg-background border rounded-lg hover:bg-accent/50"
+          >
+            <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+              <div className="flex items-center gap-2">
+                <UserX className="h-5 w-5 text-destructive" />
+                Request Denied
+                <span className="text-sm font-normal text-muted-foreground">(0)</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-4">
+              <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+                <p>You have no denied requests.</p>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </CardContent>
     </Card>
   );
