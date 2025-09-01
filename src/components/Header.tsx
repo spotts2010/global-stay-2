@@ -1,16 +1,7 @@
-
 'use client';
 
 import Link from 'next/link';
-import {
-  Heart,
-  Hotel,
-  User,
-  Settings,
-  LayoutGrid,
-  LogOut,
-  Briefcase,
-} from 'lucide-react';
+import { Heart, Hotel, User, Settings, LayoutGrid, LogOut, Briefcase } from 'lucide-react';
 import { Button } from './ui/button';
 import { useFavorites } from '@/context/FavoritesContext';
 import { Badge } from './ui/badge';
@@ -28,6 +19,18 @@ const Header = () => {
   const { favorites } = useFavorites();
   // Placeholder for auth state
   const isLoggedIn = true;
+  const user = {
+    name: 'Sam Potts',
+    email: 'sam.expression@gmail.com',
+    imageUrl: 'https://placehold.co/100x100.png',
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('');
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -60,20 +63,16 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar>
-                    <AvatarImage src="https://placehold.co/100x100.png" alt="User profile" />
-                    <AvatarFallback>
-                      <User />
-                    </AvatarFallback>
+                    <AvatarImage src={user.imageUrl} alt={user.name} />
+                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">Sam Potts</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      sam.expression@gmail.com
-                    </p>
+                    <p className="text-sm font-medium leading-none">{user.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -88,7 +87,7 @@ const Header = () => {
                   <span>My Stays</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                   <Link href="/favorites">
+                  <Link href="/favorites">
                     <Heart className="mr-2 h-4 w-4" />
                     <span>Saved Places</span>
                   </Link>
@@ -99,7 +98,7 @@ const Header = () => {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel>Creator & Admin</DropdownMenuLabel>
-                 <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild>
                   <Link href="/admin/dashboard">
                     <LayoutGrid className="mr-2 h-4 w-4" />
                     <span>Dashboard</span>

@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User } from 'lucide-react';
 
 export default function ProfilePage() {
   // Placeholder data
@@ -11,6 +10,13 @@ export default function ProfilePage() {
     name: 'Jane Doe',
     email: 'jane.doe@example.com',
     imageUrl: 'https://placehold.co/100x100.png',
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('');
   };
 
   return (
@@ -24,8 +30,8 @@ export default function ProfilePage() {
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
               <AvatarImage src={user.imageUrl} alt={user.name} data-ai-hint="person face" />
-              <AvatarFallback>
-                <User className="h-10 w-10" />
+              <AvatarFallback className="text-2xl font-bold">
+                {getInitials(user.name)}
               </AvatarFallback>
             </Avatar>
             <div className="space-y-1">

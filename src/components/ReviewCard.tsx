@@ -1,4 +1,4 @@
-import { Star, UserCircle } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 type Review = {
@@ -14,14 +14,18 @@ type ReviewCardProps = {
 };
 
 const ReviewCard = ({ review }: ReviewCardProps) => {
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('');
+  };
+
   return (
     <div className="flex gap-4">
       <Avatar>
-        {/* TODO: Connect authorImage to user profile pictures */}
         <AvatarImage src={review.authorImage} alt={review.author} />
-        <AvatarFallback>
-          <UserCircle className="h-10 w-10 text-muted-foreground" />
-        </AvatarFallback>
+        <AvatarFallback>{getInitials(review.author)}</AvatarFallback>
       </Avatar>
       <div className="flex-1">
         <div className="flex justify-between items-center">
