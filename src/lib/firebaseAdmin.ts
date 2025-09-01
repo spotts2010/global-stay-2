@@ -1,29 +1,32 @@
 import admin from 'firebase-admin';
 
-// Check if the app is already initialized to prevent errors
 if (!admin.apps.length) {
-  // Get the base64 encoded service account key from environment variables
-  const serviceAccountKeyBase64 = process.env.FIREBASE_ADMIN_KEY;
+  const adminKey = process.env.FIREBASE_ADMIN_KEY;
 
-  if (!serviceAccountKeyBase64) {
+  if (!adminKey) {
     throw new Error('FIREBASE_ADMIN_KEY environment variable is not set.');
   }
 
   try {
-    // Decode the base64 string to get the JSON string
-    const serviceAccountJson = Buffer.from(serviceAccountKeyBase64, 'base64').toString('utf8');
-    const serviceAccount = JSON.parse(serviceAccountJson);
+    // Decode the Base64 string to a UTF-8 JSON string
+    const decodedKey = Buffer.from(adminKey, 'base64').toString('utf-8');
+    const serviceAccount = JSON.parse(decodedKey);
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
-  } catch (error: any) {
-    console.error('Failed to initialize Firebase Admin SDK:', error.message);
-    throw new Error('Invalid Firebase Admin SDK credentials.');
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Failed to initialize Firebase Admin SDK from Base64 key:', error.message);
+    } else {
+      console.error('Failed to initialize Firebase Admin SDK from Base64 key:', error);
+    }
+    throw new Error(
+      'Could not load Firebase Admin SDK credentials. Make sure FIREBASE_ADMIN_KEY is a valid Base64 encoded service account.'
+    );
   }
 }
 
 const db = admin.firestore();
 
-// Export the initialized db instance
 export { db };

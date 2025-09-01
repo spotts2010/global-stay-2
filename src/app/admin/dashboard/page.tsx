@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -44,13 +44,13 @@ const hostProperties = [
   },
 ];
 
-export default function HostDashboardPage() {
+export default function AdminDashboardPage() {
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12 pb-16">
-      <div className="flex items-center justify-between mb-8">
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-headline text-4xl md:text-5xl font-bold">Host Dashboard</h1>
-          <p className="text-muted-foreground mt-2 text-lg">Manage your properties and bookings.</p>
+          <h1 className="text-3xl font-bold">Your Properties</h1>
+          <p className="text-muted-foreground">Manage your listings on Global Stay 2.0.</p>
         </div>
         <Button asChild>
           <Link href="#">
@@ -61,11 +61,7 @@ export default function HostDashboardPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Your Properties</CardTitle>
-          <CardDescription>A list of all your listings on Global Stay 2.0.</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <Table>
             <TableHeader>
               <TableRow>

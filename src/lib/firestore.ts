@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase'; // Use server-safe firebase config
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import type { Accommodation, Booking } from './data';
+import { collection, getDocs, doc, getDoc, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import type { Accommodation } from './data';
 import { getMockAccommodations, getMockBookings } from './firestore.mock';
 
 // Detect if we're in a test environment (Jest or Playwright)
@@ -15,12 +15,16 @@ export async function fetchAccommodations(): Promise<Accommodation[]> {
   }
   try {
     const snapshot = await getDocs(collection(db, 'accommodations'));
-    return snapshot.docs.map((doc) => ({
+    return snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
       id: doc.id,
       ...doc.data(),
     })) as Accommodation[];
-  } catch (error) {
-    console.error('Error fetching accommodations:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error fetching accommodations:', error.message);
+    } else {
+      console.error('Error fetching accommodations:', error);
+    }
     return []; // Return empty array on error
   }
 }
@@ -35,9 +39,15 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
   try {
     const ref = doc(db, 'accommodations', id);
     const snapshot = await getDoc(ref);
-    return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Accommodation) : null;
-  } catch (error) {
-    console.error(`Error fetching accommodation by ID (${id}):`, error);
+    return snapshot.exists()
+      ? ({ id: snapshot.id, ...snapshot.data() } as Accommodation)
+      : null;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error(`Error fetching accommodation by ID (${id}):`, error.message);
+    } else {
+      console.error(`Error fetching accommodation by ID (${id}):`, error);
+    }
     return null; // Return null on error
   }
 }
@@ -45,24 +55,32 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
 /**
  * Fetch bookings for a given user ID
  */
+export interface Booking {
+  id: string;
+  userId?: string;
+  [key: string]: unknown; // Allow other dynamic fields
+}
+
 export async function fetchBookings(userId: string): Promise<Booking[]> {
   if (isTestEnv) {
     return getMockBookings().filter(
-      (b) =>
-        (b as Booking & { userId?: string }).userId === userId ||
-        !(b as Booking & { userId?: string }).userId
-    );
+      (b) => (b as Booking).userId === userId || !(b as Booking).userId
+    ) as Booking[];
   }
   try {
     const snapshot = await getDocs(collection(db, 'bookings'));
-    // In a real scenario, you'd query by userId
-    const bookings = snapshot.docs.map((doc) => ({
+    const bookings = snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
       id: doc.id,
       ...doc.data(),
-    }));
-    return bookings.filter((b) => (b as Booking & { userId: string }).userId === userId) as Booking[];
-  } catch (error) {
-    console.error(`Error fetching bookings for user (${userId}):`, error);
+    })) as Booking[];
+
+    return bookings.filter((b) => b.userId === userId);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error(`Error fetching bookings for user (${userId}):`, error.message);
+    } else {
+      console.error(`Error fetching bookings for user (${userId}):`, error);
+    }
     return []; // Return empty array on error
   }
 }

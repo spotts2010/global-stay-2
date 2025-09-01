@@ -50,6 +50,12 @@ const AccommodationCard = ({ accommodation }: AccommodationCardProps) => {
               className="object-cover"
               data-ai-hint={accommodation.imageHint}
             />
+            <div className="absolute bottom-3 left-3">
+              <div className="bg-black/60 text-white px-2 py-0.5 rounded-sm">
+                <span className="text-base font-bold">${accommodation.price}</span>
+                <span className="text-xs">/night</span>
+              </div>
+            </div>
           </div>
         </Link>
         <Button
@@ -68,29 +74,23 @@ const AccommodationCard = ({ accommodation }: AccommodationCardProps) => {
         </Button>
       </CardHeader>
       <CardContent className="p-4 flex-grow">
-        <div className="flex justify-between items-start">
-          <CardTitle className="font-headline text-xl font-bold leading-tight">
-            <Link
-              href={`/accommodation/${accommodation.id}`}
-              className="hover:text-primary transition-colors"
-            >
-              {accommodation.name}
-            </Link>
-          </CardTitle>
-          <div className="flex items-center gap-1 text-sm font-bold text-foreground shrink-0 pl-2">
-            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-            <span>{accommodation.rating.toFixed(1)}</span>
-          </div>
-        </div>
+        <CardTitle className="font-headline text-xl font-bold leading-tight">
+          <Link
+            href={`/accommodation/${accommodation.id}`}
+            className="hover:text-primary transition-colors"
+          >
+            {accommodation.name}
+          </Link>
+        </CardTitle>
         <CardDescription className="flex items-center gap-1 text-sm mt-1 text-muted-foreground">
           <MapPin className="h-4 w-4" />
           {accommodation.location}
         </CardDescription>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
-        <div>
-          <span className="text-2xl font-bold text-primary">${accommodation.price}</span>
-          <span className="text-sm text-muted-foreground">/night</span>
+        <div className="flex items-center gap-1 text-sm font-bold text-foreground">
+          <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+          <span>{accommodation.rating.toFixed(1)}</span>
         </div>
         <Button asChild>
           <Link href={`/accommodation/${accommodation.id}`}>View Details</Link>

@@ -1,6 +1,3 @@
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from './firebase';
-
 export type Amenity = 'wifi' | 'pool' | 'gym' | 'parking' | 'kitchen';
 
 export type Accommodation = {
@@ -13,9 +10,9 @@ export type Accommodation = {
   image: string;
   amenities: Amenity[];
   type: 'Apartment' | 'Villa' | 'Hotel' | 'Loft' | 'House';
+  imageHint: string;
   lat: number;
   lng: number;
-  imageHint: string;
 };
 
 export type Collection = {
@@ -32,14 +29,28 @@ export const collections: Collection[] = [
     id: 'beach_villas',
     title: 'Beach Villas',
     description: 'Luxury villas by the beach',
-    image: '/images/beach-villa.jpg',
+    image: 'https://placehold.co/400x533.png',
     imageHint: 'beach villa front view',
   },
   {
     id: 'city_apartments',
     title: 'City Apartments',
     description: 'Modern apartments in the city center',
-    image: '/images/city-apartment.jpg',
+    image: 'https://placehold.co/400x533.png',
     imageHint: 'city apartment interior',
+  },
+  {
+    id: 'mountain_retreats',
+    title: 'Mountain Retreats',
+    description: 'Secluded cabins with stunning views',
+    image: 'https://placehold.co/400x533.png',
+    imageHint: 'mountain cabin exterior',
+  },
+  {
+    id: 'country_houses',
+    title: 'Country Houses',
+    description: 'Charming houses in the countryside',
+    image: 'https://placehold.co/400x533.png',
+    imageHint: 'countryside house garden',
   },
 ];

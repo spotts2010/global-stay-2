@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack -p 9003",
+    "dev": "next dev --turbopack -p 9002",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
@@ -12,7 +12,8 @@
     "lint": "eslint . --max-warnings=0 --fix && prettier --write .",
     "typecheck": "tsc --noEmit",
     "prepare": "husky install",
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "seed": "tsx -r dotenv/config src/lib/seedFirestore.ts"
   },
   "prettier": {
     "semi": true,
