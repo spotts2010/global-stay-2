@@ -5,11 +5,17 @@ import { Toaster } from '@/components/ui/toaster';
 import { FavoritesProvider } from '@/context/FavoritesContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { Quicksand } from 'next/font/google';
 
 export const metadata: Metadata = {
   title: 'Global Stay 2.0',
   description: 'Find your next stay, anywhere in the world.',
 };
+
+const quicksand = Quicksand({
+  subsets: ['latin'],
+  variable: '--font-quicksand',
+});
 
 export default function RootLayout({
   children,
@@ -17,15 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" suppressHydrationWarning className={`${quicksand.variable}`}>
       <body className={cn('font-body antialiased bg-background text-foreground')}>
         <FavoritesProvider>
           <div className="relative flex min-h-screen flex-col">

@@ -1,7 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { Heart, Hotel, User, Settings, LayoutGrid, LogOut, Briefcase } from 'lucide-react';
+import {
+  Heart,
+  Hotel,
+  User,
+  Settings,
+  LayoutGrid,
+  LogOut,
+  Briefcase,
+  ArrowLeft,
+} from 'lucide-react';
 import { Button } from './ui/button';
 import { useFavorites } from '@/context/FavoritesContext';
 import { Badge } from './ui/badge';
@@ -14,9 +23,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { usePathname } from 'next/navigation';
 
 const Header = () => {
   const { favorites } = useFavorites();
+  const pathname = usePathname();
   // Placeholder for auth state
   const isLoggedIn = true;
   const user = {
@@ -31,91 +42,118 @@ const Header = () => {
       .join('');
   };
 
-  return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <Hotel className="h-6 w-6 text-primary" />
-          <span className="font-headline text-xl font-bold tracking-tight">Global Stay 2.0</span>
-        </Link>
-        <nav className="flex items-center gap-4">
-          <Button variant="ghost" asChild>
-            <Link href="/">Home</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/favorites" className="relative">
-              <Heart className="mr-2 h-4 w-4" />
-              Favourites
-              {favorites.length > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -right-2 -top-2 h-5 w-5 justify-center p-0"
-                >
-                  {favorites.length}
-                </Badge>
-              )}
-            </Link>
-          </Button>
+  const isAdminPage = pathname.startsWith('/admin');
+  const isAccountPage = pathname.startsWith('/account');
 
+  const Logo = () => (
+    <div className="flex items-center gap-2">
+      <Hotel className="h-6 w-6 text-primary" />
+      <span className="font-headline text-xl font-bold tracking-tight">Global Stay 2.0</span>
+    </div>
+  );
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-card">
+      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
+        {isAdminPage || isAccountPage ? (
+          <div className="flex items-center gap-2">
+            <Logo />
+          </div>
+        ) : (
+          <Link href="/" className="flex items-center gap-2">
+            <Logo />
+          </Link>
+        )}
+        <div className="flex flex-1 items-center justify-end gap-4">
           {isLoggedIn ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar>
-                    <AvatarImage src={undefined} alt={user.name} />
-                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                  </Avatar>
+            <div className="flex items-center gap-4">
+              {(isAdminPage || isAccountPage) && (
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-primary hover:text-black"
+                >
+                  <Link href="/">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Return to Site
+                  </Link>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>My Account</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Briefcase className="mr-2 h-4 w-4" />
-                  <span>My Stays</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/favorites">
-                    <Heart className="mr-2 h-4 w-4" />
-                    <span>Saved Places</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>Creator & Admin</DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link href="/admin/dashboard">
-                    <LayoutGrid className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                  >
+                    <Avatar>
+                      <AvatarImage src={undefined} alt={user.name} />
+                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>My Account</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/my-stays">
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      <span>My Stays</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/favorites">
+                      <Heart className="mr-2 h-4 w-4" />
+                      <span>Saved Places</span>
+                      {favorites.length > 0 && (
+                        <Badge
+                          variant="destructive"
+                          className="ml-auto flex h-5 w-5 items-center justify-center p-0"
+                        >
+                          {favorites.length}
+                        </Badge>
+                      )}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/settings">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Creator & Admin</DropdownMenuLabel>
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/dashboard">
+                      <LayoutGrid className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           ) : (
             <Button asChild>
               <Link href="/login">Login</Link>
             </Button>
           )}
-        </nav>
+        </div>
       </div>
     </header>
   );

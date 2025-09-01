@@ -16,14 +16,16 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
-  // Allow cross-origin requests from the Firebase Studio preview environment
-  // to fix server startup issues.
-  experimental: {
-    allowedDevOrigins: [
-      'https://9000-firebase-studio-1753950960099.cluster-m7dwy2bmizezqukxkuxd55k5ka.cloudworkstations.dev',
-    ],
+  devIndicators: {
+    allowedDevOrigins: ['*.cloudworkstations.dev'],
   },
 };
 

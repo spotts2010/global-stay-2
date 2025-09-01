@@ -1,14 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function AdminDashboardPage() {
+export default function RoomConfiguratorPage() {
   return (
     <div className="flex-1 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Dashboard</CardTitle>
+          <CardTitle>Room Configurator</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Welcome to your admin dashboard. Use the sidebar to navigate.</p>
+          <p>Configure room types and settings here.</p>
         </CardContent>
       </Card>
     </div>

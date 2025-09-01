@@ -1,3 +1,8 @@
+// This component is not used in the current implementation,
+// but it is a good starting point for a more complex sidebar.
+// To use it, you would wrap your layout in <SidebarProvider> and then
+// use the other components to build your sidebar.
+
 'use client';
 
 import * as React from 'react';
