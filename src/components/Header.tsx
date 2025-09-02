@@ -10,6 +10,7 @@ import {
   LogOut,
   Briefcase,
   ArrowLeft,
+  _PanelLeft,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useFavorites } from '@/context/FavoritesContext';
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { usePathname } from 'next/navigation';
+import { _Sheet, _SheetTrigger, _SheetContent } from './ui/sheet';
 
 const Header = () => {
   const { favorites } = useFavorites();
@@ -55,15 +57,22 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-        {isAdminPage || isAccountPage ? (
-          <div className="flex items-center gap-2">
-            <Logo />
+        <div className="flex items-center gap-4">
+          <div className="sm:hidden">
+            {/* Mobile menu trigger for account pages will be injected here by the layout */}
           </div>
-        ) : (
+          <Link href="/" className="hidden sm:flex items-center gap-2">
+            <Logo />
+          </Link>
+        </div>
+
+        {/* Mobile-only Logo */}
+        <div className="sm:hidden">
           <Link href="/" className="flex items-center gap-2">
             <Logo />
           </Link>
-        )}
+        </div>
+
         <div className="flex flex-1 items-center justify-end gap-4">
           {isLoggedIn ? (
             <div className="flex items-center gap-4">
@@ -72,7 +81,7 @@ const Header = () => {
                   asChild
                   variant="outline"
                   size="sm"
-                  className="hover:bg-primary hover:text-black"
+                  className="hover:bg-primary hover:text-black hidden sm:flex"
                 >
                   <Link href="/">
                     <ArrowLeft className="mr-2 h-4 w-4" />

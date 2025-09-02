@@ -1,10 +1,10 @@
 // src/app/page.tsx
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, MapPin, Sparkles } from 'lucide-react';
+import { ArrowRight, _MapPin, _Sparkles } from 'lucide-react';
 
 import { collections, type Collection } from '@/lib/data';
-import { Card, CardContent } from '@/components/ui/card';
+import { _Card, _CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import AccommodationSearchForm from '@/components/AccommodationSearchForm';
 import CuratedCollectionCard from '@/components/CuratedCollectionCard';
@@ -12,6 +12,7 @@ import AccommodationCard from '@/components/AccommodationCard';
 import AIRecommendations from '@/components/AIRecommendations';
 import { fetchAccommodations } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
+import _AccommodationMap from '@/components/AccommodationMap';
 
 export default async function Home() {
   const accommodations: Accommodation[] = await fetchAccommodations();
@@ -30,9 +31,9 @@ export default async function Home() {
       >
         <div className="absolute inset-0 bg-black/50 z-10" />
         <Image
-          src="https://placehold.co/1920x1080.png"
-          alt="A luxurious hotel lobby interior with modern decor"
-          data-ai-hint="hotel lobby"
+          src="https://images.unsplash.com/photo-1460627390041-532a28402358"
+          alt="A tropical bungalow over clear water"
+          data-ai-hint="tropical resort"
           fill
           priority
           className="z-0 object-cover"
@@ -113,7 +114,7 @@ export default async function Home() {
           {/* AI Recommendations */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 text-primary">
-              <Sparkles className="h-8 w-8" aria-hidden="true" />
+              <_Sparkles className="h-8 w-8" aria-hidden="true" />
               <h2
                 id="personalised-heading"
                 className="font-headline text-3xl md:text-4xl font-bold"
@@ -131,22 +132,15 @@ export default async function Home() {
           {/* Map */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 text-primary">
-              <MapPin className="h-8 w-8" aria-hidden="true" />
+              <_MapPin className="h-8 w-8" aria-hidden="true" />
               <h2 className="font-headline text-3xl md:text-4xl font-bold">Explore the Area</h2>
             </div>
             <p className="text-muted-foreground">
               Discover accommodations in your desired location with our interactive map.
             </p>
-            <Card className="overflow-hidden h-[400px] lg:h-full">
-              <Image
-                src="https://placehold.co/800x600.png"
-                alt="Map preview showing accommodations in a city area"
-                data-ai-hint="world map"
-                width={800}
-                height={600}
-                className="w-full h-full object-cover"
-              />
-            </Card>
+            <_Card className="overflow-hidden h-[400px] lg:h-full">
+              <_AccommodationMap accommodations={topRatedAccommodations.slice(0, 8)} />
+            </_Card>
           </div>
         </div>
       </section>

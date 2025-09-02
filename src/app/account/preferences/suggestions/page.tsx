@@ -48,7 +48,7 @@ const initialSuggestions: Suggestion[] = [
     id: 's2',
     title: 'European City Exploration',
     description:
-      'A centrally located apartment in a historic European city like Rome, Prague, or Lisbon. Must have good access to public transport, museums, and local restaurants.',
+      'A centrally located apartment in a historic European city. Must have good access to public transport, museums, and local restaurants.',
     locations: ['Rome, Italy', 'Prague, Czechia', 'Lisbon, Portugal'],
   },
   {
@@ -71,7 +71,7 @@ export default function SuggestionsPage() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
+      <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <CardTitle className="font-headline text-2xl flex items-center gap-2">
             <Wand className="h-6 w-6 text-primary" />

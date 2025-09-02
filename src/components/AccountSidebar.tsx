@@ -3,26 +3,26 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  _User,
-  _ShieldCheck,
-  _Users,
-  _CreditCard,
-  _Gift,
-  _Ticket,
-  _Languages,
-  _Bell,
-  _Wand,
-  _Briefcase,
-  _Star,
-  _Heart,
-  _HelpCircle,
-  _FileText,
-  _Home,
-  _LifeBuoy,
-  _Shield,
-  _SlidersHorizontal,
-  _MessageSquareWarning,
-  _Cog,
+  User,
+  ShieldCheck,
+  Users,
+  CreditCard,
+  Gift,
+  Ticket,
+  Languages,
+  Bell,
+  Wand,
+  Briefcase,
+  Star,
+  Heart,
+  HelpCircle,
+  FileText,
+  Home,
+  LifeBuoy,
+  Shield,
+  SlidersHorizontal,
+  MessageSquareWarning,
+  Cog,
   ChevronDown,
   ChevronRight,
   PanelLeft,
@@ -40,76 +40,76 @@ type NavItem = {
   children?: NavItem[];
 };
 
-const menuItems: NavItem[] = [
+export const menuItems: NavItem[] = [
   {
     label: 'My Account',
-    icon: _User,
+    icon: User,
     children: [
-      { href: '/account/profile', label: 'Personal Details', icon: _User },
-      { href: '/account/settings', label: 'Security Settings', icon: _ShieldCheck },
-      { href: '/account/travel-partners', label: 'My Travel Partners', icon: _Users },
+      { href: '/account/profile', label: 'Personal Details', icon: User },
+      { href: '/account/settings', label: 'Security Settings', icon: ShieldCheck },
+      { href: '/account/travel-partners', label: 'My Travel Partners', icon: Users },
     ],
   },
   {
     label: 'Payments',
-    icon: _CreditCard,
+    icon: CreditCard,
     children: [
-      { href: '/account/payment/methods', label: 'Payment Methods', icon: _CreditCard },
-      { href: '/account/payment/rewards', label: 'Rewards', icon: _Gift },
-      { href: '/account/payment/coupons', label: 'Coupons & Credits', icon: _Ticket },
+      { href: '/account/payment/methods', label: 'Payment Methods', icon: CreditCard },
+      { href: '/account/payment/rewards', label: 'Rewards', icon: Gift },
+      { href: '/account/payment/coupons', label: 'Coupons & Credits', icon: Ticket },
     ],
   },
   {
     label: 'Preferences',
-    icon: _SlidersHorizontal,
+    icon: SlidersHorizontal,
     children: [
       {
         href: '/account/preferences/currency-language',
         label: 'Currency & Language',
-        icon: _Languages,
+        icon: Languages,
       },
-      { href: '/account/preferences/suggestions', label: 'Smart Suggestions', icon: _Wand },
+      { href: '/account/preferences/suggestions', label: 'Smart Suggestions', icon: Wand },
     ],
   },
   {
     label: 'Notifications & Alerts',
-    icon: _Bell,
+    icon: Bell,
     children: [
       {
         href: '/account/notifications/view',
         label: 'View Notifications',
-        icon: _MessageSquareWarning,
+        icon: MessageSquareWarning,
       },
-      { href: '/account/notifications/manage', label: 'Manage Notifications', icon: _Cog },
-      { href: '/account/notifications/my-alerts', label: 'My Alerts', icon: _Bell },
+      { href: '/account/notifications/manage', label: 'Manage Notifications', icon: Cog },
+      { href: '/account/notifications/my-alerts', label: 'My Alerts', icon: Bell },
     ],
   },
   {
     label: 'My Stays',
-    icon: _Home,
+    icon: Home,
     children: [
-      { href: '/account/my-stays', label: 'Upcoming & Past Stays', icon: _Briefcase },
-      { href: '/account/favorites', label: 'Saved Places', icon: _Heart },
-      { href: '/account/reviews', label: 'My Reviews & Ratings', icon: _Star },
+      { href: '/account/my-stays', label: 'Upcoming & Past Stays', icon: Briefcase },
+      { href: '/account/favorites', label: 'Saved Places', icon: Heart },
+      { href: '/account/reviews', label: 'My Reviews & Ratings', icon: Star },
     ],
   },
   {
     label: 'Support',
-    icon: _LifeBuoy,
+    icon: LifeBuoy,
     children: [
-      { href: '/account/support/faq', label: 'FAQs & Resources', icon: _HelpCircle },
-      { href: '/account/support/tickets', label: 'My Support Tickets', icon: _FileText },
-      { href: '/account/support/disputes', label: 'Dispute Resolution', icon: _ShieldCheck },
+      { href: '/account/support/faq', label: 'FAQs & Resources', icon: HelpCircle },
+      { href: '/account/support/tickets', label: 'My Support Tickets', icon: FileText },
+      { href: '/account/support/disputes', label: 'Dispute Resolution', icon: ShieldCheck },
     ],
   },
   {
     label: 'Privacy & Data',
-    icon: _Shield,
+    icon: Shield,
     children: [
-      { href: '/account/privacy/data', label: 'Data Management', icon: _ShieldCheck },
-      { href: '/account/privacy/statement', label: 'Privacy Statement', icon: _FileText },
-      { href: '/account/privacy/terms', label: 'Terms & Conditions', icon: _FileText },
-      { href: '/account/privacy/legal', label: 'Legal', icon: _FileText },
+      { href: '/account/privacy/data', label: 'Data Management', icon: ShieldCheck },
+      { href: '/account/privacy/statement', label: 'Privacy Statement', icon: FileText },
+      { href: '/account/privacy/terms', label: 'Terms & Conditions', icon: FileText },
+      { href: '/account/privacy/legal', label: 'Legal', icon: FileText },
     ],
   },
 ];
@@ -134,7 +134,8 @@ function CollapsibleMenu({
     if (hasActiveChild && !isOpen) {
       onToggle();
     }
-  }, [hasActiveChild, currentPath, isOpen, onToggle]); // Added missing deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasActiveChild, currentPath]);
 
   return (
     <div>
@@ -150,7 +151,7 @@ function CollapsibleMenu({
               )}
             >
               {item.icon && <item.icon className="h-5 w-5 shrink-0" />}
-              {!isCollapsed && <span className="flex-1 text-left text-sm">{item.label}</span>}
+              {!isCollapsed && <span className="flex-1 text-left truncate">{item.label}</span>}
               {!isCollapsed &&
                 (isOpen ? (
                   <ChevronDown className="h-4 w-4" />
@@ -181,7 +182,7 @@ function CollapsibleMenu({
               )}
             >
               {child.icon && <child.icon className="h-4 w-4" />}
-              <span className="text-xs">{child.label}</span>
+              <span className="text-xs truncate">{child.label}</span>
             </Link>
           ))}
         </div>

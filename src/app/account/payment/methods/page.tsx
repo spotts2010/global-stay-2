@@ -115,7 +115,7 @@ const paymentMethods = [
 export default function PaymentMethodsPage() {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
+      <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <CardTitle className="font-headline text-2xl">Payment Methods</CardTitle>
           <CardDescription>Add and manage your payment methods.</CardDescription>
