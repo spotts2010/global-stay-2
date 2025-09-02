@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   MailWarning,
   Ticket,
+  Building,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useFavorites } from '@/context/FavoritesContext';
@@ -188,6 +189,12 @@ const Header = () => {
                     <Link href="/admin/dashboard">
                       <LayoutGrid className="mr-2 h-4 w-4" />
                       <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/listings">
+                      <Building className="mr-2 h-4 w-4" />
+                      <span>Manage Listings</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
