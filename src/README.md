@@ -88,6 +88,8 @@ The action buttons displayed on the notification detail page change based on the
   - **Denied Requests**: A mechanism to notify the requester if a partner invitation is denied, with a potential 'Denied Requests' section to manage and possibly resend these requests.
 - **Payment Method Expiry Notifications**: Send notifications regarding a payment method that is expiring soon. Notifications to be sent automatically at 30 days, 7 days, and 1 day before expiry. A final email will be sent the day after expiry if the method has not been updated or removed.
 - **Alternative Payment Methods**: Integrate with Crypto (e.g., Bitcoin) and other alternative payment systems. Note: Financial data will not be stored directly; integration will use secure tokens (e.g., from Stripe) or hosted fields.
+- **Date & Time Formatting**: Add an option to the "Currency & Language" page to allow users to override the default date and time formatting, which is initially set based on their profile's country selection. This would allow a user in the US to select a UK date format (DD/MM/YYYY) if they prefer.
+- **Contact Host**: Consider a "Contact" button on booking cards. This would initiate an internally managed communication thread between the guest and the property host, possibly integrated within the notification system or a new dedicated messaging page.
 
 ### Known Issues
 

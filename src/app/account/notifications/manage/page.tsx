@@ -26,46 +26,46 @@ const notificationSettings = [
     id: 'system',
     title: 'System & Account Alerts',
     description: 'Required security and account status notifications.',
-    email: { checked: true, disabled: true },
-    sms: { checked: false, disabled: true },
-    push: { checked: false, disabled: true },
     inApp: { checked: true, disabled: true },
+    email: { checked: true, disabled: true },
+    push: { checked: false, disabled: false },
+    sms: { checked: false, disabled: false },
   },
   {
     id: 'bookings',
     title: 'Booking Updates',
     description: 'Alerts for confirmations, changes, and reminders.',
-    email: { checked: true, disabled: false },
-    sms: { checked: true, disabled: false },
-    push: { checked: true, disabled: false },
     inApp: { checked: true, disabled: false },
+    email: { checked: true, disabled: false },
+    push: { checked: true, disabled: false },
+    sms: { checked: true, disabled: false },
   },
   {
     id: 'promos',
     title: 'Promotions & Offers',
     description: 'Special deals and discounts from us and our partners.',
-    email: { checked: true, disabled: false },
-    sms: { checked: false, disabled: false },
-    push: { checked: false, disabled: false },
     inApp: { checked: true, disabled: false },
+    email: { checked: true, disabled: false },
+    push: { checked: false, disabled: false },
+    sms: { checked: false, disabled: false },
   },
   {
     id: 'suggestions',
     title: 'Smart Suggestions',
     description: 'Personalized stay recommendations and travel tips.',
-    email: { checked: false, disabled: false },
-    sms: { checked: false, disabled: false },
-    push: { checked: true, disabled: false },
     inApp: { checked: true, disabled: false },
+    email: { checked: true, disabled: false },
+    push: { checked: true, disabled: false },
+    sms: { checked: false, disabled: false },
   },
   {
     id: 'partner',
     title: 'Travel Partner Requests',
     description: 'Notifications about travel partner invitations.',
-    email: { checked: true, disabled: false },
-    sms: { checked: false, disabled: false },
-    push: { checked: true, disabled: false },
     inApp: { checked: true, disabled: false },
+    email: { checked: true, disabled: false },
+    push: { checked: true, disabled: false },
+    sms: { checked: false, disabled: false },
   },
 ];
 
@@ -87,10 +87,10 @@ export default function ManageNotificationsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="font-bold w-[40%]">Notification Type</TableHead>
-                <TableHead className="font-bold text-center w-[15%]">Email</TableHead>
-                <TableHead className="font-bold text-center w-[15%]">SMS</TableHead>
-                <TableHead className="font-bold text-center w-[15%]">Push</TableHead>
                 <TableHead className="font-bold text-center w-[15%]">In-App</TableHead>
+                <TableHead className="font-bold text-center w-[15%]">Email</TableHead>
+                <TableHead className="font-bold text-center w-[15%]">Push</TableHead>
+                <TableHead className="font-bold text-center w-[15%]">SMS</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -102,14 +102,14 @@ export default function ManageNotificationsPage() {
                   </TableCell>
                   <TableCell className="text-center">
                     <Checkbox
-                      defaultChecked={setting.email.checked}
-                      disabled={setting.email.disabled}
+                      defaultChecked={setting.inApp.checked}
+                      disabled={setting.inApp.disabled}
                     />
                   </TableCell>
                   <TableCell className="text-center">
                     <Checkbox
-                      defaultChecked={setting.sms.checked}
-                      disabled={setting.sms.disabled}
+                      defaultChecked={setting.email.checked}
+                      disabled={setting.email.disabled}
                     />
                   </TableCell>
                   <TableCell className="text-center">
@@ -120,8 +120,8 @@ export default function ManageNotificationsPage() {
                   </TableCell>
                   <TableCell className="text-center">
                     <Checkbox
-                      defaultChecked={setting.inApp.checked}
-                      disabled={setting.inApp.disabled}
+                      defaultChecked={setting.sms.checked}
+                      disabled={setting.sms.disabled}
                     />
                   </TableCell>
                 </TableRow>

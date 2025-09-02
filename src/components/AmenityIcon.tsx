@@ -1,4 +1,4 @@
-import { Wifi, Car, Utensils, Award, Pool, Dumbbell } from 'lucide-react';
+import { Wifi, Car, Utensils, Award, Waves, Dumbbell } from 'lucide-react';
 import type { Amenity } from '@/lib/data';
 
 type AmenityIconProps = {
@@ -11,7 +11,7 @@ const AmenityIcon = ({ amenity, className = 'h-6 w-6 text-primary' }: AmenityIco
     wifi: Wifi,
     parking: Car,
     kitchen: Utensils,
-    pool: Pool,
+    pool: Waves,
     gym: Dumbbell,
   };
 

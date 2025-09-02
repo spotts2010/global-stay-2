@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -35,8 +34,6 @@ import {
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useNotifications } from '@/context/NotificationsContext';
-import { Badge } from './ui/badge';
 
 type NavItem = {
   href?: string;
@@ -55,14 +52,38 @@ export const menuItems: NavItem[] = [
       { href: '/account/settings', label: 'Security Settings', icon: ShieldCheck },
       {
         href: '/account/travel-partners',
-        label: 'My Travel Partners',
+        label: 'Travel Partners',
         icon: Users,
       },
       {
         href: '/account/my-travel-documents',
-        label: 'My Travel Documents',
+        label: 'Travel Documents',
         icon: ClipboardList,
       },
+    ],
+  },
+  {
+    label: 'My Stays',
+    icon: Home,
+    children: [
+      { href: '/account/my-stays/upcoming', label: 'Upcoming Stays', icon: Briefcase },
+      { href: '/account/my-stays/past', label: 'Past Stays', icon: Briefcase },
+      { href: '/account/my-stays/favorites', label: 'Saved Places', icon: Heart },
+      { href: '/account/my-stays/reviews', label: 'Reviews & Ratings', icon: Star },
+    ],
+  },
+  {
+    label: 'Notifications & Alerts',
+    icon: Bell,
+    children: [
+      {
+        href: '/account/notifications/view',
+        label: 'My Notifications',
+        icon: MailWarning,
+      },
+      { href: '/account/notifications/my-alerts', label: 'My Alerts', icon: Bell },
+      { href: '/account/notifications/manage', label: 'Manage Notifications', icon: ListChecks },
+      { href: '/account/notifications/1', label: 'View Notification', hidden: true },
     ],
   },
   {
@@ -84,29 +105,6 @@ export const menuItems: NavItem[] = [
         icon: Languages,
       },
       { href: '/account/preferences/suggestions', label: 'Smart Suggestions', icon: Wand },
-    ],
-  },
-  {
-    label: 'Notifications & Alerts',
-    icon: Bell,
-    children: [
-      {
-        href: '/account/notifications/view',
-        label: 'My Notifications',
-        icon: MailWarning,
-      },
-      { href: '/account/notifications/my-alerts', label: 'My Alerts', icon: Bell },
-      { href: '/account/notifications/manage', label: 'Manage Notifications', icon: ListChecks },
-      { href: '/account/notifications/1', label: 'View Notification', hidden: true },
-    ],
-  },
-  {
-    label: 'My Stays',
-    icon: Home,
-    children: [
-      { href: '/account/my-stays', label: 'Upcoming & Past Stays', icon: Briefcase },
-      { href: '/account/favorites', label: 'Saved Places', icon: Heart },
-      { href: '/account/reviews', label: 'My Reviews & Ratings', icon: Star },
     ],
   },
   {
@@ -143,7 +141,6 @@ function CollapsibleMenu({
   isOpen: boolean;
   onToggle: () => void;
 }) {
-  const { unreadCount } = useNotifications();
   const hasActiveChild =
     item.children?.some((child) => child.href && currentPath.startsWith(child.href)) || false;
 
@@ -153,8 +150,6 @@ function CollapsibleMenu({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasActiveChild, currentPath]);
-
-  const isNotificationsMenu = item.label === 'Notifications & Alerts';
 
   return (
     <div>

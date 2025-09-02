@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -130,7 +129,7 @@ const Header = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/account/notifications/my-alerts">
+                    <Link href="/account/notifications/view">
                       <MailWarning className="mr-2 h-4 w-4" />
                       <span>Notifications</span>
                       {unreadCount > 0 && (
@@ -144,13 +143,13 @@ const Header = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/account/my-stays">
+                    <Link href="/account/my-stays/upcoming">
                       <Briefcase className="mr-2 h-4 w-4" />
                       <span>My Stays</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/account/favorites">
+                    <Link href="/account/my-stays/favorites">
                       <Heart className="mr-2 h-4 w-4" />
                       <span>Saved Places</span>
                       {favorites.length > 0 && (

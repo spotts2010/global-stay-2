@@ -15,6 +15,20 @@ export type Accommodation = {
   lng: number;
 };
 
+export type Booking = {
+  id: string;
+  accommodationId?: string;
+  userId?: string;
+  startDate?: Date;
+  endDate?: Date;
+  guests?: number;
+  totalPrice?: number;
+};
+
+export type EnrichedBooking = Booking & {
+  accommodation?: Accommodation;
+};
+
 export type Collection = {
   id: string;
   title: string;
