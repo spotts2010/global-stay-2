@@ -1,4 +1,3 @@
-
 # Global Stay 2.0
 
 This is a Next.js project for "Global Stay 2.0", an accommodation booking platform. This project is being developed in Firebase Studio.
@@ -64,8 +63,8 @@ The action buttons displayed on the notification detail page change based on the
 
 - **My Alerts**:
   - **Purpose**: Notifications triggered by user-created alerts (e.g., price drops, availability for specific criteria).
+  - **Logic**: An alert must be "Active" for the AI to perform a daily search for matching deals. This continues until the alert is 'Paused' or 'Deleted'. When a match is found, a notification is created in the "View Notifications" table. The delivery method (Push, Email, In-App) depends on the user's notification settings.
   - **Actions**: Mark as Read, Delete, Flag as Important, View Listing.
-
 
 ## In Progress / Future Features
 
