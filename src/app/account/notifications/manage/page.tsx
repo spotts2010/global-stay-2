@@ -11,33 +11,63 @@ import {
 } from '@/components/ui/card';
 import { ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
-const NotificationSettingRow = ({
-  id,
-  title,
-  description,
-  defaultChecked = false,
-  disabled = false,
-}: {
-  id: string;
-  title: string;
-  description: string;
-  defaultChecked?: boolean;
-  disabled?: boolean;
-}) => (
-  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-    <div className="space-y-0.5">
-      <Label htmlFor={id} className="text-base font-medium">
-        {title}
-      </Label>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </div>
-    <Switch id={id} defaultChecked={defaultChecked} disabled={disabled} />
-  </div>
-);
+const notificationSettings = [
+  {
+    id: 'system',
+    title: 'System & Account Alerts',
+    description: 'Required security and account status notifications.',
+    email: { checked: true, disabled: true },
+    sms: { checked: false, disabled: true },
+    push: { checked: false, disabled: true },
+    inApp: { checked: true, disabled: true },
+  },
+  {
+    id: 'bookings',
+    title: 'Booking Updates',
+    description: 'Alerts for confirmations, changes, and reminders.',
+    email: { checked: true, disabled: false },
+    sms: { checked: true, disabled: false },
+    push: { checked: true, disabled: false },
+    inApp: { checked: true, disabled: false },
+  },
+  {
+    id: 'promos',
+    title: 'Promotions & Offers',
+    description: 'Special deals and discounts from us and our partners.',
+    email: { checked: true, disabled: false },
+    sms: { checked: false, disabled: false },
+    push: { checked: false, disabled: false },
+    inApp: { checked: true, disabled: false },
+  },
+  {
+    id: 'suggestions',
+    title: 'Smart Suggestions',
+    description: 'Personalized stay recommendations and travel tips.',
+    email: { checked: false, disabled: false },
+    sms: { checked: false, disabled: false },
+    push: { checked: true, disabled: false },
+    inApp: { checked: true, disabled: false },
+  },
+  {
+    id: 'partner',
+    title: 'Travel Partner Requests',
+    description: 'Notifications about travel partner invitations.',
+    email: { checked: true, disabled: false },
+    sms: { checked: false, disabled: false },
+    push: { checked: true, disabled: false },
+    inApp: { checked: true, disabled: false },
+  },
+];
 
 export default function ManageNotificationsPage() {
   return (
@@ -51,72 +81,58 @@ export default function ManageNotificationsPage() {
           Choose what you want to be notified about and how you receive notifications.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-8">
-        {/* --- Push Notifications Section --- */}
-        <div>
-          <h3 className="text-lg font-semibold mb-1">Push Notifications</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Receive updates directly on your device.
-          </p>
-          <div className="space-y-4">
-            <NotificationSettingRow
-              id="push-system"
-              title="System & Account Alerts"
-              description="Required security and account status notifications."
-              defaultChecked
-              disabled
-            />
-            <NotificationSettingRow
-              id="push-bookings"
-              title="Booking Updates"
-              description="Get alerts for confirmations, changes, and reminders."
-              defaultChecked
-            />
-            <NotificationSettingRow
-              id="push-promos"
-              title="Promotions & Offers"
-              description="Receive notifications about special deals and discounts."
-            />
-            <NotificationSettingRow
-              id="push-suggestions"
-              title="Smart Suggestions"
-              description="Get personalized stay recommendations."
-              defaultChecked
-            />
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* --- Email Marketing Section --- */}
-        <div>
-          <h3 className="text-lg font-semibold mb-1">Email Marketing</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Receive emails about news, offers, and more from Global Stay 2.0.
-          </p>
-          <div className="space-y-4">
-            <NotificationSettingRow
-              id="email-promos"
-              title="Promotional Emails"
-              description="Stay up-to-date with our latest offers and sales."
-              defaultChecked
-            />
-            <NotificationSettingRow
-              id="email-partners"
-              title="Partner Offers"
-              description="Receive exclusive offers from our trusted partners."
-            />
-            <NotificationSettingRow
-              id="email-newsletter"
-              title="Newsletters"
-              description="Get our monthly newsletter with travel tips and inspiration."
-              defaultChecked
-            />
-          </div>
+      <CardContent>
+        <div className="border rounded-lg bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="font-bold w-[40%]">Notification Type</TableHead>
+                <TableHead className="font-bold text-center w-[15%]">Email</TableHead>
+                <TableHead className="font-bold text-center w-[15%]">SMS</TableHead>
+                <TableHead className="font-bold text-center w-[15%]">Push</TableHead>
+                <TableHead className="font-bold text-center w-[15%]">In-App</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {notificationSettings.map((setting) => (
+                <TableRow key={setting.id}>
+                  <TableCell>
+                    <p className="font-medium">{setting.title}</p>
+                    <p className="text-xs text-muted-foreground">{setting.description}</p>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Checkbox
+                      defaultChecked={setting.email.checked}
+                      disabled={setting.email.disabled}
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Checkbox
+                      defaultChecked={setting.sms.checked}
+                      disabled={setting.sms.disabled}
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Checkbox
+                      defaultChecked={setting.push.checked}
+                      disabled={setting.push.disabled}
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Checkbox
+                      defaultChecked={setting.inApp.checked}
+                      disabled={setting.inApp.disabled}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <Button>Save Preferences</Button>
+        <Button variant="destructive">Unsubscribe from All Notifications</Button>
       </CardFooter>
     </Card>
   );
