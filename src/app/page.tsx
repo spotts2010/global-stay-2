@@ -1,10 +1,11 @@
 // src/app/page.tsx
+'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, _MapPin, _Sparkles } from 'lucide-react';
+import { ArrowRight, MapPin, Sparkles } from 'lucide-react';
+import { APIProvider } from '@vis.gl/react-google-maps';
 
 import { collections, type Collection } from '@/lib/data';
-import { _Card, _CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import AccommodationSearchForm from '@/components/AccommodationSearchForm';
 import CuratedCollectionCard from '@/components/CuratedCollectionCard';
@@ -12,10 +13,15 @@ import AccommodationCard from '@/components/AccommodationCard';
 import AIRecommendations from '@/components/AIRecommendations';
 import { fetchAccommodations } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
-import _AccommodationMap from '@/components/AccommodationMap';
+import AccommodationMap from '@/components/AccommodationMap';
+import { useEffect, useState } from 'react';
 
-export default async function Home() {
-  const accommodations: Accommodation[] = await fetchAccommodations();
+export default function Home() {
+  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
+
+  useEffect(() => {
+    fetchAccommodations().then(setAccommodations);
+  }, []);
 
   // Explicit typing for better DX
   const topRatedAccommodations: Accommodation[] = [...accommodations].sort(
@@ -114,7 +120,7 @@ export default async function Home() {
           {/* AI Recommendations */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 text-primary">
-              <_Sparkles className="h-8 w-8" aria-hidden="true" />
+              <Sparkles className="h-8 w-8" aria-hidden="true" />
               <h2
                 id="personalised-heading"
                 className="font-headline text-3xl md:text-4xl font-bold"
@@ -132,15 +138,17 @@ export default async function Home() {
           {/* Map */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 text-primary">
-              <_MapPin className="h-8 w-8" aria-hidden="true" />
+              <MapPin className="h-8 w-8" aria-hidden="true" />
               <h2 className="font-headline text-3xl md:text-4xl font-bold">Explore the Area</h2>
             </div>
             <p className="text-muted-foreground">
               Discover accommodations in your desired location with our interactive map.
             </p>
-            <_Card className="overflow-hidden h-[400px] lg:h-full">
-              <_AccommodationMap accommodations={topRatedAccommodations.slice(0, 8)} />
-            </_Card>
+            <div className="h-[400px] lg:h-full rounded-lg overflow-hidden border">
+              <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+                <AccommodationMap accommodations={topRatedAccommodations.slice(0, 8)} />
+              </APIProvider>
+            </div>
           </div>
         </div>
       </section>

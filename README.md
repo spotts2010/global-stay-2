@@ -1,3 +1,4 @@
+
 # Global Stay 2.0
 
 This is a Next.js project for "Global Stay 2.0", an accommodation booking platform. This project is being developed in Firebase Studio.
@@ -12,7 +13,7 @@ This is a Next.js project for "Global Stay 2.0", an accommodation booking platfo
 
 ## Features Implemented
 
-- **Homepage**: Displays curated collections and top-rated stays. Includes a comprehensive search form.
+- **Homepage**: Displays curated collections and top-rated stays. Includes a comprehensive search form and an interactive map.
 - **Accommodation Listings & Details**: Pages dynamically pull data from Firestore to display property information.
 - **Search & Results**: Users can search for properties, and the results are displayed on a dedicated page.
 - **Authentication**: Full login and signup flows with email/password and Google authentication are implemented.
@@ -20,12 +21,55 @@ This is a Next.js project for "Global Stay 2.0", an accommodation booking platfo
 - **Account & Admin Sections**: Both have dedicated layouts with consistent, collapsible sidebar navigation for managing different aspects of the application.
 - **Placeholder Pages**: All account and admin sections have placeholder pages to represent the full site structure.
 - **User Profile**: A detailed user profile page with editable fields and state management.
+- **Travel Documents**: A secure section for users to store and manage their driver's license, passport, and travel insurance details.
+- **Notification Center**: A detailed notification system with filtering, searching, and different notification types (e.g., system alerts, offers, booking updates). A dedicated page exists to view the details of a single notification.
+
+## Notification System Logic
+
+The notification system is designed to be flexible and context-aware.
+
+### General Behavior
+
+- **Unread State**: Unread notifications have a distinct blue background in the list to make them stand out. Once a notification is viewed (by clicking on its row), it is marked as read, and its background becomes white.
+- **Filtering**: Users can filter notifications by "All," "Read," and "Unread" statuses. They can also use a keyword search to find specific notifications.
+- **Archiving**: All notifications are automatically archived after 90 days.
+- **Important Flag**: Users can flag a notification as "Important." Flagged notifications are exempt from the 90-day archiving rule and will be retained indefinitely until the user un-flags them.
+
+### Notification Types & Actions
+
+The action buttons displayed on the notification detail page change based on the notification's `type`.
+
+- **System Notifications**:
+  - **Purpose**: Critical system-wide announcements (e.g., scheduled maintenance) or informational updates (e.g., new features).
+  - **Behavior**: These are always pinned to the top of the notification list if unread. They cannot be sorted by the user.
+  - **Actions**: Mark as Read.
+  - **Expiry & Deletion**: System notifications with a set expiry date (e.g., maintenance alerts) cannot be deleted by the user and will be removed automatically after that date. System notifications without an expiry (e.g., feature announcements) can be deleted by the user.
+
+- **Payment Method / Account**:
+  - **Purpose**: Alerts related to the user's account or payment methods (e.g., expiring credit card).
+  - **Actions**: Mark as Read, Delete, Flag as Important, Update Payment Method (links to payment settings).
+
+- **Travel Partner Requests**:
+  - **Purpose**: To manage invitations from other users.
+  - **Actions**: Approve, Deny, Mark as Read, Flag as Important. (Cannot be deleted until actioned).
+  - **Workflow**: When a user approves or denies a request, a corresponding notification is sent back to the original sender.
+
+- **Upcoming Trips**:
+  - **Purpose**: Reminders and information about upcoming bookings. May include AI-powered suggestions for local activities.
+  - **Actions**: Mark as Read, Delete, Flag as Important, View Booking Details.
+
+- **3rd Party Offers & Marketing**:
+  - **Purpose**: Promotional content and special offers.
+  - **Actions**: Mark as Read, Delete, Flag as Important, Unsubscribe (links to notification management).
+
+- **My Alerts**:
+  - **Purpose**: Notifications triggered by user-created alerts (e.g., price drops, availability for specific criteria).
+  - **Actions**: Mark as Read, Delete, Flag as Important, View Listing.
+
 
 ## In Progress / Future Features
 
-- Connecting the AI-powered recommendations feature.
-- Implementing the full booking and payment flow.
-- Populating all placeholder pages with dynamic content and functionality.
+- **Secure Document Hosting**: Implement a secure, encrypted hosting solution for travel documents (passports, licenses). This feature would allow users to optionally attach their documents to bookings, speeding up the check-in and booking process. Security and privacy must be the top priorities.
 - **Language Translations API**: Integration with a translation service for global language support.
 - **Global Currency Conversion Integration**: Real-time currency conversion for pricing.
 - **Email & Phone Verification**: A system to verify user contact information.
@@ -45,3 +89,4 @@ This is a Next.js project for "Global Stay 2.0", an accommodation booking platfo
 
 - **404 Errors on Hard Refresh**: The `/account/my-stays/upcoming` and `/account/my-stays/past` pages consistently produce a 404 error when the page is hard refreshed in the browser. The page loads correctly with client-side navigation or after a full "Restart App" in the development environment. This suggests a server-side rendering or routing issue specific to this nested route that needs further investigation.
 - **Calendar Date Highlighting**: The calendar component on the `/account/my-stays/upcoming` page incorrectly highlights booked days that fall outside of the currently displayed month. For example, a booking on October 3rd will appear highlighted in both the September and October views. This needs to be adjusted so that "outside" days are visually distinct and not styled as part of the booking.
+- **Map Drag Issue**: The interactive map on the home page cannot be dragged or panned. Only the zoom controls are functional. This prevents users from exploring the map area. This issue persists even when the map is in full-screen mode.

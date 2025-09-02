@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -19,25 +20,30 @@ import {
   FileText,
   Home,
   LifeBuoy,
-  Shield,
+  GlobeLock,
   SlidersHorizontal,
-  MessageSquareWarning,
-  Cog,
+  MailWarning,
+  ListChecks,
   ChevronDown,
   ChevronRight,
   PanelLeft,
   PanelRight,
   Package2,
+  Database,
+  ClipboardList,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useNotifications } from '@/context/NotificationsContext';
+import { Badge } from './ui/badge';
 
 type NavItem = {
   href?: string;
   label: string;
   icon?: React.ElementType;
   children?: NavItem[];
+  hidden?: boolean;
 };
 
 export const menuItems: NavItem[] = [
@@ -47,7 +53,16 @@ export const menuItems: NavItem[] = [
     children: [
       { href: '/account/profile', label: 'Personal Details', icon: User },
       { href: '/account/settings', label: 'Security Settings', icon: ShieldCheck },
-      { href: '/account/travel-partners', label: 'My Travel Partners', icon: Users },
+      {
+        href: '/account/travel-partners',
+        label: 'My Travel Partners',
+        icon: Users,
+      },
+      {
+        href: '/account/my-travel-documents',
+        label: 'My Travel Documents',
+        icon: ClipboardList,
+      },
     ],
   },
   {
@@ -77,11 +92,12 @@ export const menuItems: NavItem[] = [
     children: [
       {
         href: '/account/notifications/view',
-        label: 'View Notifications',
-        icon: MessageSquareWarning,
+        label: 'My Notifications',
+        icon: MailWarning,
       },
-      { href: '/account/notifications/manage', label: 'Manage Notifications', icon: Cog },
       { href: '/account/notifications/my-alerts', label: 'My Alerts', icon: Bell },
+      { href: '/account/notifications/manage', label: 'Manage Notifications', icon: ListChecks },
+      { href: '/account/notifications/1', label: 'View Notification', hidden: true },
     ],
   },
   {
@@ -104,9 +120,9 @@ export const menuItems: NavItem[] = [
   },
   {
     label: 'Privacy & Data',
-    icon: Shield,
+    icon: GlobeLock,
     children: [
-      { href: '/account/privacy/data', label: 'Data Management', icon: ShieldCheck },
+      { href: '/account/privacy/data', label: 'Data Management', icon: Database },
       { href: '/account/privacy/statement', label: 'Privacy Statement', icon: FileText },
       { href: '/account/privacy/terms', label: 'Terms & Conditions', icon: FileText },
       { href: '/account/privacy/legal', label: 'Legal', icon: FileText },
@@ -127,6 +143,7 @@ function CollapsibleMenu({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const { unreadCount } = useNotifications();
   const hasActiveChild =
     item.children?.some((child) => child.href && currentPath.startsWith(child.href)) || false;
 
@@ -137,6 +154,8 @@ function CollapsibleMenu({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasActiveChild, currentPath]);
 
+  const isNotificationsMenu = item.label === 'Notifications & Alerts';
+
   return (
     <div>
       <TooltipProvider delayDuration={0}>
@@ -145,7 +164,7 @@ function CollapsibleMenu({
             <button
               onClick={onToggle}
               className={cn(
-                'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-black text-sm',
+                'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-black text-sm relative',
                 isCollapsed && 'justify-center',
                 hasActiveChild && 'bg-accent text-primary'
               )}
@@ -170,21 +189,24 @@ function CollapsibleMenu({
 
       {!isCollapsed && isOpen && (
         <div className="ml-4 mt-2 flex flex-col gap-1 border-l pl-4">
-          {item.children?.map((child) => (
-            <Link
-              key={child.label}
-              href={child.href || '#'}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-black text-xs',
-                child.href &&
-                  currentPath.startsWith(child.href) &&
-                  'bg-accent text-primary font-semibold'
-              )}
-            >
-              {child.icon && <child.icon className="h-4 w-4" />}
-              <span className="text-xs truncate">{child.label}</span>
-            </Link>
-          ))}
+          {item.children?.map(
+            (child) =>
+              !child.hidden && (
+                <Link
+                  key={child.label}
+                  href={child.href || '#'}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-black text-xs',
+                    child.href &&
+                      currentPath.startsWith(child.href) &&
+                      'bg-accent text-primary font-semibold'
+                  )}
+                >
+                  {child.icon && <child.icon className="h-4 w-4" />}
+                  <span className="text-xs truncate">{child.label}</span>
+                </Link>
+              )
+          )}
         </div>
       )}
     </div>
@@ -232,8 +254,8 @@ export default function AccountSidebar({
         </Link>
       </div>
       <nav className="flex flex-col gap-2 p-4">
-        {menuItems.map((item) =>
-          item.children ? (
+        {menuItems.map((item) => {
+          return item.children ? (
             <CollapsibleMenu
               key={item.label}
               item={item}
@@ -265,8 +287,8 @@ export default function AccountSidebar({
                 )}
               </Tooltip>
             </TooltipProvider>
-          )
-        )}
+          );
+        })}
       </nav>
       <div className="mt-auto p-4">
         <div

@@ -1,10 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Database } from 'lucide-react';
 
 export default function DataManagementPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl">Data Management</CardTitle>
+        <CardTitle className="font-headline text-2xl flex items-center gap-2">
+          <Database className="h-6 w-6 text-primary" />
+          Data Management
+        </CardTitle>
         <CardDescription>Manage your data here.</CardDescription>
       </CardHeader>
       <CardContent>

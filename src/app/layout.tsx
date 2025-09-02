@@ -6,6 +6,7 @@ import { FavoritesProvider } from '@/context/FavoritesContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Quicksand } from 'next/font/google';
+import { NotificationsProvider } from '@/context/NotificationsContext';
 
 export const metadata: Metadata = {
   title: 'Global Stay 2.0',
@@ -25,14 +26,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${quicksand.variable}`}>
       <body className={cn('font-body antialiased bg-background text-foreground')}>
-        <FavoritesProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <Toaster />
-        </FavoritesProvider>
+        <NotificationsProvider>
+          <FavoritesProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <Toaster />
+          </FavoritesProvider>
+        </NotificationsProvider>
       </body>
     </html>
   );

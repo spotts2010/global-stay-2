@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -10,7 +11,8 @@ import {
   LogOut,
   Briefcase,
   ArrowLeft,
-  _PanelLeft,
+  MailWarning,
+  Ticket,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useFavorites } from '@/context/FavoritesContext';
@@ -25,10 +27,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { usePathname } from 'next/navigation';
-import { _Sheet, _SheetTrigger, _SheetContent } from './ui/sheet';
+import { useNotifications } from '@/context/NotificationsContext';
 
 const Header = () => {
   const { favorites } = useFavorites();
+  const { unreadCount } = useNotifications();
   const pathname = usePathname();
   // Placeholder for auth state
   const isLoggedIn = true;
@@ -36,6 +39,11 @@ const Header = () => {
     name: 'Sam Potts',
     email: 'sam.expression@gmail.com',
   };
+
+  // Mocked support ticket count for demonstration
+  const supportTicketCount = 2;
+
+  const totalUnreadCount = unreadCount + supportTicketCount;
 
   const getInitials = (name: string) => {
     return name
@@ -99,6 +107,12 @@ const Header = () => {
                       <AvatarImage src={undefined} alt={user.name} />
                       <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                     </Avatar>
+                    {totalUnreadCount > 0 && (
+                      <span className="absolute top-0 right-0 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
+                      </span>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -113,6 +127,20 @@ const Header = () => {
                     <Link href="/account/profile">
                       <User className="mr-2 h-4 w-4" />
                       <span>My Account</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/notifications/my-alerts">
+                      <MailWarning className="mr-2 h-4 w-4" />
+                      <span>Notifications</span>
+                      {unreadCount > 0 && (
+                        <Badge
+                          variant="destructive"
+                          className="ml-auto flex h-5 w-5 items-center justify-center p-0"
+                        >
+                          {unreadCount}
+                        </Badge>
+                      )}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -131,6 +159,20 @@ const Header = () => {
                           className="ml-auto flex h-5 w-5 items-center justify-center p-0"
                         >
                           {favorites.length}
+                        </Badge>
+                      )}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/support/tickets">
+                      <Ticket className="mr-2 h-4 w-4" />
+                      <span>Support Tickets</span>
+                      {supportTicketCount > 0 && (
+                        <Badge
+                          variant="destructive"
+                          className="ml-auto flex h-5 w-5 items-center justify-center p-0"
+                        >
+                          {supportTicketCount}
                         </Badge>
                       )}
                     </Link>

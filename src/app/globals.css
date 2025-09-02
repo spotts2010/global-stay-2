@@ -75,12 +75,14 @@
     @apply text-foreground focus:outline-none;
   }
 
-  input[type='date'],
-  input[type='text'],
-  input[type='number'] {
-    @apply text-foreground;
-    background-color: transparent !important;
-    box-shadow: none !important;
+  /* This fixes issues with browser autofill styling, especially in dark mode */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+    -webkit-box-shadow: 0 0 0px 1000px hsl(var(--card)) inset !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 
   /* Scoped search bar styles */

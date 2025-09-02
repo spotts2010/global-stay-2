@@ -1,44 +1,52 @@
 'use client';
 
-import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 import type { Accommodation } from '@/lib/data';
+import { useEffect, useState } from 'react';
 
 type AccommodationMapProps = {
   accommodations: Accommodation[];
 };
 
 export default function AccommodationMap({ accommodations }: AccommodationMapProps) {
-  if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
-    return (
-      <div className="flex items-center justify-center h-full bg-muted">
-        <p className="text-destructive">Google Maps API key is missing.</p>
-      </div>
-    );
-  }
+  const [center, setCenter] = useState({ lat: 34.0522, lng: -118.2437 }); // Default to Los Angeles
 
-  // Calculate center of map
-  const center =
-    accommodations.length > 0
-      ? {
-          lat: accommodations.reduce((sum, acc) => sum + acc.lat, 0) / accommodations.length,
-          lng: accommodations.reduce((sum, acc) => sum + acc.lng, 0) / accommodations.length,
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCenter({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        () => {
+          // Error or permission denied, use the default or averaged center
+          if (accommodations.length > 0) {
+            const avgLat =
+              accommodations.reduce((sum, acc) => sum + acc.lat, 0) / accommodations.length;
+            const avgLng =
+              accommodations.reduce((sum, acc) => sum + acc.lng, 0) / accommodations.length;
+            setCenter({ lat: avgLat, lng: avgLng });
+          }
         }
-      : { lat: 34.0522, lng: -118.2437 }; // Default to Los Angeles if no accommodations
+      );
+    }
+  }, [accommodations]);
 
   return (
-    <APIProvider apiKey={process.env.NEXT_PUBLIC_FIREBASE_API_KEY}>
+    <div className="w-full h-full">
       <Map
         mapId="global_stay_map"
-        defaultCenter={center}
-        defaultZoom={accommodations.length > 1 ? 4 : 10}
+        center={center}
+        defaultZoom={10}
         gestureHandling={'greedy'}
-        disableDefaultUI={true}
         className="w-full h-full"
       >
         {accommodations.map((acc) => (
           <AdvancedMarker key={acc.id} position={{ lat: acc.lat, lng: acc.lng }} title={acc.name} />
         ))}
       </Map>
-    </APIProvider>
+    </div>
   );
 }
