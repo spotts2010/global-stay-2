@@ -6,6 +6,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,6 +31,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  MessageSquareWarning,
   CheckCircle2,
   ChevronRight,
   Laptop,
@@ -31,6 +43,7 @@ import {
   Tablet,
 } from 'lucide-react';
 import React from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -55,14 +68,26 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 const AppleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
+    version="1.1"
+    id="Capa_1"
     xmlns="http://www.w3.org/2000/svg"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
+    x="0px"
+    y="0px"
+    viewBox="0 0 22.773 22.773"
+    enableBackground="new 0 0 22.773 22.773"
+    xmlSpace="preserve"
     width="24"
     height="24"
-    viewBox="0 0 24 24"
     fill="currentColor"
     {...props}
   >
-    <path d="M12.01,2.07c-2.3,0-4.04,1.4-5.26,3.46c-1.33,2.22-1.93,4.6-1.6,6.96c0.23,2.2,1.6,4.3,3.33,5.65 c0.84,0.65,1.93,1.35,3.27,1.35c1.31,0,2.12-0.6,3.2-1.29c1.73-1.13,2.94-3.14,3.2-5.55c0.06-0.6,0.1-1.18,0.1-1.75 c0-0.09,0-0.19,0-0.28c-0.01-0.21-0.03-0.42-0.06-0.63c-0.34-2.5-1.92-4.38-4.03-5.2c-1.07-0.41-2.26-0.42-3.26-0.42 M14.15,0.16c1.47,0.01,2.83,0.56,3.88,1.59c-1.22,0.77-2.14,2-2.45,3.45c-0.09,0.44-0.14,0.9-0.14,1.38 c0,0.41,0.03,0.8,0.1,1.17c0.41,2.15,2.2,3.58,4.36,3.58c0.06,0,0.12,0,0.18-0.01c-0.1,3.7-2.35,6.08-4.7,6.08 c-1.3,0-2.39-0.69-3.32-1.32c-1.5-1-2.65-2.65-3-4.78c-0.3-2.1,0.22-4.22,1.33-6.17C11,1.52,12.56,0.1,14.15,0.16" />
+    <g>
+      <g>
+        <path d="M15.769,0c0.053,0,0.106,0,0.162,0c0.13,1.606-0.483,2.806-1.228,3.675c-0.731,0.863-1.732,1.7-3.351,1.573 c-0.108-1.583,0.506-2.694,1.25-3.561C13.292,0.879,14.557,0.16,15.769,0z" />
+        <path d="M20.67,16.716c0,0.016,0,0.03,0,0.045c-0.455,1.378-1.104,2.559-1.896,3.655c-0.723,0.995-1.609,2.334-3.191,2.334 c-1.367,0-2.275-0.879-3.676-0.903c-1.482-0.024-2.297,0.735-3.652,0.926c-0.155,0-0.31,0-0.462,0 c-0.995-0.144-1.798-0.932-2.383-1.642c-1.725-2.098-3.058-4.808-3.306-8.276c0-0.34,0-0.679,0-1.019 c0.105-2.482,1.311-4.5,2.914-5.478c0.846-0.52,2.009-0.963,3.304-0.765c0.555,0.086,1.122,0.276,1.619,0.464 c0.471,0.181,1.06,0.502,1.618,0.485c0.378-0.011,0.754-0.208,1.135-0.347c1.116-0.403,2.21-0.865,3.652-0.648 c1.733,0.262,2.963,1.032,3.723,2.22c-1.466,0.933-2.625,2.339-2.427,4.74C17.818,14.688,19.086,15.964,20.67,16.716z" />
+      </g>
+    </g>
   </svg>
 );
 
@@ -183,7 +208,7 @@ const DeviceRow = ({ device }: { device: Device }) => {
           </p>
         </div>
       </div>
-      <Button variant="ghost" size="sm">
+      <Button variant="outline" size="sm">
         Log out
       </Button>
     </div>
@@ -213,17 +238,20 @@ export default function SecuritySettingsPage() {
               Change Password
             </AccordionTrigger>
             <AccordionContent className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input id="confirm-password" type="password" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="current-password">Current Password</Label>
+                  <Input id="current-password" type="password" className="bg-card" />
+                </div>
+                <div />
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input id="new-password" type="password" className="bg-card" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                  <Input id="confirm-password" type="password" className="bg-card" />
+                </div>
               </div>
               <Button>
                 <Lock className="mr-2 h-4 w-4" />
@@ -256,9 +284,18 @@ export default function SecuritySettingsPage() {
             className="p-4 bg-background border rounded-lg hover:bg-accent/50"
           >
             <AccordionTrigger className="text-lg font-semibold hover:no-underline">
-              Two-Factor Authentication
+              Two-Factor Authentication (2FA)
             </AccordionTrigger>
             <AccordionContent className="space-y-4 pt-4">
+              <div className="flex items-center justify-between rounded-lg border bg-card p-4">
+                <div>
+                  <p className="font-semibold">Enable Authenticator App</p>
+                  <p className="text-sm text-muted-foreground">
+                    Use an app like Google Authenticator to generate a code.
+                  </p>
+                </div>
+                <Switch disabled />
+              </div>
               <div className="flex items-center justify-between rounded-lg border bg-card p-4">
                 <div>
                   <p className="font-semibold">Enable SMS Verification</p>
@@ -292,9 +329,26 @@ export default function SecuritySettingsPage() {
               {devices.map((d) => (
                 <DeviceRow key={d.id} device={d} />
               ))}
-              <Button variant="link" className="p-0 h-auto">
-                Log out of all devices <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button>
+                    Log out of all devices <ChevronRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action will log you out of all other active sessions on all devices. You
+                      will need to sign in again on each device.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction>Confirm</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </AccordionContent>
           </AccordionItem>
 
@@ -307,26 +361,44 @@ export default function SecuritySettingsPage() {
               Login History
             </AccordionTrigger>
             <AccordionContent className="pt-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>IP Address</TableHead>
-                    <TableHead className="hidden md:table-cell">Location</TableHead>
-                    <TableHead>Device</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loginHistory.map((login) => (
-                    <TableRow key={login.id}>
-                      <TableCell>{login.date}</TableCell>
-                      <TableCell>{login.ip}</TableCell>
-                      <TableCell className="hidden md:table-cell">{login.location}</TableCell>
-                      <TableCell>{login.device}</TableCell>
+              <div className="border rounded-lg bg-card">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-bold">Date</TableHead>
+                      <TableHead className="font-bold">IP Address</TableHead>
+                      <TableHead className="hidden md:table-cell font-bold">Location</TableHead>
+                      <TableHead className="font-bold">Device</TableHead>
+                      <TableHead className="text-right font-bold">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {loginHistory.map((login) => (
+                      <TableRow key={login.id}>
+                        <TableCell>{login.date}</TableCell>
+                        <TableCell>{login.ip}</TableCell>
+                        <TableCell className="hidden md:table-cell">{login.location}</TableCell>
+                        <TableCell>{login.device}</TableCell>
+                        <TableCell className="text-right">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-destructive">
+                                  <MessageSquareWarning className="h-4 w-4" />
+                                  <span className="sr-only">Report</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Report Login Activity</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>

@@ -9,34 +9,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
-  FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
+  FormControl as _FormControl,
+  FormDescription as _FormDescription,
+  FormLabel as _FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, MapPin, CheckCircle2, Copy, Camera, User, Languages } from 'lucide-react';
+import { Mail, Phone, MapPin, CheckCircle2, Copy, Camera, User } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(1, 'Mobile number is required'),
   address: z.string().min(1, 'Street address is required'),
-  language: z.string(),
-  currency: z.string(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -47,15 +36,12 @@ export default function ProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Placeholder data - in a real app this would come from a user context or API
   const initialData: ProfileFormValues = useMemo(
     () => ({
       fullName: 'Sam Potts',
       email: 'sam.expression@gmail.com',
       phone: '+61 0403688874',
       address: '2403/100 Duporth Avenue, Maroochydore QLD, Australia',
-      language: 'en-US',
-      currency: 'USD',
     }),
     []
   );
@@ -89,18 +75,14 @@ export default function ProfilePage() {
   };
 
   const handleAvatarClick = () => {
-    if (isEditing) {
-      fileInputRef.current?.click();
-    }
+    if (isEditing) fileInputRef.current?.click();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-      };
+      reader.onloadend = () => setAvatarPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -263,75 +245,7 @@ export default function ProfilePage() {
               </TooltipProvider>
             </div>
 
-            <Separator />
-
-            {/* Language & Currency Section */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Languages className="h-5 w-5 text-primary" />
-                Language & Currency
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="language"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Language</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={!isEditing}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a language" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="en-US">English (United States)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription className="text-xs">
-                        Language translation is a future feature.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="currency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Default Currency</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={!isEditing}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a currency" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="AUD">AUD</SelectItem>
-                          <SelectItem value="USD">USD</SelectItem>
-                          <SelectItem value="GBP">GBP</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription className="text-xs">
-                        This sets your default currency for browsing.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-start gap-2 pt-4">
+            <div className="flex justify-start gap-2">
               {isEditing ? (
                 <>
                   <Button variant="outline" type="button" onClick={handleCancel}>
