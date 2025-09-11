@@ -150,10 +150,10 @@ export default function AccommodationSearchForm() {
         </div>
 
         {/* Search Button */}
-        <div className="flex items-center p-2 md:p-0 md:pr-2">
+        <div className="flex items-center">
           <button
             type="submit"
-            className="inline-flex h-12 md:h-10 w-full md:w-auto items-center gap-2 rounded-md bg-blue-600 px-4 text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 justify-center"
+            className="inline-flex h-full items-center gap-2 rounded-none rounded-r-lg bg-blue-600 px-4 text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 justify-center w-full md:w-auto"
           >
             <Search className="w-4 h-4" aria-hidden />
             <span className="text-[15px] font-medium">Search</span>
