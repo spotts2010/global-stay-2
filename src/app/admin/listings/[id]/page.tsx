@@ -1,3 +1,4 @@
+// src/app/admin/(listings)/listings/[id]/page.tsx -> src/app/admin/listings/[id]/page.tsx
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import PropertyForm from '@/components/PropertyForm';

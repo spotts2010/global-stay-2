@@ -1,3 +1,4 @@
+// src/app/admin/(listings)/listings/page.tsx -> src/app/admin/listings/page.tsx
 'use client';
 
 import Link from 'next/link';
