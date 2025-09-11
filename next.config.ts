@@ -39,6 +39,9 @@ const nextConfig: NextConfig = {
   devIndicators: {
     allowedDevOrigins: ['*.cloudworkstations.dev'],
   },
+  env: {
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+  },
 };
 
 export default nextConfig;

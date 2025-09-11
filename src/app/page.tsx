@@ -13,6 +13,13 @@ import AIRecommendations from '@/components/AIRecommendations';
 import { fetchAccommodations } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
 import AccommodationMap from '@/components/AccommodationMap';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from '@/components/ui/carousel';
 
 export default async function Home() {
   const accommodations = await fetchAccommodations();
@@ -102,10 +109,26 @@ export default async function Home() {
             Could not load top-rated stays. Please try again later.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {topRatedAccommodations.slice(0, 8).map((accommodation) => (
-              <AccommodationCard key={accommodation.id} accommodation={accommodation} />
-            ))}
+          <div className="relative">
+            <Carousel
+              opts={{
+                align: 'start',
+                loop: true,
+              }}
+            >
+              <CarouselContent className="-ml-4 flex py-4">
+                {topRatedAccommodations.slice(0, 8).map((accommodation) => (
+                  <CarouselItem
+                    key={accommodation.id}
+                    className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4"
+                  >
+                    <AccommodationCard accommodation={accommodation} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         )}
       </section>
