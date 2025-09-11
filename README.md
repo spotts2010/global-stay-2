@@ -81,6 +81,10 @@ The action buttons displayed on the notification detail page change based on the
 - **Two-Factor Authentication**: Full implementation of 2FA via SMS and Email.
 - **Connected Devices Management**: Allow users to see and log out of devices where they are signed in.
 - **Login History**: Provide users with a view of their recent login activity. The "Report" button will allow users to flag suspicious activity, which will create a support ticket for the Global Stay team to review.
+- **Listings Management Logic**:
+  - **Publishing**: The "Publish" action makes an accommodation listing 'LIVE' and available for booking on the front end. Once published, the action changes to "Return to Draft".
+  - **Return to Draft**: This action takes a live listing offline, changing its status back to "Draft" and making it unavailable for new bookings.
+  - **Deletion vs. Archiving**: A listing can only be permanently "Deleted" if it is in "Draft" status and has no booking history. If a listing is "Published" or has any past or upcoming bookings, it must be "Archived" instead. This ensures that historical data associated with the listing is preserved for records and user booking history.
 - **My Travel Partners Workflows**:
   - **Add Family Member**: A manual entry process that checks for an existing user account via email. If no account exists, the member is added directly without an invitation.
   - **Invite a Partner**: Checks for an existing user. If the user exists, an email and system notification are sent for approval. If the user does not exist, an invitation email is sent to sign up and then approve the partner request.
@@ -88,9 +92,13 @@ The action buttons displayed on the notification detail page change based on the
   - **Denied Requests**: A mechanism to notify the requester if a partner invitation is denied, with a potential 'Denied Requests' section to manage and possibly resend these requests.
 - **Payment Method Expiry Notifications**: Send notifications regarding a payment method that is expiring soon. Notifications to be sent automatically at 30 days, 7 days, and 1 day before expiry. A final email will be sent the day after expiry if the method has not been updated or removed.
 - **Alternative Payment Methods**: Integrate with Crypto (e.g., Bitcoin) and other alternative payment systems. Note: Financial data will not be stored directly; integration will use secure tokens (e.g., from Stripe) or hosted fields.
+- **Dynamic "Explore the Area" Map**: The map on the homepage currently displays a random destination from a predefined list of popular global cities to inspire visitors. In the future, once a sufficient volume of booking data is available, this will be updated to dynamically feature popular destinations based on real user bookings within Global Stay 2.0.
+- **Date & Time Formatting**: Add an option to the "Currency & Language" page to allow users to override the default date and time formatting, which is initially set based on their profile's country selection. This would allow a user in the US to select a UK date format (DD/MM/YYYY) if they prefer.
+- **Contact Host**: Consider a "Contact" button on booking cards. This would initiate an internally managed communication thread between the guest and the property host, possibly integrated within the notification system or a new dedicated messaging page.
 
 ### Known Issues
 
 - **404 Errors on Hard Refresh**: The `/account/my-stays/upcoming` and `/account/my-stays/past` pages consistently produce a 404 error when the page is hard refreshed in the browser. The page loads correctly with client-side navigation or after a full "Restart App" in the development environment. This suggests a server-side rendering or routing issue specific to this nested route that needs further investigation.
 - **Calendar Date Highlighting**: The calendar component on the `/account/my-stays/upcoming` page incorrectly highlights booked days that fall outside of the currently displayed month. For example, a booking on October 3rd will appear highlighted in both the September and October views. This needs to be adjusted so that "outside" days are visually distinct and not styled as part of the booking.
 - **Map Drag Issue**: The interactive map on the home page cannot be dragged or panned. Only the zoom controls are functional. This prevents users from exploring the map area. This issue persists even when the map is in full-screen mode.
+- **(Resolved) Linting Error on Commit**: A pre-commit hook was failing due to an ESLint error (`no-async-client-component`) in the `src/components/SearchParamsClient.tsx` file. This file was a redundant and unused duplicate of the home page. The issue was resolved by deleting the file. This note is for reversion reference if needed.

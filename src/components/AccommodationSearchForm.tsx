@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MapPin, Calendar, Users, Search } from 'lucide-react';
-import { DayPicker, DateRange } from 'react-day-picker';
+import { DayPicker, type DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 
 function formatRangeUK(range: DateRange | undefined) {
@@ -17,20 +17,26 @@ export default function AccommodationSearchForm() {
   const router = useRouter();
   const params = useSearchParams();
 
-  // Prefill state from query params
-  const [location, setLocation] = React.useState(() => params.get('location') ?? '');
-  const [guests, setGuests] = React.useState<number>(() => {
+  // Initialize state with default values
+  const [location, setLocation] = React.useState('');
+  const [guests, setGuests] = React.useState<number>(2);
+  const [range, setRange] = React.useState<DateRange | undefined>(undefined);
+
+  // Defer reading from searchParams until the component has mounted on the client
+  React.useEffect(() => {
+    setLocation(params.get('location') ?? '');
     const g = parseInt(params.get('guests') ?? '2', 10);
-    return Number.isFinite(g) && g > 0 ? g : 2;
-  });
-  const [range, setRange] = React.useState<DateRange | undefined>(() => {
+    setGuests(Number.isFinite(g) && g > 0 ? g : 2);
     const from = params.get('from');
     const to = params.get('to');
-    if (!from || !to) return undefined;
-    const f = new Date(from);
-    const t = new Date(to);
-    return isNaN(+f) || isNaN(+t) ? undefined : { from: f, to: t };
-  });
+    if (from && to) {
+      const f = new Date(from);
+      const t = new Date(to);
+      if (!isNaN(+f) && !isNaN(+t)) {
+        setRange({ from: f, to: t });
+      }
+    }
+  }, [params]);
 
   // Date popover (headless)
   const pickerRef = React.useRef<HTMLDivElement | null>(null);
@@ -104,7 +110,6 @@ export default function AccommodationSearchForm() {
                 numberOfMonths={isLarge ? 2 : 1}
                 pagedNavigation
                 weekStartsOn={1}
-                captionLayout="buttons" /* ✅ valid value; restores navigation */
                 className="rdp-custom"
               />
               <div className="mt-2 flex justify-end gap-2">

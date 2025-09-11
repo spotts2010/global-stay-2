@@ -1,9 +1,8 @@
 // src/app/page.tsx
-'use client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, MapPin, Sparkles } from 'lucide-react';
-import { APIProvider } from '@vis.gl/react-google-maps';
+import { Suspense } from 'react';
 
 import { collections, type Collection } from '@/lib/data';
 import { Button } from '@/components/ui/button';
@@ -14,14 +13,9 @@ import AIRecommendations from '@/components/AIRecommendations';
 import { fetchAccommodations } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
 import AccommodationMap from '@/components/AccommodationMap';
-import { useEffect, useState } from 'react';
 
-export default function Home() {
-  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
-
-  useEffect(() => {
-    fetchAccommodations().then(setAccommodations);
-  }, []);
+export default async function Home() {
+  const accommodations = await fetchAccommodations();
 
   // Explicit typing for better DX
   const topRatedAccommodations: Accommodation[] = [...accommodations].sort(
@@ -58,7 +52,9 @@ export default function Home() {
 
           {/* Search form with shadow + rounded corners, no background or padding */}
           <div className="w-full max-w-4xl mt-4 shadow-lg rounded-lg">
-            <AccommodationSearchForm />
+            <Suspense fallback={<div className="h-14 bg-white rounded-lg" />}>
+              <AccommodationSearchForm />
+            </Suspense>
           </div>
         </div>
       </section>
@@ -145,9 +141,10 @@ export default function Home() {
               Discover accommodations in your desired location with our interactive map.
             </p>
             <div className="h-[400px] lg:h-full rounded-lg overflow-hidden border">
-              <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-                <AccommodationMap accommodations={topRatedAccommodations.slice(0, 8)} />
-              </APIProvider>
+              <AccommodationMap
+                accommodations={topRatedAccommodations.slice(0, 8)}
+                apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
+              />
             </div>
           </div>
         </div>
