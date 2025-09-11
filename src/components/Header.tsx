@@ -13,6 +13,7 @@ import {
   MailWarning,
   Ticket,
   Building,
+  Home,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useFavorites } from '@/context/FavoritesContext';
@@ -54,6 +55,7 @@ const Header = () => {
 
   const isAdminPage = pathname.startsWith('/admin');
   const isAccountPage = pathname.startsWith('/account');
+  const isHomePage = pathname === '/';
 
   const Logo = () => (
     <div className="flex items-center gap-2">
@@ -84,6 +86,14 @@ const Header = () => {
         <div className="flex flex-1 items-center justify-end gap-4">
           {isLoggedIn ? (
             <div className="flex items-center gap-4">
+              {!isHomePage && !isAdminPage && !isAccountPage && (
+                <Button asChild variant="outline" size="sm" className="hidden sm:flex">
+                  <Link href="/">
+                    <Home className="mr-2 h-4 w-4" />
+                    Home
+                  </Link>
+                </Button>
+              )}
               {(isAdminPage || isAccountPage) && (
                 <Button
                   asChild

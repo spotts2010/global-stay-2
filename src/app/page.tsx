@@ -17,8 +17,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselPrevious,
   CarouselNext,
+  CarouselPrevious,
 } from '@/components/ui/carousel';
 
 export default async function Home() {
@@ -56,8 +56,6 @@ export default async function Home() {
             Unforgettable properties for your next holiday or business trip. Discover a place
             you&apos;ll love to stay.
           </p>
-
-          {/* Search form with shadow + rounded corners, no background or padding */}
           <div className="w-full max-w-4xl mt-4 shadow-lg rounded-lg">
             <Suspense fallback={<div className="h-14 bg-white rounded-lg" />}>
               <AccommodationSearchForm />
@@ -109,27 +107,28 @@ export default async function Home() {
             Could not load top-rated stays. Please try again later.
           </div>
         ) : (
-          <div className="relative">
-            <Carousel
-              opts={{
-                align: 'start',
-                loop: true,
-              }}
-            >
-              <CarouselContent className="-ml-4 flex py-4">
-                {topRatedAccommodations.slice(0, 8).map((accommodation) => (
-                  <CarouselItem
-                    key={accommodation.id}
-                    className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4"
-                  >
+          <Carousel
+            opts={{
+              align: 'start',
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent>
+              {topRatedAccommodations.map((accommodation) => (
+                <CarouselItem
+                  key={accommodation.id}
+                  className="basis-full sm:basis-1/2 lg:basis-1/4"
+                >
+                  <div className="p-1 h-full">
                     <AccommodationCard accommodation={accommodation} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+          </Carousel>
         )}
       </section>
 

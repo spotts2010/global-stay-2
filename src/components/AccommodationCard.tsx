@@ -18,9 +18,10 @@ import { useFavorites } from '@/context/FavoritesContext';
 
 type AccommodationCardProps = {
   accommodation: Accommodation;
+  searchParams?: { [key: string]: string | string[] | undefined };
 };
 
-const AccommodationCard = ({ accommodation }: AccommodationCardProps) => {
+const AccommodationCard = ({ accommodation, searchParams }: AccommodationCardProps) => {
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const favorite = isFavorite(accommodation.id);
 
@@ -34,11 +35,16 @@ const AccommodationCard = ({ accommodation }: AccommodationCardProps) => {
     }
   };
 
+  const queryString = searchParams
+    ? new URLSearchParams(searchParams as Record<string, string>).toString()
+    : '';
+  const detailUrl = `/accommodation/${accommodation.id}${queryString ? `?${queryString}` : ''}`;
+
   return (
-    <Card className="w-full overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
+    <Card className="w-full h-full overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
       <CardHeader className="p-0">
         <Link
-          href={`/accommodation/${accommodation.id}`}
+          href={detailUrl}
           className="block"
           aria-label={`View details for ${accommodation.name}`}
         >
@@ -75,10 +81,7 @@ const AccommodationCard = ({ accommodation }: AccommodationCardProps) => {
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <CardTitle className="font-headline text-xl font-bold leading-tight">
-          <Link
-            href={`/accommodation/${accommodation.id}`}
-            className="hover:text-primary transition-colors"
-          >
+          <Link href={detailUrl} className="hover:text-primary transition-colors">
             {accommodation.name}
           </Link>
         </CardTitle>
@@ -93,7 +96,7 @@ const AccommodationCard = ({ accommodation }: AccommodationCardProps) => {
           <span>{accommodation.rating.toFixed(1)}</span>
         </div>
         <Button asChild>
-          <Link href={`/accommodation/${accommodation.id}`}>View Details</Link>
+          <Link href={detailUrl}>View Details</Link>
         </Button>
       </CardFooter>
     </Card>

@@ -17,8 +17,23 @@ import ReviewCard from '@/components/ReviewCard';
 import { Separator } from '@/components/ui/separator';
 import { fetchAccommodationById } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
+import Link from 'next/link';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
-export default async function AccommodationDetailPage({ params }: { params: { id: string } }) {
+export default async function AccommodationDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   let accommodation: Accommodation | null = null;
   let fetchError = false;
 
@@ -32,9 +47,7 @@ export default async function AccommodationDetailPage({ params }: { params: { id
   if (fetchError) {
     return (
       <div className="container mx-auto px-4 md:px-6 py-12 text-center pb-16">
-        <h1 className="font-headline text-2xl font-bold text-destructive">
-          An Error Occurred
-        </h1>
+        <h1 className="font-headline text-2xl font-bold text-destructive">An Error Occurred</h1>
         <p className="text-muted-foreground mt-2">
           We couldn&apos;t load the accommodation details. Please try again later.
         </p>
@@ -71,8 +84,37 @@ export default async function AccommodationDetailPage({ params }: { params: { id
     },
   ];
 
+  const cleanSearchParams: Record<string, string> = {};
+  for (const key in searchParams) {
+    const value = searchParams[key];
+    if (typeof value === 'string') {
+      cleanSearchParams[key] = value;
+    }
+  }
+
+  const resultsLink = `/results?${new URLSearchParams(cleanSearchParams).toString()}`;
+
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12 pb-16">
+    <div className="container mx-auto px-4 md:px-6 py-6 pb-16">
+      <Breadcrumb className="mb-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/">Home</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={resultsLink}>Show Results</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{accommodation.name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <PhotoGallery
         images={[
           accommodation.image,

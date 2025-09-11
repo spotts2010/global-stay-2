@@ -1,6 +1,13 @@
 import { db } from '@/lib/firebase'; // Use server-safe firebase config
-import { collection, getDocs, doc, getDoc, QueryDocumentSnapshot } from 'firebase/firestore';
-import type { Accommodation, Booking, EnrichedBooking, DocumentData } from './data';
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  DocumentData,
+  QueryDocumentSnapshot,
+} from 'firebase/firestore';
+import type { Accommodation, Booking, EnrichedBooking } from './data';
 import { getMockAccommodations, getMockBookings } from './firestore.mock';
 
 // Detect if we're in a test environment (Jest or Playwright)
@@ -130,7 +137,7 @@ export async function fetchPastBookings(userId: string): Promise<EnrichedBooking
       totalPrice: 5950,
     },
     {
-      id: 'past-booking-5',
+      id: 'past-booking-4',
       accommodationId: 'acc5',
       accommodation: findAccommodation('acc5'),
       userId: 'user1',
@@ -140,7 +147,7 @@ export async function fetchPastBookings(userId: string): Promise<EnrichedBooking
       totalPrice: 1050,
     },
     {
-      id: 'past-booking-3',
+      id: 'past-booking-5',
       accommodationId: 'acc3',
       accommodation: findAccommodation('acc3'),
       userId: 'user1',

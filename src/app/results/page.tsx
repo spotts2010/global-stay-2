@@ -2,13 +2,26 @@ import { fetchAccommodations } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
 import AccommodationCard from '@/components/AccommodationCard';
 import { MapPin, Calendar, Users } from 'lucide-react';
+import Link from 'next/link';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
-// Utility: format date for display
+// Utility: format date for display, ensuring UTC is handled correctly.
 function formatDate(dateString: string | undefined) {
   if (!dateString) return 'Any date';
-  return new Date(dateString).toLocaleDateString('en-US', {
+  // Parse the date string by appending 'T00:00:00Z' to treat it as UTC.
+  // This prevents the browser/server's local timezone from shifting the date.
+  const date = new Date(`${dateString}T00:00:00Z`);
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
+    timeZone: 'UTC', // Specify UTC timezone for consistent formatting.
   });
 }
 
@@ -41,12 +54,24 @@ export default async function ResultsPage({
     return true;
   });
 
-  const formattedDateRange =
-    from && to ? `${formatDate(from)} - ${formatDate(to)}` : 'Any date';
+  const formattedDateRange = from && to ? `${formatDate(from)} - ${formatDate(to)}` : 'Any date';
 
   return (
-    <main className="min-h-screen bg-slate-50/50 px-4 md:px-6 py-10 pb-16">
+    <main className="min-h-screen bg-slate-50/50 px-4 md:px-6 py-5 pb-16">
       <div className="container mx-auto">
+        <Breadcrumb className="mb-4">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Search Results</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         {/* Combined Heading and Filters */}
         <section
           aria-labelledby="search-results-heading"
@@ -83,7 +108,11 @@ export default async function ResultsPage({
           {filteredAccommodations.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
               {filteredAccommodations.map((accommodation: Accommodation) => (
-                <AccommodationCard key={accommodation.id} accommodation={accommodation} />
+                <AccommodationCard
+                  key={accommodation.id}
+                  accommodation={accommodation}
+                  searchParams={searchParams}
+                />
               ))}
             </div>
           ) : (

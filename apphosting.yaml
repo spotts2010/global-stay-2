@@ -24,6 +24,6 @@ runConfig:
 
     # --- Server-only secrets (do NOT expose to browser) ---
     - key: GEMINI_API_KEY
-      secret: projects/YOUR_PROJECT_ID/secrets/GEMINI_API_KEY/versions/latest
+      secret: projects/global-stay-20/secrets/GEMINI_API_KEY/versions/latest
     - key: FIREBASE_ADMIN_KEY
-      secret: projects/YOUR_PROJECT_ID/secrets/FIREBASE_ADMIN_KEY/versions/latest
+      secret: projects/global-stay-20/secrets/FIREBASE_ADMIN_KEY/versions/latest

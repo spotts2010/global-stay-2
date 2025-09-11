@@ -13,6 +13,14 @@ function formatRangeUK(range: DateRange | undefined) {
   return `${fmt(range.from)} – ${fmt(range.to)}`;
 }
 
+// Function to format a date as a YYYY-MM-DD string in UTC
+function toUTCDateString(date: Date) {
+  const year = date.getUTCFullYear();
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function AccommodationSearchForm() {
   const router = useRouter();
   const params = useSearchParams();
@@ -27,13 +35,14 @@ export default function AccommodationSearchForm() {
     setLocation(params.get('location') ?? '');
     const g = parseInt(params.get('guests') ?? '2', 10);
     setGuests(Number.isFinite(g) && g > 0 ? g : 2);
-    const from = params.get('from');
-    const to = params.get('to');
-    if (from && to) {
-      const f = new Date(from);
-      const t = new Date(to);
-      if (!isNaN(+f) && !isNaN(+t)) {
-        setRange({ from: f, to: t });
+    const fromParam = params.get('from');
+    const toParam = params.get('to');
+    if (fromParam && toParam) {
+      // Parse as UTC dates
+      const from = new Date(fromParam + 'T00:00:00Z');
+      const to = new Date(toParam + 'T00:00:00Z');
+      if (!isNaN(+from) && !isNaN(+to)) {
+        setRange({ from, to });
       }
     }
   }, [params]);
@@ -60,8 +69,8 @@ export default function AccommodationSearchForm() {
     e.preventDefault();
     const search = new URLSearchParams();
     if (location.trim()) search.set('location', location.trim());
-    if (range?.from) search.set('from', range.from.toISOString());
-    if (range?.to) search.set('to', range.to.toISOString());
+    if (range?.from) search.set('from', toUTCDateString(range.from));
+    if (range?.to) search.set('to', toUTCDateString(range.to));
     search.set('guests', String(guests));
     router.push(`/results?${search.toString()}`);
   }
@@ -69,12 +78,12 @@ export default function AccommodationSearchForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="mx-auto mt-6 w-full max-w-4xl rounded-lg shadow-md border border-slate-200 bg-white"
+      className="mx-auto w-full max-w-4xl rounded-lg shadow-md border border-slate-200 bg-white"
       aria-label="Accommodation search"
     >
       <div className="flex flex-col md:flex-row md:items-stretch md:divide-x divide-y md:divide-y-0 divide-slate-200">
         {/* Location */}
-        <div className="flex min-w-0 flex-1 items-center gap-2 px-4 h-14">
+        <div className="flex-grow min-w-0 flex items-center gap-2 px-4 h-14">
           <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
           <input
             type="text"
@@ -89,7 +98,10 @@ export default function AccommodationSearchForm() {
         </div>
 
         {/* Dates */}
-        <div className="relative flex items-center gap-2 px-4 h-14" ref={pickerRef}>
+        <div
+          className="relative flex-shrink-0 flex items-center gap-2 px-4 h-14 w-full md:w-52"
+          ref={pickerRef}
+        >
           <Calendar className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
           <button
             type="button"
@@ -133,7 +145,7 @@ export default function AccommodationSearchForm() {
         </div>
 
         {/* Guests */}
-        <div className="flex items-center gap-2 px-4 h-14">
+        <div className="flex flex-shrink-0 items-center gap-2 px-4 h-14 w-full md:w-36">
           <Users className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
           <select
             value={guests}
@@ -150,10 +162,10 @@ export default function AccommodationSearchForm() {
         </div>
 
         {/* Search Button */}
-        <div className="flex items-center">
+        <div>
           <button
             type="submit"
-            className="inline-flex h-full items-center gap-2 rounded-none rounded-r-lg bg-blue-600 px-4 text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 justify-center w-full md:w-auto"
+            className="inline-flex h-full w-full items-center justify-center gap-2 rounded-r-md bg-blue-600 px-6 text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <Search className="w-4 h-4" aria-hidden />
             <span className="text-[15px] font-medium">Search</span>
