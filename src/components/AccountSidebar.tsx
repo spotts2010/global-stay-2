@@ -30,6 +30,8 @@ import {
   Package2,
   Database,
   ClipboardList,
+  Mail,
+  Plane,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -105,6 +107,8 @@ export const menuItems: NavItem[] = [
         icon: Languages,
       },
       { href: '/account/preferences/suggestions', label: 'Smart Suggestions', icon: Wand },
+      { href: '/account/preferences/email', label: 'Email Preferences', icon: Mail },
+      { href: '/account/preferences/holiday', label: 'Holiday Preferences', icon: Plane },
     ],
   },
   {
