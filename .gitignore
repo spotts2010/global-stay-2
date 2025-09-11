@@ -1,49 +1,65 @@
-gitignore
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.js
-.pnp.loader.mjs
 
-# testing
+# Testing
 /coverage
 
-# next.js
+# Next.js build output
 /.next/
 /out/
 
-# production
+# Production
 /build
 
-# misc
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Misc
 .DS_Store
 *.pem
 
-# debug
+# Local Environment Variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.sublime-workspace
+
+# Linting and Caching
+.eslintcache
+.stylelintcache
+.prettiercache
+.cache
+
+# Firebase Emulators
+.firebase/emulators
 firebase-debug.log
 
-# local env files (never commit secrets)
-.env
-.env.*    # ignore all env files
-!.env.example   # keep an example for documentation
-/src/lib/firebase-admin.json
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
 
-# vercel
-.vercel
-
-# firebase
-.firebase/
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# testing reports
-playwright-report/
-.eslintcache
+# Husky
+.husky/_/
