@@ -1,7 +1,7 @@
 // src/app/page.tsx
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Building } from 'lucide-react';
 import { Suspense } from 'react';
 
 import { collections, type Collection } from '@/lib/data';
@@ -19,7 +19,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import FeaturedSpecialCard from '@/components/FeaturedSpecialCard';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default async function Home() {
   const accommodations = await fetchAccommodations();
@@ -29,9 +29,6 @@ export default async function Home() {
     (a, b) => b.rating - a.rating
   );
 
-  // Get a random accommodation for the featured special
-  const featuredSpecial = accommodations[Math.floor(Math.random() * accommodations.length)];
-
   return (
     <div className="flex flex-col gap-16 md:gap-24 pb-16">
       {/* Hero Section */}
@@ -39,7 +36,6 @@ export default async function Home() {
         className="relative h-[60vh] md:h-[70vh] flex items-center justify-center text-center text-white"
         aria-labelledby="hero-heading"
       >
-        <div className="absolute inset-0 bg-black/50 z-10" />
         <Image
           src="https://images.unsplash.com/photo-1460627390041-532a28402358"
           alt="A tropical bungalow over clear water"
@@ -49,6 +45,7 @@ export default async function Home() {
           priority
           className="z-0 object-cover"
         />
+        <div className="absolute inset-0 bg-black/50 z-10" />
         <div className="relative z-20 flex flex-col items-center gap-6 px-4">
           <h1
             id="hero-heading"
@@ -136,7 +133,7 @@ export default async function Home() {
         )}
       </section>
 
-      {/* AI & Map Section */}
+      {/* AI & Host Section */}
       <section className="container mx-auto px-4 md:px-6" aria-labelledby="personalised-heading">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
           {/* AI Recommendations */}
@@ -157,22 +154,38 @@ export default async function Home() {
             <AIRecommendations />
           </div>
 
-          {/* Featured Special */}
+          {/* List Your Property Section */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 text-primary">
-              <Sparkles className="h-8 w-8" aria-hidden="true" />
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">Featured Special</h2>
+              <Building className="h-8 w-8" aria-hidden="true" />
+              <h2 className="font-headline text-3xl md:text-4xl font-bold">List Your Property</h2>
             </div>
             <p className="text-muted-foreground">
-              A special deal, just for you. This one won&apos;t last long!
+              Turn your space into your next opportunity. Join our community of hosts today.
             </p>
-            {featuredSpecial ? (
-              <FeaturedSpecialCard accommodation={featuredSpecial} />
-            ) : (
-              <div className="h-[400px] lg:h-full rounded-lg border bg-muted flex items-center justify-center">
-                <p className="text-muted-foreground">Could not load featured special.</p>
+            <Card className="h-full overflow-hidden group transition-all duration-300 hover:shadow-xl">
+              <div className="relative h-full">
+                <div className="relative h-full w-full min-h-[400px]">
+                  <Image
+                    src="https://images.unsplash.com/photo-1560518883-ce09059eeffa"
+                    alt="A smiling couple handing keys over a table"
+                    data-ai-hint="smiling couple keys"
+                    fill
+                    sizes="(max-width: 1024px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <CardContent className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <h3 className="font-headline text-2xl font-bold max-w-md">
+                    Manage your listings with ease, so you can feel like you're on holiday too.
+                  </h3>
+                  <Button asChild className="mt-4">
+                    <Link href="/admin/listings">List Your Property</Link>
+                  </Button>
+                </CardContent>
               </div>
-            )}
+            </Card>
           </div>
         </div>
       </section>
