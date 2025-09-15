@@ -81,8 +81,8 @@ export default function PhotoGallery({ images, imageHints }: PhotoGalleryProps) 
               <Image
                 src={selectedImage}
                 alt="Selected accommodation view"
-                width={1200}
-                height={800}
+                fill
+                sizes="100vw"
                 className="object-contain w-full max-h-[70vh] rounded"
               />
             </div>

@@ -40,21 +40,20 @@ const BookingSummaryCard = ({ booking }: { booking: EnrichedBooking }) => {
 
   return (
     <Card className="overflow-hidden flex flex-col">
-      <CardHeader className="p-0">
+      <CardHeader className="p-0 relative aspect-video">
         <Link
           href={`/accommodation/${booking.accommodation.id}`}
-          className="block"
+          className="block w-full h-full"
           aria-label={`View details for ${booking.accommodation.name}`}
         >
-          <div className="relative aspect-video">
-            <Image
-              src={booking.accommodation.image}
-              alt={booking.accommodation.name}
-              fill
-              className="object-cover"
-              data-ai-hint={booking.accommodation.imageHint}
-            />
-          </div>
+          <Image
+            src={booking.accommodation.image}
+            alt={booking.accommodation.name}
+            fill
+            sizes="(max-width: 640px) 90vw, 480px"
+            className="object-cover"
+            data-ai-hint={booking.accommodation.imageHint}
+          />
         </Link>
       </CardHeader>
       <CardContent className="p-4 flex-grow">

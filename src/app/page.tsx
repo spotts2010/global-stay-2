@@ -1,7 +1,7 @@
 // src/app/page.tsx
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, MapPin, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { Suspense } from 'react';
 
 import { collections, type Collection } from '@/lib/data';
@@ -12,7 +12,6 @@ import AccommodationCard from '@/components/AccommodationCard';
 import AIRecommendations from '@/components/AIRecommendations';
 import { fetchAccommodations } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
-import AccommodationMap from '@/components/AccommodationMap';
 import {
   Carousel,
   CarouselContent,
@@ -20,6 +19,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import FeaturedSpecialCard from '@/components/FeaturedSpecialCard';
 
 export default async function Home() {
   const accommodations = await fetchAccommodations();
@@ -28,6 +28,9 @@ export default async function Home() {
   const topRatedAccommodations: Accommodation[] = [...accommodations].sort(
     (a, b) => b.rating - a.rating
   );
+
+  // Get a random accommodation for the featured special
+  const featuredSpecial = accommodations[Math.floor(Math.random() * accommodations.length)];
 
   return (
     <div className="flex flex-col gap-16 md:gap-24 pb-16">
@@ -42,6 +45,7 @@ export default async function Home() {
           alt="A tropical bungalow over clear water"
           data-ai-hint="tropical resort"
           fill
+          sizes="100vw"
           priority
           className="z-0 object-cover"
         />
@@ -153,21 +157,22 @@ export default async function Home() {
             <AIRecommendations />
           </div>
 
-          {/* Map */}
+          {/* Featured Special */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 text-primary">
-              <MapPin className="h-8 w-8" aria-hidden="true" />
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">Explore the Area</h2>
+              <Sparkles className="h-8 w-8" aria-hidden="true" />
+              <h2 className="font-headline text-3xl md:text-4xl font-bold">Featured Special</h2>
             </div>
             <p className="text-muted-foreground">
-              Discover accommodations in your desired location with our interactive map.
+              A special deal, just for you. This one won&apos;t last long!
             </p>
-            <div className="h-[400px] lg:h-full rounded-lg overflow-hidden border">
-              <AccommodationMap
-                accommodations={topRatedAccommodations.slice(0, 8)}
-                apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-              />
-            </div>
+            {featuredSpecial ? (
+              <FeaturedSpecialCard accommodation={featuredSpecial} />
+            ) : (
+              <div className="h-[400px] lg:h-full rounded-lg border bg-muted flex items-center justify-center">
+                <p className="text-muted-foreground">Could not load featured special.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
