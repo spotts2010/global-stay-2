@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Languages } from 'lucide-react';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
 
 const settingsSchema = z.object({
   language: z.string(),
@@ -34,30 +35,35 @@ type SettingsFormValues = z.infer<typeof settingsSchema>;
 
 export default function CurrencyLanguagePage() {
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
+  const { preferences, setPreferences, isEditing, setIsEditing } = useUserPreferences();
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: {
-      language: 'en-US',
-      currency: 'USD',
-    },
+    defaultValues: preferences,
   });
 
-  const { isDirty } = form.formState;
+  const {
+    formState: { isDirty },
+    reset,
+  } = form;
+
+  // Sync form with context state
+  useEffect(() => {
+    reset(preferences);
+  }, [preferences, reset]);
 
   const onSubmit = (data: SettingsFormValues) => {
-    console.log('Form Submitted', data);
+    setPreferences(data);
     toast({
       title: 'Preferences Updated',
       description: 'Your changes have been saved successfully.',
     });
     setIsEditing(false);
-    form.reset(data); // Resets the form's dirty state
+    reset(data); // Resets the form's dirty state
   };
 
   const handleCancel = () => {
-    form.reset(); // Reverts to the last saved state
+    reset(preferences); // Reverts to the last saved state from context
     setIsEditing(false);
   };
 
@@ -82,7 +88,7 @@ export default function CurrencyLanguagePage() {
                     <FormLabel>Default Currency</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                       disabled={!isEditing}
                     >
                       <FormControl>
@@ -91,9 +97,9 @@ export default function CurrencyLanguagePage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="AUD">AUD</SelectItem>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="GBP">GBP</SelectItem>
+                        <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
+                        <SelectItem value="USD">USD - United States Dollar</SelectItem>
+                        <SelectItem value="GBP">GBP - British Pound</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription className="text-xs">
@@ -111,7 +117,7 @@ export default function CurrencyLanguagePage() {
                     <FormLabel>Language</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                       disabled={!isEditing}
                     >
                       <FormControl>

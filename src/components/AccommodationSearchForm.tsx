@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { MapPin, Calendar, Users, Search } from 'lucide-react';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 
 function formatRangeUK(range: DateRange | undefined) {
   if (!range?.from || !range?.to) return '';
@@ -13,17 +14,15 @@ function formatRangeUK(range: DateRange | undefined) {
   return `${fmt(range.from)} – ${fmt(range.to)}`;
 }
 
-// Function to format a date as a YYYY-MM-DD string in UTC
-function toUTCDateString(date: Date) {
-  const year = date.getUTCFullYear();
-  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-  const day = date.getUTCDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
+// Function to format a date as a YYYY-MM-DD string in a specific timezone.
+function toTimeZoneDateString(date: Date, timeZone: string) {
+  return formatInTimeZone(date, timeZone, 'yyyy-MM-dd');
 }
 
 export default function AccommodationSearchForm() {
   const router = useRouter();
   const params = useSearchParams();
+  const userTimeZone = 'Australia/Brisbane'; // User's specified timezone
 
   // Initialize state with default values
   const [location, setLocation] = React.useState('');
@@ -38,13 +37,14 @@ export default function AccommodationSearchForm() {
     const fromParam = params.get('from');
     const toParam = params.get('to');
     if (fromParam && toParam) {
-      // Parse as UTC dates
-      const from = new Date(fromParam + 'T00:00:00Z');
-      const to = new Date(toParam + 'T00:00:00Z');
-      if (!isNaN(+from) && !isNaN(+to)) {
+      // Parse date strings by treating them as being in the user's timezone.
+      const from = toZonedTime(`${fromParam}T00:00:00`, userTimeZone);
+      const to = toZonedTime(`${toParam}T00:00:00`, userTimeZone);
+      if (!isNaN(from.getTime()) && !isNaN(to.getTime())) {
         setRange({ from, to });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
   // Date popover (headless)
@@ -69,8 +69,8 @@ export default function AccommodationSearchForm() {
     e.preventDefault();
     const search = new URLSearchParams();
     if (location.trim()) search.set('location', location.trim());
-    if (range?.from) search.set('from', toUTCDateString(range.from));
-    if (range?.to) search.set('to', toUTCDateString(range.to));
+    if (range?.from) search.set('from', toTimeZoneDateString(range.from, userTimeZone));
+    if (range?.to) search.set('to', toTimeZoneDateString(range.to, userTimeZone));
     search.set('guests', String(guests));
     router.push(`/results?${search.toString()}`);
   }

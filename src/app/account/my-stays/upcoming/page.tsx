@@ -196,11 +196,12 @@ export default function UpcomingStaysPage() {
                         ...todayModifier,
                       }}
                       modifiersClassNames={{
-                        booked: 'bg-primary/90 text-primary-foreground rounded-md',
+                        booked:
+                          'bg-primary/90 text-primary-foreground rounded-md [&:not(.day-outside)]:bg-primary/90',
                         today: 'bg-orange-500 text-white rounded-full',
                       }}
                       classNames={{
-                        day_outside: 'text-muted-foreground opacity-50 !bg-transparent',
+                        day_outside: 'text-muted-foreground opacity-50',
                       }}
                     />
                     <div className="p-4 border-t flex items-center gap-4 text-sm">

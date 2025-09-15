@@ -1,37 +1,62 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Form,
-  FormField,
-  FormItem,
-  FormMessage,
-  FormControl as _FormControl,
-  FormDescription as _FormDescription,
-  FormLabel as _FormLabel,
-} from '@/components/ui/form';
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Form, FormField, FormItem, FormMessage, FormControl } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, MapPin, CheckCircle2, Copy, Camera, User } from 'lucide-react';
+import {
+  Mail,
+  Phone,
+  MapPin,
+  CheckCircle2,
+  Copy,
+  Camera,
+  User,
+  Globe,
+  Wallet,
+  Languages,
+} from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
+
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(1, 'Mobile number is required'),
   address: z.string().min(1, 'Street address is required'),
+  timezone: z.string().min(1, 'Timezone is required'),
+  currency: z.string(),
+  language: z.string(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
   const { toast } = useToast();
+  const { preferences, setPreferences } = useUserPreferences();
   const [isEditing, setIsEditing] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,8 +67,11 @@ export default function ProfilePage() {
       email: 'sam.expression@gmail.com',
       phone: '+61 0403688874',
       address: '2403/100 Duporth Avenue, Maroochydore QLD, Australia',
+      timezone: 'Australia/Brisbane',
+      currency: preferences.currency,
+      language: preferences.language,
     }),
-    []
+    [preferences]
   );
 
   const user = {
@@ -58,6 +86,11 @@ export default function ProfilePage() {
   });
 
   const { isDirty } = form.formState;
+
+  // Re-sync form with context when preferences change
+  useEffect(() => {
+    form.reset(initialData);
+  }, [initialData, form]);
 
   const getInitials = (name: string) =>
     name
@@ -88,13 +121,13 @@ export default function ProfilePage() {
   };
 
   const onSubmit = (data: ProfileFormValues) => {
-    console.log('Form Submitted', data);
+    setPreferences(data); // Update the shared context
     toast({
       title: 'Profile Updated',
       description: 'Your changes have been saved successfully.',
     });
     setIsEditing(false);
-    form.reset(data);
+    form.reset(data); // Resets the form's dirty state
   };
 
   const handleCancel = () => {
@@ -104,19 +137,19 @@ export default function ProfilePage() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl flex items-center gap-2">
-          <User className="h-6 w-6 text-primary" />
-          Personal Details
-        </CardTitle>
-        <CardDescription>
-          View and manage your personal information and preferences.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl flex items-center gap-2">
+              <User className="h-6 w-6 text-primary" />
+              My Profile
+            </CardTitle>
+            <CardDescription>
+              View and manage your personal information and preferences.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
             {/* User Info Section */}
             <div className="flex items-start gap-6">
               <div className="flex flex-col items-center">
@@ -245,25 +278,99 @@ export default function ProfilePage() {
               </TooltipProvider>
             </div>
 
-            <div className="flex justify-start gap-2">
-              {isEditing ? (
-                <>
-                  <Button variant="outline" type="button" onClick={handleCancel}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={!isDirty && !avatarPreview}>
-                    Save Changes
-                  </Button>
-                </>
-              ) : (
-                <Button variant="outline" type="button" onClick={() => setIsEditing(true)}>
-                  Edit Details
-                </Button>
-              )}
+            <Separator className="my-8" />
+
+            {/* Default Settings Section */}
+            <div className="space-y-4">
+              <h3 className="font-headline text-xl font-semibold">Default Settings</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormField
+                  control={form.control}
+                  name="timezone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label className="flex items-center gap-2 mb-2">
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        Default Timezone
+                      </Label>
+                      <Input {...field} disabled={!isEditing} />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label className="flex items-center gap-2 mb-2">
+                        <Wallet className="h-4 w-4 text-muted-foreground" />
+                        Default Currency
+                      </Label>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!isEditing}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="USD">USD - United States Dollar</SelectItem>
+                          <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
+                          <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="language"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label className="flex items-center gap-2 mb-2">
+                        <Languages className="h-4 w-4 text-muted-foreground" />
+                        Default Language
+                      </Label>
+                      <Select onValueChange={field.onChange} value={field.value} disabled>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="en-US">English (United States)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          </CardContent>
+          <CardFooter className="flex justify-start gap-2 pt-6">
+            {isEditing ? (
+              <>
+                <Button variant="outline" type="button" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={!isDirty && !avatarPreview}>
+                  Save Changes
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" type="button" onClick={() => setIsEditing(true)}>
+                Edit Details
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      </form>
+    </Form>
   );
 }

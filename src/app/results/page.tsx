@@ -11,18 +11,17 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 // Utility: format date for display, ensuring UTC is handled correctly.
 function formatDate(dateString: string | undefined) {
   if (!dateString) return 'Any date';
-  // Parse the date string by appending 'T00:00:00Z' to treat it as UTC.
-  // This prevents the browser/server's local timezone from shifting the date.
-  const date = new Date(`${dateString}T00:00:00Z`);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC', // Specify UTC timezone for consistent formatting.
-  });
+  // IMPORTANT: Parse date strings by treating them as being in the user's local timezone (Brisbane for this example).
+  // This creates a Date object that correctly represents the intended day.
+  const date = toZonedTime(`${dateString}T00:00:00`, 'Australia/Brisbane');
+  // Then format it. Using a specific format avoids locale-based ambiguity.
+  return format(date, 'LLL dd, yyyy');
 }
 
 // This is now an async Server Component
@@ -55,6 +54,15 @@ export default async function ResultsPage({
   });
 
   const formattedDateRange = from && to ? `${formatDate(from)} - ${formatDate(to)}` : 'Any date';
+
+  // Create a plain object from searchParams to pass to client components
+  const plainSearchParams: { [key: string]: string } = {};
+  for (const key in searchParams) {
+    const value = searchParams[key];
+    if (typeof value === 'string') {
+      plainSearchParams[key] = value;
+    }
+  }
 
   return (
     <main className="min-h-screen bg-slate-50/50 px-4 md:px-6 py-5 pb-16">
@@ -111,7 +119,7 @@ export default async function ResultsPage({
                 <AccommodationCard
                   key={accommodation.id}
                   accommodation={accommodation}
-                  searchParams={searchParams}
+                  searchParams={plainSearchParams}
                 />
               ))}
             </div>
