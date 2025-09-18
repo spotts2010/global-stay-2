@@ -1,18 +1,26 @@
 export type Amenity = 'wifi' | 'pool' | 'gym' | 'parking' | 'kitchen';
+export type Currency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
 export type Accommodation = {
   id: string;
+  slug: string;
   name: string;
   location: string;
   price: number;
+  currency: Currency;
   rating: number;
   reviewsCount: number;
-  image: string;
+  image: string; // Legacy cover image, will be first item in images array
+  images: string[];
   amenities: Amenity[];
-  type: 'Apartment' | 'Villa' | 'Hotel' | 'Loft' | 'House';
+  type: 'Apartment' | 'Villa' | 'Hotel' | 'Loft' | 'House' | 'Hostel';
+  bookingType: 'room' | 'bed' | 'hybrid';
   imageHint: string;
   lat: number;
   lng: number;
+  lastModified: Date;
+  status: 'Published' | 'Draft' | 'Archived';
+  description?: string;
 };
 
 export type Booking = {

@@ -8,9 +8,17 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import type { EnrichedBooking } from '@/lib/data';
 import { CalendarDays, Eye, Users } from 'lucide-react';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
+import { convertCurrency, formatCurrency } from '@/lib/currency';
 
 export const BookingCard = ({ booking }: { booking: EnrichedBooking }) => {
+  const { preferences } = useUserPreferences();
   if (!booking.accommodation) return null;
+
+  const convertedPrice =
+    booking.totalPrice && booking.accommodation.currency
+      ? convertCurrency(booking.totalPrice, booking.accommodation.currency, preferences.currency)
+      : booking.totalPrice || 0;
 
   return (
     <Card className="overflow-hidden flex flex-col">
@@ -56,7 +64,7 @@ export const BookingCard = ({ booking }: { booking: EnrichedBooking }) => {
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
         <div className="font-semibold text-lg text-foreground">
-          <span>${booking.totalPrice?.toFixed(2)}</span>
+          <span>{formatCurrency(convertedPrice, preferences.currency)}</span>
         </div>
         <Button size="sm" asChild>
           <Link href={`/accommodation/${booking.accommodation.id}`}>

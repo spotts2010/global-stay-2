@@ -1,8 +1,9 @@
 // src/app/page.tsx
+'use client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Sparkles, Building } from 'lucide-react';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { collections, type Collection } from '@/lib/data';
 import { Button } from '@/components/ui/button';
@@ -20,9 +21,21 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
-export default async function Home() {
-  const accommodations = await fetchAccommodations();
+export default function Home() {
+  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getAccommodations = async () => {
+      setLoading(true);
+      const data = await fetchAccommodations();
+      setAccommodations(data);
+      setLoading(false);
+    };
+    getAccommodations();
+  }, []);
 
   // Explicit typing for better DX
   const topRatedAccommodations: Accommodation[] = [...accommodations].sort(
@@ -103,7 +116,11 @@ export default async function Home() {
         >
           Top-rated Stays
         </h2>
-        {accommodations.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : accommodations.length === 0 ? (
           <div className="text-center text-destructive">
             Could not load top-rated stays. Please try again later.
           </div>

@@ -1,15 +1,21 @@
 // src/lib/currency.ts
+import type { Currency } from './data';
 
 // Placeholder for currency conversion rates relative to USD.
 // In a real application, this would be fetched from a currency conversion API.
-const conversionRates = {
+const conversionRates: Record<Currency, number> = {
   USD: 1,
   AUD: 1.5,
-  EUR: 0.85,
-  GBP: 0.74,
+  EUR: 0.92,
+  GBP: 0.79,
 };
 
-type Currency = keyof typeof conversionRates;
+const currencySymbols: Record<Currency, string> = {
+  USD: '$',
+  AUD: '$',
+  EUR: '€',
+  GBP: '£',
+};
 
 /**
  * Converts a price from one currency to another using a fixed rate table.
@@ -28,8 +34,11 @@ export function convertCurrency(
     return amount;
   }
 
-  const amountInUsd = amount / conversionRates[fromCurrency];
-  const convertedAmount = amountInUsd * conversionRates[toCurrency];
+  const fromRate = conversionRates[fromCurrency] || 1;
+  const toRate = conversionRates[toCurrency] || 1;
+
+  const amountInUsd = amount / fromRate;
+  const convertedAmount = amountInUsd * toRate;
 
   return convertedAmount;
 }
@@ -40,11 +49,15 @@ export function convertCurrency(
  * @param currency The currency code (e.g., 'USD', 'EUR').
  * @returns A formatted currency string (e.g., '$1,234.56').
  */
-export function formatCurrency(amount: number, currency: Currency): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2,
+export function formatCurrency(amount: number | string, currency: Currency): string {
+  const symbol = currencySymbols[currency] || '$';
+  const numberAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  }).format(amount);
+  }).format(numberAmount);
+
+  return `${symbol}${formattedAmount}`;
 }

@@ -1,7 +1,11 @@
+// src/app/results/page.tsx
+'use client';
+
+import { useState, useEffect, Suspense } from 'react';
 import { fetchAccommodations } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
 import AccommodationCard from '@/components/AccommodationCard';
-import { MapPin, Calendar, Users } from 'lucide-react';
+import { MapPin, Calendar, Users, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import {
   Breadcrumb,
@@ -13,6 +17,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
+import { useSearchParams } from 'next/navigation';
 
 // Utility: format date for display, ensuring UTC is handled correctly.
 function formatDate(dateString: string | undefined) {
@@ -24,42 +29,44 @@ function formatDate(dateString: string | undefined) {
   return format(date, 'LLL dd, yyyy');
 }
 
-// This is now an async Server Component
-export default async function ResultsPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  const location = searchParams.location as string | undefined;
-  const from = searchParams.from as string | undefined;
-  const to = searchParams.to as string | undefined;
-  const guests = searchParams.guests ? Number(searchParams.guests) : undefined;
+function ResultsPageContent() {
+  const searchParams = useSearchParams();
+  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 1. Fetch all accommodations
-  const allAccommodations = await fetchAccommodations();
+  const location = searchParams.get('location');
+  const from = searchParams.get('from');
+  const to = searchParams.get('to');
+  const guests = searchParams.get('guests') ? Number(searchParams.get('guests')) : undefined;
 
-  // 2. Filter accommodations based on search criteria
-  const filteredAccommodations = allAccommodations.filter((accommodation) => {
-    // Location filter (case-insensitive partial match)
-    if (
-      location &&
-      location.trim() &&
-      !accommodation.location.toLowerCase().includes(location.toLowerCase())
-    ) {
-      return false;
-    }
-    // Note: Date and guest filtering would be implemented here in a real scenario
-    // This is a simplified example. We'll add date/guest filtering in a future step.
-    return true;
-  });
+  useEffect(() => {
+    const loadAccommodations = async () => {
+      setLoading(true);
+      const allAccommodations = await fetchAccommodations();
+
+      const filtered = allAccommodations.filter((accommodation) => {
+        if (
+          location &&
+          location.trim() &&
+          !accommodation.location.toLowerCase().includes(location.toLowerCase())
+        ) {
+          return false;
+        }
+        return true;
+      });
+
+      setAccommodations(filtered);
+      setLoading(false);
+    };
+
+    loadAccommodations();
+  }, [location, from, to, guests]);
 
   const formattedDateRange = from && to ? `${formatDate(from)} - ${formatDate(to)}` : 'Any date';
 
-  // Create a plain object from searchParams to pass to client components
   const plainSearchParams: { [key: string]: string } = {};
-  for (const key in searchParams) {
-    const value = searchParams[key];
-    if (typeof value === 'string') {
+  for (const [key, value] of searchParams.entries()) {
+    if (value) {
       plainSearchParams[key] = value;
     }
   }
@@ -113,9 +120,13 @@ export default async function ResultsPage({
 
         {/* Results */}
         <section aria-label="Accommodation results">
-          {filteredAccommodations.length > 0 ? (
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : accommodations.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {filteredAccommodations.map((accommodation: Accommodation) => (
+              {accommodations.map((accommodation: Accommodation) => (
                 <AccommodationCard
                   key={accommodation.id}
                   accommodation={accommodation}
@@ -135,5 +146,19 @@ export default async function ResultsPage({
         </section>
       </div>
     </main>
+  );
+}
+
+export default function ResultsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center items-center h-screen">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <ResultsPageContent />
+    </Suspense>
   );
 }

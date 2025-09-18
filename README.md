@@ -23,6 +23,8 @@ This is a Next.js project for "Global Stay 2.0", an accommodation booking platfo
 - **Travel Documents**: A secure section for users to store and manage their driver's license, passport, and travel insurance details.
 - **Notification Center**: A detailed notification system with filtering, searching, and different notification types (e.g., system alerts, offers, booking updates). A dedicated page exists to view the details of a single notification.
 - **Bookings Management**: A placeholder page for users to view their upcoming and past stays.
+- **Functional "About Property" Form**: The form for editing the core details of a listing (name, type, location, etc.) is now fully functional and saves data directly to the Firestore database.
+- **Functional Photo Gallery Management**: The "Photo Gallery" section within "Edit Listing" now allows for uploading, reordering (via drag-and-drop), and deleting images, with changes saved to the Firestore database.
 
 ## Notification System Logic
 
@@ -73,7 +75,9 @@ The action buttons displayed on the notification detail page change based on the
 
 ## In Progress / Future Features
 
+- **Chargeable Amenities**: A new option in the Admin section to mark specific amenities or inclusions (e.g., Mini Bar, Airport Transfer, Spa Treatments) as having an additional cost. On the front-end accommodation details page, these items will be displayed with a currency icon to clearly indicate to guests that charges apply.
 - **Secure Document Hosting**: Implement a secure, encrypted hosting solution for travel documents (passports, licenses). This feature would allow users to optionally attach their documents to bookings, speeding up the check-in and booking process. Security and privacy must be the top priorities.
+- **Image File Storage Backend**: Implement a file storage solution (e.g., Firebase Storage) to allow for actual file uploads in the "Photo Gallery" management section, replacing the current URL-based system.
 - **Language Translations API**: Integration with a translation service for global language support.
 - **Global Currency Conversion Integration**: Real-time currency conversion for pricing.
 - **Dynamic Language/Currency Selector**: The Language/Currency indicator in the main header will become an actionable item. When clicked, it will open a modal allowing users to temporarily change their language and currency for the current browsing session. This modal will also provide a choice to make the change permanent by updating their default profile settings.
@@ -83,10 +87,17 @@ The action buttons displayed on the notification detail page change based on the
 - **Two-Factor Authentication**: Full implementation of 2FA via SMS and Email.
 - **Connected Devices Management**: Allow users to see and log out of devices where they are signed in.
 - **Login History**: Provide users with a view of their recent login activity. The "Report" button will allow users to flag suspicious activity, which will create a support ticket for the Global Stay team to review.
+- **Bookings Management (Admin)**: A new section in the Admin sidebar for hosts and administrators to manage all aspects of bookings. This will include:
+  - **Central Calendar**: A visual calendar to see all upcoming, current, and past bookings for all properties.
+  - **Booking Details**: The ability to view and manage individual booking details, including guest information and payment status.
+  - **Payments**: A section to track payments, process refunds, and handle payment-related issues.
+  - **Customer Communication**: A tool to contact guests directly regarding their bookings.
 - **Listings Management Logic**:
   - **Publishing**: The "Publish" action makes an accommodation listing 'LIVE' and available for booking on the front end. Once published, the action changes to "Return to Draft".
   - **Return to Draft**: This action takes a live listing offline, changing its status back to "Draft" and making it unavailable for new bookings.
   - **Deletion vs. Archiving**: A listing can only be permanently "Deleted" if it is in "Draft" status and has no booking history. If a listing is "Published" or has any past or upcoming bookings, it must be "Archived" instead. This ensures that historical data associated with the listing is preserved for records and user booking history.
+  - **User Access**: This new section within the "Edit Listing" form will be used to manage which users have permission to view and/or edit a specific listing. This will be integrated with the main user management system.
+  - **Bulk Actions**: Implement the ability to select multiple listings on the "Manage Listings" page to perform bulk actions such as "Publish", "Return to Draft", "Archive", or "Delete".
 - **My Travel Partners Workflows**:
   - **Add Family Member**: A manual entry process that checks for an existing user account via email. If no account exists, the member is added directly without an invitation.
   - **Invite a Partner**: Checks for an existing user. If the user exists, an email and system notification are sent for approval. If the user does not exist, an invitation email is sent to sign up and then approve the partner request.
@@ -98,9 +109,20 @@ The action buttons displayed on the notification detail page change based on the
 - **Date & Time Formatting**: Add an option to the "Currency & Language" page to allow users to override the default date and time formatting, which is initially set based on their profile's country selection. This would allow a user in the US to select a UK date format (DD/MM/YYYY) if they prefer.
 - **Contact Host**: Consider a "Contact" button on booking cards. This would initiate an internally managed communication thread between the guest and the property host, possibly integrated within the notification system or a new dedicated messaging page.
 - **Dynamic Language/Currency Selector**: The Language/Currency indicator in the main header is an actionable item. When clicked, it opens a modal allowing users to temporarily change their language and currency for the current browsing session. This modal will also provide a choice to make the change permanent by updating their default profile settings.
+- **Points of Interest Enhancements**:
+  - **Customer-Facing Map View**: On the front-end accommodation detail page, implement an interactive map that displays markers for all saved points of interest. These could be color-coded by category, with a different marker for the property's location. This allows guests to visually understand the proximity of attractions.
+  - **Map Directions**: Clicking on a point of interest marker on the map should generate a Google Maps Directions URL, showing the route from the property to that point of interest.
+  - **Bulk Import**: Allow hosts to add multiple points of interest at once by entering a list of addresses or Google Place IDs.
+  - **API Quota Management**: Implement strategies (like caching or deferred requests) to manage and minimize calls to the Google Places API to stay within usage limits.
+- **Property Type Management**: A dedicated settings page for Super Admins to manage the available "Property Types" (e.g., Hotel, Hostel, Villa). This would allow adding new types, editing existing ones, or removing them from the system. It should also support importing a list of types from a CSV file.
 
 ### Known Issues
 
 - **Map Interaction Issues**: The interactive map on the home page cannot be dragged or panned, and the accommodation markers are not clickable. Only the zoom controls are functional. This prevents users from properly exploring the map area.
-- **404 Errors on Hard Refresh**: The `/account/my-stays/upcoming` and `/account/my-stays/past` pages consistently produce a 404 error when the page is hard refreshed in the browser. The page loads correctly with client-side navigation or after a full "Restart App" in the development environment. This suggests a server-side rendering or routing issue specific to this nested route that needs further investigation.
-- **(Resolved) Linting Error on Commit**: A pre-commit hook was failing due to an ESLint error (`no-async-client-component`) in the `src/components/SearchParamsClient.tsx` file. This file was a redundant and unused duplicate of the home page. The issue was resolved by deleting the file. This note is for reversion reference if needed.
+- **`react-beautiful-dnd` Console Warning**: A development-only warning (`Invariant failed: isDropDisabled must be a boolean`) appears in the console on the "Photo Gallery" edit page. This does not affect functionality but should be investigated.
+- **(Resolved) 404 Errors on Hard Refresh**: The `/account/my-stays/upcoming` and `/account/my-stays/past` pages were consistently producing a 404 error on a hard refresh. This was resolved by fixing an issue in the routing and layout structure.
+- **(Resolved) Linting Error on Commit**: A pre-commit hook was failing due to an ESLint error (`no-async-client-component`) in the `src/components/SearchParamsClient.tsx` file. This file was a redundant and unused duplicate of the home page. The issue was resolved by deleting the file.
+- **(Resolved) Admin Area Layout & Routing Issues**: A series of issues related to Next.js App Router conventions were resolved. This included:
+  - **Clunky UI**: The "Edit Listing" section was refactored to use a single, dedicated sidebar that replaces the main admin sidebar, providing a cleaner, full-screen editing experience.
+  - **404 & Runtime Errors**: Multiple 404 and Firebase runtime errors in the `/admin/listings` pages were fixed. The root causes were improper use of client-side hooks in server components, incorrect Firebase SDK initialization, and mixing client/server SDKs within Server Actions. The codebase has been refactored to follow correct Next.js and Firebase best practices.
+  - **Incorrect `params` Handling**: Several components were accessing `params` directly instead of using `React.use()` as required by the latest Next.js version, which was causing console errors. This has been fixed across the affected admin pages.

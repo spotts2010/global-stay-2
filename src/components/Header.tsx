@@ -47,7 +47,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { usePathname } from 'next/navigation';
 import { useNotifications } from '@/context/NotificationsContext';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Header = () => {
   const { favorites } = useFavorites();
@@ -63,6 +63,11 @@ const Header = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tempCurrency, setTempCurrency] = useState(preferences.currency);
+
+  // Sync tempCurrency with context preferences when they change
+  useEffect(() => {
+    setTempCurrency(preferences.currency);
+  }, [preferences.currency]);
 
   const handleSettingsUpdate = () => {
     setPreferences({ currency: tempCurrency });

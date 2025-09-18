@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import {
   Star,
@@ -7,6 +9,7 @@ import {
   Utensils as _Utensils,
   Award,
   Users as _Users,
+  Loader2,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -26,25 +29,45 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { useEffect, useState, use } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
+import { convertCurrency, formatCurrency } from '@/lib/currency';
 
-export default async function AccommodationDetailPage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  let accommodation: Accommodation | null = null;
-  let fetchError = false;
+export default function AccommodationDetailPage({ params }: { params: { id: string } }) {
+  const id = use(params);
+  const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const searchParams = useSearchParams();
+  const { preferences } = useUserPreferences();
 
-  try {
-    accommodation = await fetchAccommodationById(params.id);
-  } catch (error) {
-    console.error(`Failed to fetch accommodation for id ${params.id}:`, error);
-    fetchError = true;
+  useEffect(() => {
+    const getAccommodation = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const data = await fetchAccommodationById(id.id);
+        setAccommodation(data);
+      } catch (e) {
+        console.error(`Failed to fetch accommodation for id ${id.id}:`, e);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getAccommodation();
+  }, [id.id]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  if (fetchError) {
+  if (error) {
     return (
       <div className="container mx-auto px-4 md:px-6 py-12 text-center pb-16">
         <h1 className="font-headline text-2xl font-bold text-destructive">An Error Occurred</h1>
@@ -85,14 +108,19 @@ export default async function AccommodationDetailPage({
   ];
 
   const cleanSearchParams: Record<string, string> = {};
-  for (const key in searchParams) {
-    const value = searchParams[key];
-    if (typeof value === 'string') {
+  for (const [key, value] of searchParams.entries()) {
+    if (value) {
       cleanSearchParams[key] = value;
     }
   }
 
   const resultsLink = `/results?${new URLSearchParams(cleanSearchParams).toString()}`;
+
+  const convertedPrice = convertCurrency(
+    accommodation.price,
+    accommodation.currency,
+    preferences.currency
+  );
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-6 pb-16">
@@ -200,7 +228,9 @@ export default async function AccommodationDetailPage({
           <Card className="sticky top-24 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-3xl font-bold text-primary">${accommodation.price}</span>
+                <span className="text-3xl font-bold text-primary">
+                  {formatCurrency(convertedPrice, preferences.currency)}
+                </span>
                 <span className="text-muted-foreground">/ night</span>
               </div>
               <Button className="w-full text-lg" size="lg">

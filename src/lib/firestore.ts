@@ -1,166 +1,123 @@
-import { db } from '@/lib/firebase'; // Use server-safe firebase config
-import {
-  collection,
-  getDocs,
-  doc,
-  getDoc,
-  DocumentData,
-  QueryDocumentSnapshot,
-} from 'firebase/firestore';
+import { db } from './firebase'; // Use CLIENT-side SDK for component data fetching
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import type { Accommodation, Booking, EnrichedBooking } from './data';
-import { getMockAccommodations, getMockBookings } from './firestore.mock';
+import type { Place } from '@/components/PointsOfInterest';
+import { isBefore } from 'date-fns';
 
-// Detect if we're in a test environment (Jest or Playwright)
-const isTestEnv = process.env.NODE_ENV === 'test';
+// This file now uses the CLIENT-SIDE SDK for data fetching in components.
+// The Admin SDK should only be used in Server Actions.
 
-/**
- * Fetch all accommodations
- */
 export async function fetchAccommodations(): Promise<Accommodation[]> {
-  if (isTestEnv) {
-    return getMockAccommodations();
-  }
   try {
-    const snapshot = await getDocs(collection(db, 'accommodations'));
-    return snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Accommodation[];
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Error fetching accommodations:', error.message);
-    } else {
-      console.error('Error fetching accommodations:', error);
+    const accommodationsSnapshot = await getDocs(collection(db, 'accommodations'));
+    if (accommodationsSnapshot.empty) {
+      return [];
     }
-    return []; // Return empty array on error
+    return accommodationsSnapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() }) as Accommodation
+    );
+  } catch (error) {
+    console.error('Error fetching accommodations:', error);
+    // In case of permissions errors on the client, return empty array.
+    // A better solution would be to handle this gracefully in the UI.
+    return [];
   }
 }
 
-/**
- * Fetch a single accommodation by ID
- */
 export async function fetchAccommodationById(id: string): Promise<Accommodation | null> {
-  if (isTestEnv) {
-    return getMockAccommodations().find((acc) => acc.id === id) || null;
-  }
+  if (!id) return null;
   try {
-    const ref = doc(db, 'accommodations', id);
-    const snapshot = await getDoc(ref);
-    return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Accommodation) : null;
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error(`Error fetching accommodation by ID (${id}):`, error.message);
-    } else {
-      console.error(`Error fetching accommodation by ID (${id}):`, error);
+    const docRef = doc(db, 'accommodations', id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      return null;
     }
-    return null; // Return null on error
+    return { id: docSnap.id, ...docSnap.data() } as Accommodation;
+  } catch (error) {
+    console.error(`Error fetching accommodation by id ${id}:`, error);
+    return null;
   }
 }
 
-export async function fetchBookings(userId: string): Promise<Booking[]> {
-  if (isTestEnv) {
-    return getMockBookings().filter((b) => b.userId === userId);
+export async function fetchPointsOfInterest(accommodationId: string): Promise<Place[]> {
+  if (!accommodationId) return [];
+  try {
+    const poiSnapshot = await getDocs(
+      collection(db, `accommodations/${accommodationId}/pointsOfInterest`)
+    );
+    if (poiSnapshot.empty) {
+      return [];
+    }
+    return poiSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Place);
+  } catch (error) {
+    console.error(`Error fetching POIs for accommodation ${accommodationId}:`, error);
+    return [];
   }
+}
 
-  // This is a temporary hotfix to return mock data and prevent a Firestore
-  // permissions error. In a real app, you would query Firestore securely.
-  const placeholderBookings: Booking[] = [
-    {
-      id: 'booking1',
-      accommodationId: 'acc1',
-      userId: 'user1',
-      startDate: new Date('2025-10-15T00:00:00Z'),
-      endDate: new Date('2025-10-20T00:00:00Z'),
-      guests: 2,
-      totalPrice: 4250,
-    },
-    {
-      id: 'booking2',
-      accommodationId: 'acc3',
-      userId: 'user1',
-      startDate: new Date('2026-01-10T00:00:00Z'),
-      endDate: new Date('2026-01-17T00:00:00Z'),
-      guests: 1,
-      totalPrice: 4340,
-    },
-    {
-      id: 'booking3',
-      accommodationId: 'acc5',
-      userId: 'user1',
-      startDate: new Date('2026-04-01T00:00:00Z'),
-      endDate: new Date('2026-04-04T00:00:00Z'),
-      guests: 4,
-      totalPrice: 630,
-    },
-  ];
+// NOTE: These booking functions are placeholders.
+// In a real app, you would have more complex logic, user authentication,
+// and likely store bookings in a user-specific subcollection.
+const MOCK_BOOKINGS: Booking[] = [
+  {
+    id: 'booking1',
+    accommodationId: 'oceanfront-pearl-malibu',
+    userId: 'user1',
+    startDate: new Date('2025-10-15T00:00:00Z'),
+    endDate: new Date('2025-10-20T00:00:00Z'),
+    guests: 2,
+    totalPrice: 4250,
+  },
+  {
+    id: 'booking2',
+    accommodationId: 'grand-budapest-hotel',
+    userId: 'user1',
+    startDate: new Date('2026-01-10T00:00:00Z'),
+    endDate: new Date('2026-01-17T00:00:00Z'),
+    guests: 1,
+    totalPrice: 4340,
+  },
+  {
+    id: 'past-booking-1',
+    accommodationId: 'secluded-mountain-cabin-aspen',
+    userId: 'user1',
+    startDate: new Date('2024-05-10T00:00:00Z'),
+    endDate: new Date('2024-05-15T00:00:00Z'),
+    guests: 2,
+    totalPrice: 1900,
+  },
+];
 
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(placeholderBookings.filter((b) => b.userId === userId));
-    }, 500); // Simulate network delay
-  });
+export async function fetchBookings(userId: string): Promise<EnrichedBooking[]> {
+  const userBookings = MOCK_BOOKINGS.filter(
+    (b) => b.userId === userId && b.endDate && new Date() < b.endDate
+  );
+
+  const enrichedBookings: EnrichedBooking[] = await Promise.all(
+    userBookings.map(async (booking) => {
+      const accommodation = await fetchAccommodationById(booking.accommodationId || '');
+      return {
+        ...booking,
+        accommodation: accommodation || undefined,
+      };
+    })
+  );
+  return enrichedBookings;
 }
 
 export async function fetchPastBookings(userId: string): Promise<EnrichedBooking[]> {
-  const allAccommodations = await fetchAccommodations();
-  const findAccommodation = (id: string) => allAccommodations.find((a) => a.id === id);
+  const userBookings = MOCK_BOOKINGS.filter(
+    (b) => b.userId === userId && b.endDate && isBefore(new Date(b.endDate), new Date())
+  );
 
-  const pastBookings: EnrichedBooking[] = [
-    {
-      id: 'past-booking-1',
-      accommodationId: 'acc4',
-      accommodation: findAccommodation('acc4'),
-      userId: 'user1',
-      startDate: new Date('2024-05-10T00:00:00Z'),
-      endDate: new Date('2024-05-15T00:00:00Z'),
-      guests: 2,
-      totalPrice: 1900,
-    },
-    {
-      id: 'past-booking-2',
-      accommodationId: 'acc2',
-      accommodation: findAccommodation('acc2'),
-      userId: 'user1',
-      startDate: new Date('2023-11-20T00:00:00Z'),
-      endDate: new Date('2023-11-22T00:00:00Z'),
-      guests: 2,
-      totalPrice: 900,
-    },
-    {
-      id: 'past-booking-3',
-      accommodationId: 'acc1',
-      accommodation: findAccommodation('acc1'),
-      userId: 'user1',
-      startDate: new Date('2023-07-01T00:00:00Z'),
-      endDate: new Date('2023-07-08T00:00:00Z'),
-      guests: 4,
-      totalPrice: 5950,
-    },
-    {
-      id: 'past-booking-4',
-      accommodationId: 'acc5',
-      accommodation: findAccommodation('acc5'),
-      userId: 'user1',
-      startDate: new Date('2022-09-05T00:00:00Z'),
-      endDate: new Date('2022-09-10T00:00:00Z'),
-      guests: 1,
-      totalPrice: 1050,
-    },
-    {
-      id: 'past-booking-5',
-      accommodationId: 'acc3',
-      accommodation: findAccommodation('acc3'),
-      userId: 'user1',
-      startDate: new Date('2022-02-14T00:00:00Z'),
-      endDate: new Date('2022-02-18T00:00:00Z'),
-      guests: 2,
-      totalPrice: 2480,
-    },
-  ];
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(pastBookings.filter((b) => b.userId === userId));
-    }, 500);
-  });
+  const enrichedBookings: EnrichedBooking[] = await Promise.all(
+    userBookings.map(async (booking) => {
+      const accommodation = await fetchAccommodationById(booking.accommodationId || '');
+      return {
+        ...booking,
+        accommodation: accommodation || undefined,
+      };
+    })
+  );
+  return enrichedBookings;
 }

@@ -1,10 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import type { Currency } from '@/lib/data';
 
 type Preferences = {
   language: string;
-  currency: string;
+  currency: Currency;
+  distanceUnit: 'km' | 'miles';
 };
 
 interface UserPreferencesContextType {
@@ -19,6 +21,7 @@ const UserPreferencesContext = createContext<UserPreferencesContextType | undefi
 const initialPreferences: Preferences = {
   language: 'en-US',
   currency: 'USD',
+  distanceUnit: 'km',
 };
 
 export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
@@ -29,7 +32,9 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
     try {
       const storedPrefs = localStorage.getItem('global-stay-preferences');
       if (storedPrefs) {
-        setPreferencesState(JSON.parse(storedPrefs));
+        // Merge stored preferences with initial state to ensure all keys are present
+        const parsedPrefs = JSON.parse(storedPrefs);
+        setPreferencesState({ ...initialPreferences, ...parsedPrefs });
       }
     } catch (error) {
       console.error('Could not read user preferences from localStorage', error);

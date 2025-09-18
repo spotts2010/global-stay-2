@@ -27,9 +27,12 @@ import {
 } from '@/components/ui/dialog';
 import { BookingCard } from '@/components/BookingCard';
 import Link from 'next/link';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
+import { convertCurrency, formatCurrency } from '@/lib/currency';
 
 // Card for the Modal view - more spacious
 const BookingSummaryCard = ({ booking }: { booking: EnrichedBooking }) => {
+  const { preferences } = useUserPreferences();
   if (!booking.accommodation) return null;
 
   const nights =
@@ -37,6 +40,11 @@ const BookingSummaryCard = ({ booking }: { booking: EnrichedBooking }) => {
       ? differenceInDays(new Date(booking.endDate), new Date(booking.startDate))
       : 0;
   const days = nights > 0 ? nights + 1 : 0;
+
+  const convertedPrice =
+    booking.totalPrice && booking.accommodation.currency
+      ? convertCurrency(booking.totalPrice, booking.accommodation.currency, preferences.currency)
+      : booking.totalPrice || 0;
 
   return (
     <Card className="overflow-hidden flex flex-col">
@@ -83,7 +91,7 @@ const BookingSummaryCard = ({ booking }: { booking: EnrichedBooking }) => {
         </div>
         <div className="text-center">
           <div className="font-semibold text-lg text-foreground">
-            <span>${booking.totalPrice?.toFixed(2)}</span>
+            <span>{formatCurrency(convertedPrice, preferences.currency)}</span>
           </div>
           <Button asChild className="mt-2">
             <Link href={`/accommodation/${booking.accommodation.id}`}>

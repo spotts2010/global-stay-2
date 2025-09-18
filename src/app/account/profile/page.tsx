@@ -29,6 +29,7 @@ import {
   Globe,
   Wallet,
   Languages,
+  Milestone,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -50,6 +51,7 @@ const profileSchema = z.object({
   timezone: z.string().min(1, 'Timezone is required'),
   currency: z.string(),
   language: z.string(),
+  distanceUnit: z.enum(['km', 'miles']),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -70,6 +72,7 @@ export default function ProfilePage() {
       timezone: 'Australia/Brisbane',
       currency: preferences.currency,
       language: preferences.language,
+      distanceUnit: preferences.distanceUnit,
     }),
     [preferences]
   );
@@ -283,7 +286,7 @@ export default function ProfilePage() {
             {/* Default Settings Section */}
             <div className="space-y-4">
               <h3 className="font-headline text-xl font-semibold">Default Settings</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="timezone"
@@ -344,6 +347,34 @@ export default function ProfilePage() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="en-US">English (United States)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="distanceUnit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label className="flex items-center gap-2 mb-2">
+                        <Milestone className="h-4 w-4 text-muted-foreground" />
+                        Distance Unit
+                      </Label>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!isEditing}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="km">Kilometers (km)</SelectItem>
+                          <SelectItem value="miles">Miles (mi)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

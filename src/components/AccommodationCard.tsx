@@ -16,6 +16,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useFavorites } from '@/context/FavoritesContext';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
+import { convertCurrency, formatCurrency } from '@/lib/currency';
 
 type AccommodationCardProps = {
   accommodation: Accommodation;
@@ -24,6 +26,7 @@ type AccommodationCardProps = {
 
 const AccommodationCard = ({ accommodation, searchParams }: AccommodationCardProps) => {
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const { preferences } = useUserPreferences();
   const favorite = isFavorite(accommodation.id);
 
   const toggleFavorite = (e: React.MouseEvent) => {
@@ -40,6 +43,13 @@ const AccommodationCard = ({ accommodation, searchParams }: AccommodationCardPro
     ? new URLSearchParams(searchParams as Record<string, string>).toString()
     : '';
   const detailUrl = `/accommodation/${accommodation.id}${queryString ? `?${queryString}` : ''}`;
+
+  const convertedPrice = convertCurrency(
+    accommodation.price,
+    accommodation.currency,
+    preferences.currency
+  );
+  const formattedPrice = formatCurrency(convertedPrice.toFixed(0), preferences.currency);
 
   return (
     <Card className="w-full h-full overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
@@ -60,7 +70,7 @@ const AccommodationCard = ({ accommodation, searchParams }: AccommodationCardPro
             />
             <div className="absolute bottom-3 left-3">
               <div className="bg-black/60 text-white px-2 py-0.5 rounded-sm">
-                <span className="text-base font-bold">${accommodation.price}</span>
+                <span className="text-base font-bold">{formattedPrice}</span>
                 <span className="text-xs">/night</span>
               </div>
             </div>

@@ -1,3 +1,4 @@
+// This is a new file, renamed from /src/app/admin/dashboard/page.tsx
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AdminDashboardPage() {

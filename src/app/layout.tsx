@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { Quicksand } from 'next/font/google';
 import { NotificationsProvider } from '@/context/NotificationsContext';
 import { UserPreferencesProvider } from '@/context/UserPreferencesContext';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'Global Stay 2.0',
@@ -19,6 +20,8 @@ const quicksand = Quicksand({
   variable: '--font-quicksand',
 });
 
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,6 +29,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${quicksand.variable}`}>
+      <head>
+        <Script
+          src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geocoding,geometry&v=beta`}
+          strategy="beforeInteractive"
+        />
+      </head>
       <body className={cn('font-body antialiased bg-background text-foreground')}>
         <UserPreferencesProvider>
           <NotificationsProvider>
