@@ -29,7 +29,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
   const [images, setImages] = useState<string[]>(listing?.images || []);
   const [isDirty, setIsDirty] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
+  const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
@@ -53,32 +53,50 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) setFileToUpload(file);
+    if (event.target.files) {
+      setFilesToUpload(Array.from(event.target.files));
+    }
   };
 
-  const handleUploadImage = async () => {
-    if (!fileToUpload) return;
+  const handleUploadImages = async () => {
+    if (filesToUpload.length === 0) return;
     setIsUploading(true);
 
-    const formData = new FormData();
-    formData.append('file', fileToUpload);
+    const uploadPromises = filesToUpload.map((file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return uploadImageAction(formData);
+    });
 
-    const result = await uploadImageAction(formData);
-    if (result.success && result.url) {
-      setImages((prev) => [...prev, result.url]);
+    const results = await Promise.all(uploadPromises);
+
+    const newImageUrls: string[] = [];
+    let uploadFailed = false;
+
+    results.forEach((result) => {
+      if (result.success && result.url) {
+        newImageUrls.push(result.url);
+      } else {
+        uploadFailed = true;
+        toast({
+          variant: 'destructive',
+          title: 'Upload Failed',
+          description: result.error || 'An unknown error occurred for one or more images.',
+        });
+      }
+    });
+
+    if (newImageUrls.length > 0) {
+      setImages((prev) => [...prev, ...newImageUrls]);
       toast({
-        title: 'Image Uploaded',
-        description: 'Image added to the gallery. Save changes to confirm.',
+        title: `${newImageUrls.length} Image(s) Uploaded`,
+        description: 'Images added to the gallery. Save changes to confirm.',
       });
-      setFileToUpload(null);
+    }
+
+    if (!uploadFailed) {
+      setFilesToUpload([]);
       setIsAddModalOpen(false);
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Upload Failed',
-        description: result.error || 'An unknown error occurred.',
-      });
     }
     setIsUploading(false);
   };
@@ -140,29 +158,36 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload New Image</DialogTitle>
-            <DialogDescription>Choose an image file to upload to the gallery.</DialogDescription>
+            <DialogTitle>Upload New Images</DialogTitle>
+            <DialogDescription>Choose image files to upload to the gallery.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="picture">Picture</Label>
-              <Input id="picture" type="file" onChange={handleFileChange} />
+              <Label htmlFor="picture">Pictures</Label>
+              <Input id="picture" type="file" onChange={handleFileChange} multiple />
             </div>
-            {fileToUpload && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ImageIcon className="h-4 w-4" />
-                <span>{fileToUpload.name}</span>
+            {filesToUpload.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Selected files:</p>
+                <ul className="list-disc list-inside text-sm text-muted-foreground max-h-32 overflow-y-auto">
+                  {filesToUpload.map((file, index) => (
+                    <li key={index}>{file.name}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button onClick={handleUploadImage} disabled={isUploading || !fileToUpload}>
+            <Button
+              onClick={handleUploadImages}
+              disabled={isUploading || filesToUpload.length === 0}
+            >
               {isUploading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <UploadCloud className="mr-2 h-4 w-4" />
               )}
-              Upload Image
+              Upload {filesToUpload.length > 0 ? filesToUpload.length : ''} Image(s)
             </Button>
           </DialogFooter>
         </DialogContent>
