@@ -119,10 +119,10 @@ The action buttons displayed on the notification detail page change based on the
 ### Known Issues
 
 - **Map Interaction Issues**: The interactive map on the home page cannot be dragged or panned, and the accommodation markers are not clickable. Only the zoom controls are functional. This prevents users from properly exploring the map area.
-- **`react-beautiful-dnd` Console Warning**: A development-only warning (`Invariant failed: isDropDisabled must be a boolean`) appears in the console on the "Photo Gallery" edit page. This does not affect functionality but should be investigated.
 - **(Resolved) 404 Errors on Hard Refresh**: The `/account/my-stays/upcoming` and `/account/my-stays/past` pages were consistently producing a 404 error on a hard refresh. This was resolved by fixing an issue in the routing and layout structure.
 - **(Resolved) Linting Error on Commit**: A pre-commit hook was failing due to an ESLint error (`no-async-client-component`) in the `src/components/SearchParamsClient.tsx` file. This file was a redundant and unused duplicate of the home page. The issue was resolved by deleting the file.
 - **(Resolved) Admin Area Layout & Routing Issues**: A series of issues related to Next.js App Router conventions were resolved. This included:
   - **Clunky UI**: The "Edit Listing" section was refactored to use a single, dedicated sidebar that replaces the main admin sidebar, providing a cleaner, full-screen editing experience.
   - **404 & Runtime Errors**: Multiple 404 and Firebase runtime errors in the `/admin/listings` pages were fixed. The root causes were improper use of client-side hooks in server components, incorrect Firebase SDK initialization, and mixing client/server SDKs within Server Actions. The codebase has been refactored to follow correct Next.js and Firebase best practices.
   - **Incorrect `params` Handling**: Several components were accessing `params` directly instead of using `React.use()` as required by the latest Next.js version, which was causing console errors. This has been fixed across the affected admin pages.
+- **(Resolved) `react-beautiful-dnd` Console Warning**: A development-only warning (`Invariant failed: isDropDisabled must be a boolean`) that appeared in the console on the "Photo Gallery" edit page has been resolved.

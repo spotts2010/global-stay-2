@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Accommodation } from '@/lib/data';
 import { updateAccommodationAction, uploadImageAction } from '@/app/actions';
 import { DragDropContext, type DropResult } from 'react-beautiful-dnd';
+import { cn } from '@/lib/utils';
 
 const PhotoGalleryDND = dynamic(() => import('./PhotoGalleryDND'), { ssr: false });
 
@@ -162,20 +163,31 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
             <DialogDescription>Choose image files to upload to the gallery.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid w-full max-w-sm items-center gap-1.5">
+            <div className="grid w-full items-center gap-1.5">
               <Label htmlFor="picture">Pictures</Label>
-              <Input id="picture" type="file" onChange={handleFileChange} multiple />
-            </div>
-            {filesToUpload.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Selected files:</p>
-                <ul className="list-disc list-inside text-sm text-muted-foreground max-h-32 overflow-y-auto">
-                  {filesToUpload.map((file, index) => (
-                    <li key={index}>{file.name}</li>
-                  ))}
-                </ul>
+              <div className="flex h-10 w-full rounded-md border border-input bg-white text-sm">
+                <Label
+                  htmlFor="picture"
+                  className={cn(
+                    'flex h-full items-center whitespace-nowrap rounded-l-md border-r bg-primary px-3 text-primary-foreground hover:bg-primary/90 cursor-pointer'
+                  )}
+                >
+                  Choose Files
+                </Label>
+                <Input
+                  id="picture"
+                  type="file"
+                  onChange={handleFileChange}
+                  multiple
+                  className="hidden"
+                />
+                <div className="flex flex-1 items-center px-3 text-muted-foreground">
+                  {filesToUpload.length > 0
+                    ? `${filesToUpload.length} file(s) selected`
+                    : 'No file chosen'}
+                </div>
               </div>
-            )}
+            </div>
           </div>
           <DialogFooter>
             <Button

@@ -33,7 +33,13 @@ const PhotoGalleryDND: React.FC<PhotoGalleryDNDProps> = ({
   openAddModal,
 }) => {
   return (
-    <Droppable droppableId="gallery" direction="horizontal">
+    <Droppable
+      droppableId="gallery"
+      direction="horizontal"
+      isDropDisabled={false}
+      isCombineEnabled={false}
+      ignoreContainerClipping={false}
+    >
       {(provided) => (
         <div
           ref={provided.innerRef}
@@ -41,7 +47,12 @@ const PhotoGalleryDND: React.FC<PhotoGalleryDNDProps> = ({
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
         >
           {images.map((img, index) => (
-            <Draggable key={img} draggableId={img} index={index}>
+            <Draggable
+              key={img}
+              draggableId={img}
+              index={index}
+              isDragDisabled={false} // explicit boolean
+            >
               {(provided) => (
                 <div
                   ref={provided.innerRef}
