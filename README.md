@@ -75,6 +75,7 @@ The action buttons displayed on the notification detail page change based on the
 
 ## In Progress / Future Features
 
+- **Dynamic Amenity Loading**: Refactor the amenities management in the admin section to dynamically load the list of available amenities from a central Firestore collection, rather than using a hard-coded list in the component. This will make the system more scalable and easier to manage.
 - **Chargeable Amenities**: A new option in the Admin section to mark specific amenities or inclusions (e.g., Mini Bar, Airport Transfer, Spa Treatments) as having an additional cost. On the front-end accommodation details page, these items will be displayed with a currency icon to clearly indicate to guests that charges apply.
 - **Secure Document Hosting**: Implement a secure, encrypted hosting solution for travel documents (passports, licenses). This feature would allow users to optionally attach their documents to bookings, speeding up the check-in and booking process. Security and privacy must be the top priorities.
 - **Image File Storage Backend**: Implement a file storage solution (e.g., Firebase Storage) to allow for actual file uploads in the "Photo Gallery" management section, replacing the current URL-based system.

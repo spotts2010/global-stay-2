@@ -13,6 +13,7 @@ export type Accommodation = {
   image: string; // Legacy cover image, will be first item in images array
   images: string[];
   amenities: Amenity[];
+  chargeableAmenities?: string[]; // Array of amenity IDs that have fees
   type: 'Apartment' | 'Villa' | 'Hotel' | 'Loft' | 'House' | 'Hostel';
   bookingType: 'room' | 'bed' | 'hybrid';
   imageHint: string;

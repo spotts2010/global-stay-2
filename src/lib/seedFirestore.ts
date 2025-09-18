@@ -131,9 +131,9 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.6,
     reviewsCount: 450,
-    image: 'https://images.unsplash.com/photo-1541421029124-75376c64686a',
+    image: 'https://images.unsplash.com/photo-1623052635676-e8d8881412e2',
     images: [
-      'https://images.unsplash.com/photo-1541421029124-75376c64686a',
+      'https://images.unsplash.com/photo-1623052635676-e8d8881412e2',
       'https://images.unsplash.com/photo-1516455590571-18256e5bb9ff',
       'https://images.unsplash.com/photo-1501183638710-841dd1904471',
     ],
@@ -251,9 +251,9 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.3,
     reviewsCount: 900,
-    image: 'https://images.unsplash.com/photo-1587985064135-2366502d95c3',
+    image: 'https://images.unsplash.com/photo-1594957648163-c3599b512999',
     images: [
-      'https://images.unsplash.com/photo-1587985064135-2366502d95c3',
+      'https://images.unsplash.com/photo-1594957648163-c3599b512999',
       'https://images.unsplash.com/photo-1594957648163-c3599b512999',
       'https://images.unsplash.com/photo-1594957648163-c3599b512999',
     ],

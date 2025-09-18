@@ -1,17 +1,21 @@
 'use client';
 
+import React, { useState, useTransition, useEffect, use } from 'react';
+import { useForm, useFormContext } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Save, Loader2, Building2 } from 'lucide-react';
-import React, { useState, useTransition, useEffect, use } from 'react';
+import { Save, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Accommodation } from '@/lib/data';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Form, FormLabel } from '@/components/ui/form';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchAccommodationById } from '@/lib/firestore';
+import { updateAccommodationAction } from '@/app/actions';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Amenity = {
   id: string;
@@ -66,28 +70,189 @@ const amenityCategories: Amenity['category'][] = [
   'Services',
 ];
 
+type FormValues = {
+  amenities: string[];
+  chargeableAmenities: string[];
+};
+
+// --- Custom SVG Icons ---
+const DisabledFeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <circle cx="12" cy="12" r="10" stroke="#B3B3B3" strokeWidth="1.5" />
+    <path
+      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c1.1 0 2 .9 2 2s-.9 2-2 2H8"
+      stroke="#B3B3B3"
+      strokeWidth="1.5"
+    />
+    <path d="M12 18V6" stroke="#B3B3B3" strokeWidth="1.5" />
+  </svg>
+);
+
+const InactiveFeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <circle cx="12" cy="12" r="10" stroke="black" strokeWidth="1.5" />
+    <path
+      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c1.1 0 2 .9 2 2s-.9 2-2 2H8"
+      stroke="black"
+      strokeWidth="1.5"
+    />
+    <path d="M12 18V6" stroke="black" strokeWidth="1.5" />
+  </svg>
+);
+
+const ActiveFeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <circle cx="12" cy="12" r="10" fill="#2682CE" stroke="#2682CE" strokeWidth="1.5" />
+    <path
+      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c1.1 0 2 .9 2 2s-.9 2-2 2H8"
+      stroke="#fff"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <path
+      d="M12 18V6"
+      stroke="#fff"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  </svg>
+);
+
+const AmenityItem = ({ amenity }: { amenity: Amenity }) => {
+  const { watch, setValue, getValues } = useFormContext<FormValues>();
+  const isIncluded = watch('amenities')?.includes(amenity.id);
+  const isChargeable = watch('chargeableAmenities')?.includes(amenity.id);
+
+  const handleChargeableToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isIncluded) return;
+
+    const currentChargeable = getValues('chargeableAmenities') || [];
+    const newChargeable = isChargeable
+      ? currentChargeable.filter((id) => id !== amenity.id)
+      : [...currentChargeable, amenity.id];
+    setValue('chargeableAmenities', newChargeable, { shouldDirty: true });
+  };
+
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-3 p-2 rounded-md border transition-colors',
+        isIncluded ? 'bg-accent border-primary/50' : 'bg-transparent border-border'
+      )}
+    >
+      <Checkbox
+        id={`amenity-${amenity.id}`}
+        checked={isIncluded}
+        onCheckedChange={(checked) => {
+          const amenities = getValues('amenities') || [];
+          const updatedAmenities = checked
+            ? [...amenities, amenity.id]
+            : amenities.filter((value) => value !== amenity.id);
+          setValue('amenities', updatedAmenities, { shouldDirty: true });
+
+          if (!checked) {
+            const currentChargeable = getValues('chargeableAmenities');
+            setValue(
+              'chargeableAmenities',
+              currentChargeable.filter((id) => id !== amenity.id),
+              { shouldDirty: true }
+            );
+          }
+        }}
+      />
+
+      <FormLabel
+        htmlFor={`amenity-${amenity.id}`}
+        className="flex-1 text-sm font-normal truncate cursor-pointer"
+      >
+        {amenity.label}
+      </FormLabel>
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className={cn('h-5 w-5', isIncluded ? 'cursor-pointer' : 'cursor-not-allowed')}
+              onClick={handleChargeableToggle}
+              disabled={!isIncluded}
+              aria-label="Toggle chargeable"
+            >
+              {!isIncluded ? (
+                <DisabledFeeIcon className="h-5 w-5" />
+              ) : isChargeable ? (
+                <ActiveFeeIcon className="h-5 w-5" />
+              ) : (
+                <InactiveFeeIcon className="h-5 w-5" />
+              )}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Toggle if fees apply</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+};
+
 function AmenitiesPageClient({ listing }: { listing: Accommodation }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<Amenity['category']>('All');
 
-  const form = useForm({
+  const form = useForm<FormValues>({
     defaultValues: {
       amenities: listing?.amenities || [],
+      chargeableAmenities: listing?.chargeableAmenities || [],
     },
   });
 
-  const handleSave = (formData: { amenities: string[] }) => {
+  const selectedAmenities = form.watch('amenities') || [];
+
+  const handleSave = (formData: FormValues) => {
+    const cleanedData = {
+      ...formData,
+      chargeableAmenities: formData.chargeableAmenities.filter((chargeable) =>
+        formData.amenities.includes(chargeable)
+      ),
+    };
+
     startTransition(async () => {
-      console.log('Saving amenities:', formData.amenities);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast({
-        title: 'Changes Saved',
-        description: 'The shared amenities have been updated.',
-      });
-      form.reset({ amenities: formData.amenities });
+      const result = await updateAccommodationAction(listing.id, cleanedData);
+      if (result.success) {
+        toast({
+          title: 'Changes Saved',
+          description: 'The shared amenities have been updated.',
+        });
+        form.reset(cleanedData);
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Save Failed',
+          description: result.error || 'An unknown error occurred.',
+        });
+      }
     });
   };
+
+  const AmenityGrid = ({ amenities }: { amenities: Amenity[] }) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
+      {amenities.map((amenity) => (
+        <AmenityItem key={amenity.id} amenity={amenity} />
+      ))}
+    </div>
+  );
+
+  const filteredAmenities =
+    activeTab === 'All'
+      ? amenitiesList
+      : amenitiesList.filter((amenity) => amenity.category === activeTab);
 
   return (
     <Form {...form}>
@@ -100,89 +265,61 @@ function AmenitiesPageClient({ listing }: { listing: Accommodation }) {
           ]}
         />
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
-              Shared Amenities &amp; Facilities
-            </CardTitle>
-            <CardDescription>
-              Select all the shared amenities that apply to this property.
-            </CardDescription>
+          <CardHeader className="flex flex-col sm:flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle>Shared Amenities &amp; Facilities</CardTitle>
+              <CardDescription>
+                Select all shared amenities for this property and specify if fees apply.
+              </CardDescription>
+              <div className="!mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="h-5 w-5 inline-block">
+                  <ActiveFeeIcon className="h-5 w-5" />
+                </span>
+                <span>
+                  = When enabled, this icon indicates that additional fees may be applicable.
+                </span>
+              </div>
+            </div>
+            <Button
+              type="submit"
+              disabled={isPending || !form.formState.isDirty}
+              className="w-full sm:w-auto"
+            >
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              Save Changes
+            </Button>
           </CardHeader>
           <CardContent>
-            <FormField
-              control={form.control}
-              name="amenities"
-              render={() => (
-                <FormItem>
-                  <Tabs
-                    value={activeTab}
-                    onValueChange={(value) => setActiveTab(value as Amenity['category'])}
-                  >
-                    <TabsList className="mb-4 flex-wrap h-auto">
-                      {amenityCategories.map((category) => (
-                        <TabsTrigger key={category} value={category}>
-                          {category}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                    {amenityCategories.map((category) => (
-                      <TabsContent key={category} value={category}>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3">
-                          {amenitiesList
-                            .filter(
-                              (amenity) => category === 'All' || amenity.category === category
-                            )
-                            .map((amenity) => (
-                              <FormField
-                                key={amenity.id}
-                                control={form.control}
-                                name="amenities"
-                                render={({ field }) => {
-                                  return (
-                                    <FormItem
-                                      key={amenity.id}
-                                      className="flex flex-row items-start space-x-3 space-y-0"
-                                    >
-                                      <FormControl>
-                                        <Checkbox
-                                          checked={field.value?.includes(amenity.id)}
-                                          onCheckedChange={(checked) => {
-                                            return checked
-                                              ? field.onChange([...(field.value || []), amenity.id])
-                                              : field.onChange(
-                                                  field.value?.filter(
-                                                    (value) => value !== amenity.id
-                                                  )
-                                                );
-                                          }}
-                                        />
-                                      </FormControl>
-                                      <FormLabel className="font-normal">{amenity.label}</FormLabel>
-                                    </FormItem>
-                                  );
-                                }}
-                              />
-                            ))}
-                        </div>
-                      </TabsContent>
-                    ))}
-                  </Tabs>
-                </FormItem>
-              )}
-            />
+            <Tabs
+              defaultValue="All"
+              value={activeTab}
+              onValueChange={(value) => setActiveTab(value as Amenity['category'])}
+            >
+              <TabsList className="mb-4 flex-wrap h-auto">
+                {amenityCategories.map((category) => {
+                  const selectedInCategory = amenitiesList.filter(
+                    (a) =>
+                      selectedAmenities.includes(a.id) &&
+                      (category === 'All' || a.category === category)
+                  );
+                  return (
+                    <TabsTrigger key={category} value={category}>
+                      {category}
+                      <Badge variant="secondary" className="ml-2 px-1.5 py-0">
+                        {selectedInCategory.length}
+                      </Badge>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </Tabs>
+            <AmenityGrid amenities={filteredAmenities} />
           </CardContent>
         </Card>
-        <div className="sticky bottom-0 py-4 flex justify-start">
-          <Button type="submit" disabled={isPending || !form.formState.isDirty}>
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            Save Changes
-          </Button>
-        </div>
       </form>
     </Form>
   );
@@ -230,5 +367,6 @@ export default function AmenitiesPage({ params }: { params: { id: string } }) {
       </div>
     );
   }
+
   return <AmenitiesPageClient listing={listing} />;
 }

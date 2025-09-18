@@ -18,6 +18,15 @@ const currencySymbols: Record<Currency, string> = {
 };
 
 /**
+ * Gets the currency symbol for a given currency code.
+ * @param currency The currency code.
+ * @returns The currency symbol.
+ */
+export function getCurrencySymbol(currency: Currency): string {
+  return currencySymbols[currency] || '$';
+}
+
+/**
  * Converts a price from one currency to another using a fixed rate table.
  * This is a placeholder and should be replaced with a real-time API.
  * @param amount The amount to convert.
@@ -50,7 +59,7 @@ export function convertCurrency(
  * @returns A formatted currency string (e.g., '$1,234.56').
  */
 export function formatCurrency(amount: number | string, currency: Currency): string {
-  const symbol = currencySymbols[currency] || '$';
+  const symbol = getCurrencySymbol(currency);
   const numberAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
 
   const formattedAmount = new Intl.NumberFormat('en-US', {

@@ -32,7 +32,7 @@ import {
 import { useEffect, useState, use } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
-import { convertCurrency, formatCurrency } from '@/lib/currency';
+import { convertCurrency, formatCurrency, getCurrencySymbol } from '@/lib/currency';
 
 export default function AccommodationDetailPage({ params }: { params: { id: string } }) {
   const id = use(params);
@@ -122,6 +122,8 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
     preferences.currency
   );
 
+  const currencySymbol = getCurrencySymbol(preferences.currency);
+
   return (
     <div className="container mx-auto px-4 md:px-6 py-6 pb-16">
       <Breadcrumb className="mb-4">
@@ -144,13 +146,7 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
         </BreadcrumbList>
       </Breadcrumb>
       <PhotoGallery
-        images={[
-          accommodation.image,
-          'https://placehold.co/600x400.png',
-          'https://placehold.co/600x400.png',
-          'https://placehold.co/600x400.png',
-          'https://placehold.co/600x400.png',
-        ]}
+        images={accommodation.images.length > 0 ? accommodation.images : [accommodation.image]}
         imageHints={[accommodation.imageHint, 'living room', 'bedroom', 'bathroom', 'exterior']}
       />
 
@@ -181,12 +177,21 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
 
           {/* Amenities Section */}
           <div>
-            <h2 className="font-headline text-2xl font-bold mb-4">Amenities</h2>
+            <div className="flex items-baseline justify-between">
+              <h2 className="font-headline text-2xl font-bold mb-4">Amenities</h2>
+              <p className="text-sm text-muted-foreground">
+                <span className="font-bold text-primary">{currencySymbol}</span> = Additional fees
+                may apply
+              </p>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {accommodation.amenities.map((amenity) => (
                 <div key={amenity} className="flex items-center gap-3">
                   <AmenityIcon amenity={amenity} />
                   <span className="capitalize">{amenity}</span>
+                  {accommodation.chargeableAmenities?.includes(amenity) && (
+                    <span className="font-bold text-primary">{currencySymbol}</span>
+                  )}
                 </div>
               ))}
             </div>

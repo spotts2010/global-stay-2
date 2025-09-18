@@ -1,4 +1,4 @@
-import { db } from './firebase'; // Use CLIENT-side SDK for component data fetching
+import { db } from './firebase-config'; // Use CLIENT-side SDK for component data fetching
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import type { Accommodation, Booking, EnrichedBooking } from './data';
 import type { Place } from '@/components/PointsOfInterest';
@@ -102,6 +102,7 @@ export async function fetchBookings(userId: string): Promise<EnrichedBooking[]> 
       };
     })
   );
+
   return enrichedBookings;
 }
 
@@ -119,5 +120,6 @@ export async function fetchPastBookings(userId: string): Promise<EnrichedBooking
       };
     })
   );
+
   return enrichedBookings;
 }
