@@ -39,13 +39,17 @@ export const menuItems: NavItem[] = [
   {
     label: 'Listings',
     icon: Building,
-    children: [
-      { href: '/admin/listings', label: 'Listings', icon: Building },
-      { href: '/admin/amenities', label: 'Amenities & Inclusions', icon: ClipboardCheck },
-    ],
+    children: [{ href: '/admin/listings', label: 'Manage Listings', icon: Building }],
   },
   { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/database', label: 'System Maintenance', icon: Cog },
+  {
+    label: 'System Admin',
+    icon: Cog,
+    children: [
+      { href: '/admin/amenities', label: 'Amenities & Inclusions', icon: ClipboardCheck },
+      { href: '/admin/database', label: 'Database Maintenance', icon: Cog },
+    ],
+  },
 ];
 
 function CollapsibleMenu({
