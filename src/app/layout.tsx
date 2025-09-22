@@ -31,8 +31,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${quicksand.variable}`}>
       <head>
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geocoding,geometry&v=beta`}
-          strategy="lazyOnload"
+          src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geocoding&v=beta`}
+          strategy="beforeInteractive"
         />
       </head>
       <body className={cn('font-body antialiased bg-background text-foreground')}>

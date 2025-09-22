@@ -8,7 +8,8 @@ export type Accommodation = {
   location: string;
   price: number;
   currency: Currency;
-  rating: number;
+  rating: number; // User review rating
+  starRating?: number; // Official star rating (e.g., 1-5)
   reviewsCount: number;
   image: string; // Legacy cover image, will be first item in images array
   images: string[];

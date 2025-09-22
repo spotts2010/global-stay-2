@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -32,24 +31,27 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Accommodation } from '@/lib/data';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Save, Loader2, Home, MapPin, MousePointerClick } from 'lucide-react';
+import { Save, Loader2, Home, MapPin } from 'lucide-react';
 import React, { useEffect, useState, useTransition, use } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { fetchAccommodationById } from '@/lib/firestore';
 import { updateAccommodationAction } from '@/app/actions';
-import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, MapMouseEvent } from '@vis.gl/react-google-maps';
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'gmp-place-picker': any;
-    }
-  }
+interface GmpPlacePicker extends HTMLElement {
+  value: {
+    formattedAddress: string;
+    location: {
+      latitude: number;
+      longitude: number;
+    };
+  };
 }
 
 const propertyFormSchema = z.object({
   name: z.string().min(1, 'Listing name is required'),
   type: z.string().min(1, 'Property type is required'),
+  starRating: z.coerce.number().optional(),
   location: z.string().min(1, 'Location is required'),
   description: z.string().optional(),
   lat: z.number().optional(),
@@ -73,7 +75,7 @@ const AddressAutocomplete = ({
   onPlaceSelected: (position: Position) => void;
 }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const placePickerRef = React.useRef<any>(null);
+  const placePickerRef = React.useRef<GmpPlacePicker>(null);
 
   React.useEffect(() => {
     const picker = placePickerRef.current;
@@ -127,6 +129,7 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
     defaultValues: {
       name: listing?.name || '',
       type: listing?.type || 'Hotel',
+      starRating: listing?.starRating,
       location: listing?.location || '',
       description: listing?.description || '',
       lat: listing?.lat,
@@ -140,9 +143,9 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
     form.setValue('lng', newPosition.lng, { shouldDirty: true });
   };
 
-  const handleMarkerDragEnd = (e: google.maps.MapMouseEvent) => {
-    const lat = e.latLng?.lat();
-    const lng = e.latLng?.lng();
+  const handleMarkerDragEnd = (e: MapMouseEvent) => {
+    const lat = e.detail.latLng?.lat;
+    const lng = e.detail.latLng?.lng;
     if (lat === undefined || lng === undefined) return;
     const newPos = { lat, lng };
     setMarkerPosition(newPos);
@@ -194,45 +197,80 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Listing Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Property Type</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex-grow-[3]">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Listing Name</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
+                        <Input {...field} />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Apartment">Apartment</SelectItem>
-                        <SelectItem value="Villa">Villa</SelectItem>
-                        <SelectItem value="Hotel">Hotel</SelectItem>
-                        <SelectItem value="Loft">Loft</SelectItem>
-                        <SelectItem value="House">House</SelectItem>
-                        <SelectItem value="Hostel">Hostel</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex-grow-[2]">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Property Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Apartment">Apartment</SelectItem>
+                          <SelectItem value="Villa">Villa</SelectItem>
+                          <SelectItem value="Hotel">Hotel</SelectItem>
+                          <SelectItem value="Loft">Loft</SelectItem>
+                          <SelectItem value="House">House</SelectItem>
+                          <SelectItem value="Hostel">Hostel</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex-grow-[1]">
+                <FormField
+                  control={form.control}
+                  name="starRating"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Star Rating</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value ? parseInt(value, 10) : undefined)
+                        }
+                        value={field.value?.toString() ?? ''}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="N/A" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="5">5 Stars</SelectItem>
+                          <SelectItem value="4">4 Stars</SelectItem>
+                          <SelectItem value="3">3 Stars</SelectItem>
+                          <SelectItem value="2">2 Stars</SelectItem>
+                          <SelectItem value="1">1 Star</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             <FormField
@@ -264,17 +302,11 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
             />
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <FormLabel>Map View</FormLabel>
-                {markerPosition && (
-                  <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <MousePointerClick className="h-3 w-3" />
-                    <span>You can drag the marker or click on the map to adjust location</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="aspect-video w-full rounded-lg overflow-hidden border">
+              <FormLabel>Map View</FormLabel>
+              <div
+                className="aspect-video w-full rounded-lg overflow-hidden border"
+                style={{ transform: 'translateZ(0)' }}
+              >
                 {markerPosition ? (
                   <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
                     <Map
@@ -282,9 +314,9 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
                       defaultCenter={markerPosition}
                       defaultZoom={15}
                       gestureHandling="greedy"
-                      onClick={(ev: any) => {
-                        const lat = ev.latLng?.lat();
-                        const lng = ev.latLng?.lng();
+                      onClick={(ev: MapMouseEvent) => {
+                        const lat = ev.detail.latLng?.lat;
+                        const lng = ev.detail.latLng?.lng;
                         if (!lat || !lng) return;
                         const newPos = { lat, lng };
                         setMarkerPosition(newPos);

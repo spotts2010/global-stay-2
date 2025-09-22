@@ -13,6 +13,19 @@ import { isBefore } from 'date-fns';
 
 // This file should now ONLY contain client-side or shared Firestore logic.
 
+export async function fetchAccommodations(): Promise<Accommodation[]> {
+  try {
+    const querySnapshot = await getDocsClient(collection(db, 'accommodations'));
+    if (querySnapshot.empty) {
+      return [];
+    }
+    return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Accommodation);
+  } catch (error) {
+    console.error('Error fetching accommodations:', error);
+    return [];
+  }
+}
+
 // Client-side function remains for components that need it
 export async function fetchAccommodationById(id: string): Promise<Accommodation | null> {
   if (!id) return null;

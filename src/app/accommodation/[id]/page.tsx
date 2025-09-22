@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Star, MapPin, Award, Loader2 } from 'lucide-react';
@@ -45,6 +44,19 @@ const FeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
       fill="none"
     />
   </svg>
+);
+
+const StarRating = ({ rating }: { rating: number }) => (
+  <div className="flex items-center gap-0.5">
+    {[...Array(5)].map((_, i) => (
+      <Star
+        key={i}
+        className={`h-4 w-4 ${
+          i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'
+        }`}
+      />
+    ))}
+  </div>
 );
 
 export default function AccommodationDetailPage({ params }: { params: { id: string } }) {
@@ -179,6 +191,11 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
                   {accommodation.rating} ({accommodation.reviewsCount} reviews)
                 </span>
               </div>
+              {accommodation.starRating && accommodation.starRating > 0 && (
+                <div className="flex items-center gap-1">
+                  <StarRating rating={accommodation.starRating} />
+                </div>
+              )}
               <div className="flex items-center gap-1">
                 <Award className="h-4 w-4" />
                 <span>{accommodation.type}</span>

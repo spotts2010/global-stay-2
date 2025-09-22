@@ -1,20 +1,10 @@
 // src/app/admin/listings/page.tsx
 import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
 import { fetchAccommodations } from '@/lib/firestore.server';
 import type { Accommodation } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LayoutList, Loader2 } from 'lucide-react';
-
-// Dynamically import the client component with SSR disabled
-const ListingsPageClient = dynamic(() => import('@/components/ListingsPageClient'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-64 items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin" />
-    </div>
-  ),
-});
+import ListingsPageClient from '@/components/ListingsPageClient';
 
 function isTimestamp(value: unknown): value is { toDate: () => Date } {
   return (

@@ -1,4 +1,4 @@
-import { fetchAccommodations, fetchBookings } from '../lib/firestore';
+import { fetchAccommodations, fetchBookings } from '@/lib/firestore'; // Uses alias
 
 describe('Firestore mock data in test environment', () => {
   it('should return mock accommodations', async () => {

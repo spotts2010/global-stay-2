@@ -36,7 +36,6 @@
     "@genkit-ai/firebase": "^1.19.2",
     "@genkit-ai/googleai": "^1.19.2",
     "@genkit-ai/next": "^1.19.2",
-    "@googlemaps/extended-component-library": "^0.6.11",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.6",
