@@ -1,9 +1,10 @@
 // src/app/admin/listings/page.tsx
+import { Suspense } from 'react';
 import { fetchAccommodations } from '@/lib/firestore.server'; // Use server-specific fetch
 import type { Accommodation } from '@/lib/data';
 import ListingsClient from '@/components/ListingsClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { LayoutList } from 'lucide-react';
+import { LayoutList, Loader2 } from 'lucide-react';
 
 // Helper to check if a value is a Firestore-like Timestamp
 function isTimestamp(value: unknown): value is { toDate: () => Date } {
@@ -36,8 +37,17 @@ export default async function AdminListingsPage() {
         <CardDescription>View, edit, or change status of accommodation listings.</CardDescription>
       </CardHeader>
       <CardContent>
-        {/* Pass the fetched & serialized data to the client component */}
-        <ListingsClient initialProperties={serializableProperties as unknown as Accommodation[]} />
+        <Suspense
+          fallback={
+            <div className="flex h-64 items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          }
+        >
+          <ListingsClient
+            initialProperties={serializableProperties as unknown as Accommodation[]}
+          />
+        </Suspense>
       </CardContent>
     </Card>
   );
