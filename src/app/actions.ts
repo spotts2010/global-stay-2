@@ -8,9 +8,7 @@ import {
 } from '@/ai/flows/accommodation-recommendations';
 import { getAdminDb } from '@/lib/firebaseAdmin';
 import type { Place } from '@/components/PointsOfInterest';
-import { promises as fs } from 'fs';
-import path from 'path';
-import type { Accommodation } from './lib/data';
+import type { Accommodation, HeroImage } from './lib/data';
 
 interface ActionResult extends Partial<AccommodationRecommendationsOutput> {
   error?: string;
@@ -124,32 +122,62 @@ export async function updateAccommodationStatusAction(
   }
 }
 
-export async function uploadImageAction(
-  formData: FormData
-): Promise<{ success: boolean; url?: string; error?: string }> {
-  const file = formData.get('file') as File;
-  if (!file) {
-    return { success: false, error: 'No file provided.' };
-  }
+// --- Bed Type Actions ---
 
+export async function addBedTypeAction(bedType: {
+  name: string;
+  systemId: string;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  const db = getAdminDb();
   try {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    // In a real app, this would upload to Firebase Storage.
-    // For this prototype, we'll "upload" it to the local public directory.
-    const filename = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-    const publicPath = path.join(process.cwd(), 'public', 'uploads');
+    // Check for duplicates
+    const querySnapshot = await db
+      .collection('bedTypes')
+      .where('systemId', '==', bedType.systemId)
+      .get();
+    if (!querySnapshot.empty) {
+      return { success: false, error: 'A bed type with this name or system ID already exists.' };
+    }
 
-    // Ensure the uploads directory exists
-    await fs.mkdir(publicPath, { recursive: true });
-
-    await fs.writeFile(path.join(publicPath, filename), buffer);
-
-    const url = `/uploads/${filename}`;
-
-    return { success: true, url };
+    const docRef = await db.collection('bedTypes').add(bedType);
+    revalidatePath('/admin/bed-types');
+    return { success: true, id: docRef.id };
   } catch (error) {
-    console.error('Error uploading image:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-    return { success: false, error: `Failed to upload image: ${errorMessage}` };
+    return { success: false, error: `Failed to add bed type: ${errorMessage}` };
+  }
+}
+
+export async function deleteBedTypeAction(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!id) {
+    return { success: false, error: 'Bed type ID is missing.' };
+  }
+  const db = getAdminDb();
+  try {
+    await db.collection('bedTypes').doc(id).delete();
+    revalidatePath('/admin/bed-types');
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to delete bed type: ${errorMessage}` };
+  }
+}
+
+// --- Site Settings Actions ---
+export async function updateHeroImagesAction(
+  images: HeroImage[]
+): Promise<{ success: boolean; error?: string }> {
+  const db = getAdminDb();
+  try {
+    const settingsRef = db.collection('siteSettings').doc('homePage');
+    await settingsRef.set({ heroImages: images }, { merge: true });
+    revalidatePath('/admin/settings/site');
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update hero images: ${errorMessage}` };
   }
 }

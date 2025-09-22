@@ -1,34 +1,24 @@
-import { db } from './firebase-config'; // Use CLIENT-side SDK for component data fetching
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import type { Accommodation, Booking, EnrichedBooking } from './data';
+'use client';
+
+import {
+  collection,
+  getDocs as getDocsClient,
+  doc,
+  getDoc as getDocClient,
+} from 'firebase/firestore';
+import { db } from './firebase-config'; // CLIENT SDK for client-side actions
+import type { Accommodation, EnrichedBooking, Booking } from './data';
 import type { Place } from '@/components/PointsOfInterest';
 import { isBefore } from 'date-fns';
 
-// This file now uses the CLIENT-SIDE SDK for data fetching in components.
-// The Admin SDK should only be used in Server Actions.
+// This file should now ONLY contain client-side or shared Firestore logic.
 
-export async function fetchAccommodations(): Promise<Accommodation[]> {
-  try {
-    const accommodationsSnapshot = await getDocs(collection(db, 'accommodations'));
-    if (accommodationsSnapshot.empty) {
-      return [];
-    }
-    return accommodationsSnapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() }) as Accommodation
-    );
-  } catch (error) {
-    console.error('Error fetching accommodations:', error);
-    // In case of permissions errors on the client, return empty array.
-    // A better solution would be to handle this gracefully in the UI.
-    return [];
-  }
-}
-
+// Client-side function remains for components that need it
 export async function fetchAccommodationById(id: string): Promise<Accommodation | null> {
   if (!id) return null;
   try {
-    const docRef = doc(db, 'accommodations', id);
-    const docSnap = await getDoc(docRef);
+    const docRef = doc(db, 'accommodations', id); // Uses client 'db'
+    const docSnap = await getDocClient(docRef);
     if (!docSnap.exists()) {
       return null;
     }
@@ -42,7 +32,7 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
 export async function fetchPointsOfInterest(accommodationId: string): Promise<Place[]> {
   if (!accommodationId) return [];
   try {
-    const poiSnapshot = await getDocs(
+    const poiSnapshot = await getDocsClient(
       collection(db, `accommodations/${accommodationId}/pointsOfInterest`)
     );
     if (poiSnapshot.empty) {

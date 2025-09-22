@@ -75,6 +75,12 @@ The action buttons displayed on the notification detail page change based on the
 
 ## In Progress / Future Features
 
+- **Dynamic Collections via Tagging**:
+  - **Purpose**: To automatically associate listings with one or more curated collections based on tags.
+  - **Implementation**:
+    - Add a `tags` array field (e.g., `['beach', 'luxury', 'villa']`) to the accommodation data model in Firestore.
+    - Create a new admin interface to manage these tags on each listing.
+    - Update the "Collections" page to dynamically filter and display accommodations that match the tags associated with each collection (e.g., the "Beach Villas" collection would show all listings tagged with `beach` and `villa`).
 - **Dynamic Amenity Loading**: Refactor the amenities management in the admin section to dynamically load the list of available amenities from a central Firestore collection, rather than using a hard-coded list in the component. This will make the system more scalable and easier to manage.
 - **Chargeable Amenities**: A new option in the Admin section to mark specific amenities or inclusions (e.g., Mini Bar, Airport Transfer, Spa Treatments) as having an additional cost. On the front-end accommodation details page, these items will be displayed with a currency icon to clearly indicate to guests that charges apply.
 - **Secure Document Hosting**: Implement a secure, encrypted hosting solution for travel documents (passports, licenses). This feature would allow users to optionally attach their documents to bookings, speeding up the check-in and booking process. Security and privacy must be the top priorities.
@@ -120,10 +126,13 @@ The action buttons displayed on the notification detail page change based on the
 ### Known Issues
 
 - **Map Interaction Issues**: The interactive map on the home page cannot be dragged or panned, and the accommodation markers are not clickable. Only the zoom controls are functional. This prevents users from properly exploring the map area.
-- **(Resolved) 404 Errors on Hard Refresh**: The `/account/my-stays/upcoming` and `/account/my-stays/past` pages were consistently producing a 404 error on a hard refresh. This was resolved by fixing an issue in the routing and layout structure.
-- **(Resolved) Linting Error on Commit**: A pre-commit hook was failing due to an ESLint error (`no-async-client-component`) in the `src/components/SearchParamsClient.tsx` file. This file was a redundant and unused duplicate of the home page. The issue was resolved by deleting the file.
-- **(Resolved) Admin Area Layout & Routing Issues**: A series of issues related to Next.js App Router conventions were resolved. This included:
+
+### Resolved Issues
+
+- **404 Errors on Hard Refresh** (Resolved: 22/09/2024): The `/account/my-stays/upcoming` and `/account/my-stays/past` pages were consistently producing a 404 error on a hard refresh. This was resolved by fixing an issue in the routing and layout structure.
+- **Linting Error on Commit** (Resolved: 22/09/2024): A pre-commit hook was failing due to an ESLint error (`no-async-client-component`) in the `src/components/SearchParamsClient.tsx` file. This file was a redundant and unused duplicate of the home page. The issue was resolved by deleting the file.
+- **Admin Area Layout & Routing Issues** (Resolved: 22/09/2024): A series of issues related to Next.js App Router conventions were resolved. This included:
   - **Clunky UI**: The "Edit Listing" section was refactored to use a single, dedicated sidebar that replaces the main admin sidebar, providing a cleaner, full-screen editing experience.
   - **404 & Runtime Errors**: Multiple 404 and Firebase runtime errors in the `/admin/listings` pages were fixed. The root causes were improper use of client-side hooks in server components, incorrect Firebase SDK initialization, and mixing client/server SDKs within Server Actions. The codebase has been refactored to follow correct Next.js and Firebase best practices.
   - **Incorrect `params` Handling**: Several components were accessing `params` directly instead of using `React.use()` as required by the latest Next.js version, which was causing console errors. This has been fixed across the affected admin pages.
-- **(Resolved) `react-beautiful-dnd` Console Warning**: A development-only warning (`Invariant failed: isDropDisabled must be a boolean`) that appeared in the console on the "Photo Gallery" edit page has been resolved.
+- **`react-beautiful-dnd` Console Warning** (Resolved: 22/09/2024): A development-only warning (`Invariant failed: isDropDisabled must be a boolean`) that appeared in the console on the "Photo Gallery" edit page has been resolved.

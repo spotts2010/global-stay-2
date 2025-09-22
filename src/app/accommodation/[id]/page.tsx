@@ -1,21 +1,11 @@
 'use client';
 
-import Image from 'next/image';
-import {
-  Star,
-  MapPin,
-  Wifi as _Wifi,
-  Car as _Car,
-  Utensils as _Utensils,
-  Award,
-  Users as _Users,
-  Loader2,
-} from 'lucide-react';
+import { Star, MapPin, Award, Loader2 } from 'lucide-react';
+import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import PhotoGallery from '@/components/PhotoGallery';
-import AmenityIcon from '@/components/AmenityIcon';
 import ReviewCard from '@/components/ReviewCard';
 import { Separator } from '@/components/ui/separator';
 import { fetchAccommodationById } from '@/lib/firestore';
@@ -32,7 +22,29 @@ import {
 import { useEffect, useState, use } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
-import { convertCurrency, formatCurrency, getCurrencySymbol } from '@/lib/currency';
+import { convertCurrency, formatCurrency } from '@/lib/currency';
+
+const FeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <circle cx="12" cy="12" r="10" fill="#2682CE" stroke="#2682CE" strokeWidth="1.5" />
+    <path
+      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c1.1 0 2 .9 2 2s-.9 2-2 2H8"
+      stroke="#fff"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <path
+      d="M12 18V6"
+      stroke="#fff"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  </svg>
+);
 
 export default function AccommodationDetailPage({ params }: { params: { id: string } }) {
   const id = use(params);
@@ -122,7 +134,7 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
     preferences.currency
   );
 
-  const currencySymbol = getCurrencySymbol(preferences.currency);
+  const position = { lat: accommodation.lat, lng: accommodation.lng };
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-6 pb-16">
@@ -173,24 +185,33 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
             </div>
           </div>
 
-          <Separator className="my-6" />
+          {/* Description Section */}
+          {accommodation.description && (
+            <>
+              <div className="pt-6">
+                <p className="text-muted-foreground whitespace-pre-line">
+                  {accommodation.description}
+                </p>
+              </div>
+              <Separator className="my-6" />
+            </>
+          )}
 
           {/* Amenities Section */}
           <div>
             <div className="flex items-baseline justify-between">
               <h2 className="font-headline text-2xl font-bold mb-4">Amenities</h2>
-              <p className="text-sm text-muted-foreground">
-                <span className="font-bold text-primary">{currencySymbol}</span> = Additional fees
-                may apply
-              </p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <FeeIcon className="h-4 w-4" />
+                <span>Additional fees may apply</span>
+              </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {accommodation.amenities.map((amenity) => (
                 <div key={amenity} className="flex items-center gap-3">
-                  <AmenityIcon amenity={amenity} />
                   <span className="capitalize">{amenity}</span>
                   {accommodation.chargeableAmenities?.includes(amenity) && (
-                    <span className="font-bold text-primary">{currencySymbol}</span>
+                    <FeeIcon className="h-5 w-5" />
                   )}
                 </div>
               ))}
@@ -203,14 +224,28 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
           <div>
             <h2 className="font-headline text-2xl font-bold mb-4">Location</h2>
             <div className="aspect-video rounded-lg overflow-hidden border">
-              <Image
-                src="https://placehold.co/800x450.png"
-                alt="Map showing accommodation location"
-                width={800}
-                height={450}
-                className="w-full h-full object-cover"
-                data-ai-hint="map location"
-              />
+              <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+                <Map
+                  mapId="DEMO_MAP_ID"
+                  defaultCenter={position}
+                  defaultZoom={15}
+                  gestureHandling={'greedy'}
+                  disableDefaultUI={true}
+                >
+                  <AdvancedMarker position={position}>
+                    <div className="w-10 h-10 transform -translate-y-4">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="hsl(var(--primary))"
+                        className="drop-shadow-lg"
+                      >
+                        <path d="M12 0C7.589 0 4 3.589 4 8c0 4.411 8 16 8 16s8-11.589 8-16c0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" />
+                      </svg>
+                    </div>
+                  </AdvancedMarker>
+                </Map>
+              </APIProvider>
             </div>
             <p className="text-muted-foreground mt-2">{accommodation.location}</p>
           </div>

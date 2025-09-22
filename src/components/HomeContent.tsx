@@ -1,34 +1,38 @@
 'use client';
-
-import { useState, useEffect, Suspense } from 'react';
-import SearchParamsClient from './SearchParamsClient';
-import AccommodationSearchForm from './AccommodationSearchForm';
-import AIRecommendations from './AIRecommendations';
-import { collections, type Collection } from '@/lib/data';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, MapPin, Sparkles } from 'lucide-react';
-import CuratedCollectionCard from './CuratedCollectionCard';
-import AccommodationCard from './AccommodationCard';
-import { fetchAccommodations } from '@/lib/firestore';
-import type { Accommodation } from '@/lib/data';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowRight, Sparkles, Building } from 'lucide-react';
+import { Suspense, useMemo, useState } from 'react';
 
-export default function HomeContent() {
-  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
+import { collections, type Collection } from '@/lib/data';
+import { Button } from '@/components/ui/button';
+import AccommodationSearchForm from '@/components/AccommodationSearchForm';
+import CuratedCollectionCard from '@/components/CuratedCollectionCard';
+import AccommodationCard from '@/components/AccommodationCard';
+import AIRecommendations from '@/components/AIRecommendations';
+import type { Accommodation, HeroImage } from '@/lib/data';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
-  useEffect(() => {
-    fetchAccommodations()
-      .then((data) => setAccommodations(data))
-      .catch((err) => {
-        console.error('Failed to fetch accommodations:', err);
-        setAccommodations([]);
-      });
-  }, []);
+type HomeContentProps = {
+  initialAccommodations: Accommodation[];
+  heroImage: HeroImage;
+};
 
-  const topRatedAccommodations: Accommodation[] = [...accommodations].sort(
-    (a, b) => b.rating - a.rating
+export default function HomeContent({ initialAccommodations, heroImage }: HomeContentProps) {
+  const [accommodations, _setAccommodations] = useState<Accommodation[]>(initialAccommodations);
+  const [loading, _setLoading] = useState(false); // Data is now pre-loaded
+
+  const topRatedAccommodations: Accommodation[] = useMemo(
+    () => [...accommodations].sort((a, b) => b.rating - a.rating),
+    [accommodations]
   );
 
   return (
@@ -38,14 +42,16 @@ export default function HomeContent() {
         className="relative h-[60vh] md:h-[70vh] flex items-center justify-center text-center text-white"
         aria-labelledby="hero-heading"
       >
-        <div className="absolute inset-0 bg-black/50 z-10" />
         <Image
-          src="https://placehold.co/1920x1080.png"
-          alt="A luxurious hotel lobby interior with modern decor"
+          src={heroImage.url}
+          alt={heroImage.alt}
+          data-ai-hint={heroImage.hint}
           fill
+          sizes="100vw"
           priority
           className="z-0 object-cover"
         />
+        <div className="absolute inset-0 bg-black/50 z-10" />
         <div className="relative z-20 flex flex-col items-center gap-6 px-4">
           <h1
             id="hero-heading"
@@ -54,23 +60,18 @@ export default function HomeContent() {
             Find Your Next Stay
           </h1>
           <p className="max-w-2xl text-lg md:text-xl text-primary-foreground/90">
-            Unforgettable properties for your next holiday or business trip. Discover a place you'll
-            love to stay.
+            Unforgettable properties for your next holiday or business trip. Discover a place
+            you&apos;ll love to stay.
           </p>
           <div className="w-full max-w-4xl mt-4 shadow-lg rounded-lg">
-            <AccommodationSearchForm />
+            <Suspense fallback={<div className="h-14 bg-white rounded-lg" />}>
+              <AccommodationSearchForm />
+            </Suspense>
           </div>
         </div>
       </section>
 
-      {/* Client-only hook */}
-      <section className="container mx-auto px-4 md:px-6">
-        <Suspense fallback={<div className="text-center text-muted-foreground">Loading...</div>}>
-          <SearchParamsClient />
-        </Suspense>
-      </section>
-
-      {/* Curated Collections */}
+      {/* Curated Collections Section */}
       <section className="container mx-auto px-4 md:px-6" aria-labelledby="collections-heading">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
@@ -100,7 +101,7 @@ export default function HomeContent() {
         </div>
       </section>
 
-      {/* Top-rated Stays */}
+      {/* Top-rated Stays Section */}
       <section className="container mx-auto px-4 md:px-6" aria-labelledby="top-rated-heading">
         <h2
           id="top-rated-heading"
@@ -108,22 +109,44 @@ export default function HomeContent() {
         >
           Top-rated Stays
         </h2>
-        {accommodations.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : accommodations.length === 0 ? (
           <div className="text-center text-destructive">
             Could not load top-rated stays. Please try again later.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {topRatedAccommodations.slice(0, 8).map((accommodation) => (
-              <AccommodationCard key={accommodation.id} accommodation={accommodation} />
-            ))}
-          </div>
+          <Carousel
+            opts={{
+              align: 'start',
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent>
+              {topRatedAccommodations.map((accommodation) => (
+                <CarouselItem
+                  key={accommodation.id}
+                  className="basis-full sm:basis-1/2 lg:basis-1/4"
+                >
+                  <div className="p-1 h-full">
+                    <AccommodationCard accommodation={accommodation} />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+          </Carousel>
         )}
       </section>
 
-      {/* AI & Map Section */}
+      {/* AI & Host Section */}
       <section className="container mx-auto px-4 md:px-6" aria-labelledby="personalised-heading">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+          {/* AI Recommendations */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 text-primary">
               <Sparkles className="h-8 w-8" aria-hidden="true" />
@@ -135,27 +158,43 @@ export default function HomeContent() {
               </h2>
             </div>
             <p className="text-muted-foreground">
-              Our AI can help you find the perfect stay based on your unique tastes.
+              Our AI can help you find the perfect stay based on your unique tastes. Tell us what
+              you&apos;re looking for, and we&apos;ll do the rest.
             </p>
             <AIRecommendations />
           </div>
 
+          {/* List Your Property Section */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3 text-primary">
-              <MapPin className="h-8 w-8" aria-hidden="true" />
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">Explore the Area</h2>
+              <Building className="h-8 w-8" aria-hidden="true" />
+              <h2 className="font-headline text-3xl md:text-4xl font-bold">List Your Property</h2>
             </div>
             <p className="text-muted-foreground">
-              Discover accommodations in your desired location with our interactive map.
+              Turn your space into your next opportunity. Join our community of hosts today.
             </p>
-            <Card className="overflow-hidden h-[400px] lg:h-full">
-              <Image
-                src="https://placehold.co/800x600.png"
-                alt="Map preview showing accommodations in a city area"
-                width={800}
-                height={600}
-                className="w-full h-full object-cover"
-              />
+            <Card className="h-full overflow-hidden group transition-all duration-300 hover:shadow-xl">
+              <div className="relative h-full">
+                <div className="relative h-full w-full min-h-[400px]">
+                  <Image
+                    src="https://images.unsplash.com/photo-1560518883-ce09059eeffa"
+                    alt="A smiling couple handing keys over a table"
+                    data-ai-hint="smiling couple keys"
+                    fill
+                    sizes="(max-width: 1024px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <CardContent className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <h3 className="font-headline text-2xl font-bold max-w-md">
+                    Manage your listings with ease, so you can feel like you're on holiday too.
+                  </h3>
+                  <Button asChild className="mt-4">
+                    <Link href="/admin/listings">List Your Property</Link>
+                  </Button>
+                </CardContent>
+              </div>
             </Card>
           </div>
         </div>

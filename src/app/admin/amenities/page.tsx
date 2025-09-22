@@ -11,11 +11,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FilePen, Trash2, PlusCircle, Search, Home, Building } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 type Amenity = {
   id: string;
@@ -146,15 +153,24 @@ const AmenitiesTable = ({ data }: { data: Amenity[] }) => (
 
 export default function AmenitiesPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+
+  const allCategories = useMemo(() => {
+    const categories = new Set<string>(['All']);
+    sharedAmenitiesData.forEach((a) => categories.add(a.category));
+    privateInclusionsData.forEach((a) => categories.add(a.category));
+    return Array.from(categories).sort();
+  }, []);
 
   const filterData = (data: Amenity[]) => {
-    if (!searchTerm) return data;
-    const lowercasedFilter = searchTerm.toLowerCase();
-    return data.filter(
-      (item) =>
-        item.label.toLowerCase().includes(lowercasedFilter) ||
-        item.systemTag.toLowerCase().includes(lowercasedFilter)
-    );
+    return data.filter((item) => {
+      const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
+      const matchesSearch =
+        !searchTerm ||
+        item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.systemTag.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
   };
 
   const filteredSharedAmenities = filterData(sharedAmenitiesData);
@@ -171,17 +187,31 @@ export default function AmenitiesPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search by label or system tag..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="flex w-full flex-col sm:flex-row gap-4">
+              <div className="relative w-full sm:max-w-xs">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search by label or system tag..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Item
             </Button>

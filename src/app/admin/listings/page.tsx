@@ -1,8 +1,9 @@
 // src/app/admin/listings/page.tsx
-import { fetchAccommodations } from '@/lib/firestore';
+import { fetchAccommodations } from '@/lib/firestore.server'; // Use server-specific fetch
 import type { Accommodation } from '@/lib/data';
 import ListingsClient from '@/components/ListingsClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { LayoutList } from 'lucide-react';
 
 // Helper to check if a value is a Firestore-like Timestamp
 function isTimestamp(value: unknown): value is { toDate: () => Date } {
@@ -28,7 +29,10 @@ export default async function AdminListingsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Manage Listings</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <LayoutList className="h-6 w-6" />
+          Manage Listings
+        </CardTitle>
         <CardDescription>View, edit, or change status of accommodation listings.</CardDescription>
       </CardHeader>
       <CardContent>

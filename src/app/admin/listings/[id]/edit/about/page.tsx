@@ -1,6 +1,13 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -213,17 +220,17 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
               </div>
             </div>
           </CardContent>
+          <CardFooter>
+            <Button type="submit" disabled={isPending || !form.formState.isDirty}>
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              Save Changes
+            </Button>
+          </CardFooter>
         </Card>
-        <div className="sticky bottom-0 py-4 flex justify-start bg-transparent">
-          <Button type="submit" disabled={isPending || !form.formState.isDirty}>
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            Save Changes
-          </Button>
-        </div>
       </form>
     </Form>
   );

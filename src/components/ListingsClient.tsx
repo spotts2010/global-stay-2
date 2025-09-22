@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useState, useEffect, useMemo, useTransition } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -76,18 +77,66 @@ export default function ListingsClient({
 }: {
   initialProperties: Accommodation[];
 }) {
-  const [properties, setProperties] = useState<EnrichedProperty[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ListingStatus>('All');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState('10');
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
-    key: 'lastModified',
-    direction: 'desc',
-  });
-  const [isPending, startTransition] = useTransition();
-  const { preferences } = useUserPreferences();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { preferences } = useUserPreferences();
+  const [isPending, startTransition] = useTransition();
+
+  // Initialize state from URL params or defaults
+  const [properties, setProperties] = useState<EnrichedProperty[]>([]);
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
+  const [statusFilter, setStatusFilter] = useState<ListingStatus>(
+    (searchParams.get('status') as ListingStatus) || 'All'
+  );
+  const [currentPage, setCurrentPage] = useState(Number(searchParams.get('page')) || 1);
+  const [itemsPerPage, setItemsPerPage] = useState(searchParams.get('limit') || '10');
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
+    key: (searchParams.get('sortKey') as SortKey) || 'lastModified',
+    direction: (searchParams.get('sortDir') as SortDirection) || 'desc',
+  });
+
+  // Effect to synchronize component state with URL search parameters
+  useEffect(() => {
+    setSearchTerm(searchParams.get('q') || '');
+    setStatusFilter((searchParams.get('status') as ListingStatus) || 'All');
+    setCurrentPage(Number(searchParams.get('page')) || 1);
+    setItemsPerPage(searchParams.get('limit') || '10');
+    setSortConfig({
+      key: (searchParams.get('sortKey') as SortKey) || 'lastModified',
+      direction: (searchParams.get('sortDir') as SortDirection) || 'desc',
+    });
+  }, [searchParams]);
+
+  // Update URL when state changes
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (searchTerm) params.set('q', searchTerm);
+    else params.delete('q');
+    if (statusFilter !== 'All') params.set('status', statusFilter);
+    else params.delete('status');
+    if (currentPage !== 1) params.set('page', String(currentPage));
+    else params.delete('page');
+    if (itemsPerPage !== '10') params.set('limit', itemsPerPage);
+    else params.delete('limit');
+    if (sortConfig.key !== 'lastModified') params.set('sortKey', sortConfig.key);
+    else params.delete('sortKey');
+    if (sortConfig.direction !== 'desc') params.set('sortDir', sortConfig.direction);
+    else params.delete('sortDir');
+
+    // Use replace to avoid adding to history stack
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [
+    searchTerm,
+    statusFilter,
+    currentPage,
+    itemsPerPage,
+    sortConfig,
+    pathname,
+    router,
+    searchParams,
+  ]);
 
   useEffect(() => {
     // Enrich properties with 'host' and 'units' when they are first received or updated.
@@ -99,6 +148,7 @@ export default function ListingsClient({
     setProperties(enriched);
   }, [initialProperties]);
 
+  // Reset page number when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, itemsPerPage]);
@@ -208,6 +258,11 @@ export default function ListingsClient({
       {getSortIcon(sortKey)}
     </button>
   );
+
+  const getEditUrl = (propertyId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    return `/admin/listings/${propertyId}/edit/about?${params.toString()}`;
+  };
 
   return (
     <>
@@ -347,7 +402,7 @@ export default function ListingsClient({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-                              <Link href={`/admin/listings/${property.id}/edit/about`}>
+                              <Link href={getEditUrl(property.id)}>
                                 <FilePen className="h-4 w-4" />
                               </Link>
                             </Button>

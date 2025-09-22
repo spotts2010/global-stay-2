@@ -32,7 +32,7 @@ export default function RootLayout({
       <head>
         <Script
           src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geocoding,geometry&v=beta`}
-          strategy="beforeInteractive"
+          strategy="lazyOnload"
         />
       </head>
       <body className={cn('font-body antialiased bg-background text-foreground')}>

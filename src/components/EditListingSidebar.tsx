@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   Bed,
-  Building2,
+  ListChecks,
   Calendar,
-  Home,
   ImageIcon,
   Map,
   Package2,
@@ -14,19 +14,38 @@ import {
   PanelRight,
   ShieldQuestion,
   Users,
+  Hotel,
+  SquarePen,
+  BedDouble,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import React, { useState, useEffect, use } from 'react';
 import { fetchAccommodationById } from '@/lib/firestore';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 export const menuItems = [
-  { label: 'About the Property', href: '/edit/about', icon: Home },
-  { label: 'Photo Gallery', href: '/edit/photos', icon: ImageIcon },
-  { label: 'Shared Amenities', href: '/edit/amenities', icon: Building2 },
-  { label: 'Room Configuration', href: '/edit/rooms', icon: Bed },
-  { label: 'Points of Interest', href: '/edit/pois', icon: Map },
-  { label: 'Policies & Terms', href: '/edit/policies', icon: ShieldQuestion },
+  {
+    label: 'Property Setup',
+    icon: Hotel,
+    children: [
+      { label: 'About the Property', href: '/edit/about', icon: SquarePen },
+      { label: 'Photo Gallery', href: '/edit/photos', icon: ImageIcon },
+      { label: 'Shared Amenities', href: '/edit/amenities', icon: ListChecks },
+      { label: 'Points of Interest', href: '/edit/pois', icon: Map },
+      { label: 'Policies & Terms', href: '/edit/policies', icon: ShieldQuestion },
+    ],
+  },
+  {
+    label: 'Unit Setup',
+    icon: BedDouble,
+    children: [{ label: 'Room Configuration', href: '/edit/rooms', icon: Bed }],
+  },
   { label: 'User Access', href: '/edit/users', icon: Users },
   { label: 'Publish Schedule', href: '/edit/schedule', icon: Calendar },
 ];
@@ -43,7 +62,9 @@ export function EditListingSidebar({
   toggleSidebar: () => void;
 }) {
   const { id: listingId } = use(params);
+  const searchParams = useSearchParams();
   const [listingName, setListingName] = useState('Edit Listing');
+  const [activeAccordion, setActiveAccordion] = useState<string[]>([]);
 
   useEffect(() => {
     async function getListingName() {
@@ -54,6 +75,18 @@ export function EditListingSidebar({
     }
     getListingName();
   }, [listingId]);
+
+  useEffect(() => {
+    const activeParent = menuItems.find(
+      (item) =>
+        item.children && item.children.some((child) => currentPath.endsWith(child.href || '---'))
+    );
+    if (activeParent) {
+      setActiveAccordion([activeParent.label]);
+    }
+  }, [currentPath]);
+
+  const backLink = `/admin/listings?${searchParams.toString()}`;
 
   return (
     <aside
@@ -73,7 +106,7 @@ export function EditListingSidebar({
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
-                href="/admin/listings"
+                href={backLink}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-black text-sm',
                   isCollapsed && 'justify-center'
@@ -91,30 +124,85 @@ export function EditListingSidebar({
           </Tooltip>
         </TooltipProvider>
 
-        {menuItems.map((item) => (
-          <TooltipProvider delayDuration={0} key={item.label}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href={`/admin/listings/${listingId}${item.href}`}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-black text-sm',
-                    currentPath.endsWith(item.href) && 'bg-accent text-primary font-semibold',
-                    isCollapsed && 'justify-center'
+        <Accordion
+          type="multiple"
+          value={activeAccordion}
+          onValueChange={setActiveAccordion}
+          className="space-y-2"
+        >
+          {menuItems.map((item) =>
+            item.children ? (
+              <AccordionItem key={item.label} value={item.label} className="border-b-0">
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <AccordionTrigger
+                        className={cn(
+                          'flex w-full items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-black text-sm relative hover:no-underline [&>svg]:ml-auto',
+                          isCollapsed && 'justify-center [&>svg]:hidden',
+                          item.children.some((child) => currentPath.endsWith(child.href)) &&
+                            'bg-accent text-primary'
+                        )}
+                      >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        {!isCollapsed && (
+                          <span className="ml-3 flex-1 text-left truncate">{item.label}</span>
+                        )}
+                      </AccordionTrigger>
+                    </TooltipTrigger>
+                    {isCollapsed && (
+                      <TooltipContent side="right">
+                        <p>{item.label}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+                {!isCollapsed && (
+                  <AccordionContent className="ml-4 mt-2 flex flex-col gap-1 border-l pl-4 pb-0">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.label}
+                        href={`/admin/listings/${listingId}${child.href}?${searchParams.toString()}`}
+                        className={cn(
+                          'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-black text-xs',
+                          currentPath.endsWith(child.href || '---') &&
+                            'bg-accent text-primary font-semibold'
+                        )}
+                      >
+                        {child.icon && <child.icon className="h-4 w-4" />}
+                        <span className="truncate">{child.label}</span>
+                      </Link>
+                    ))}
+                  </AccordionContent>
+                )}
+              </AccordionItem>
+            ) : (
+              <TooltipProvider delayDuration={0} key={item.label}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href={`/admin/listings/${listingId}${item.href}?${searchParams.toString()}`}
+                      className={cn(
+                        'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-accent hover:text-black text-sm',
+                        currentPath.endsWith(item.href || '---') &&
+                          'bg-accent text-primary font-semibold',
+                        isCollapsed && 'justify-center'
+                      )}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {!isCollapsed && <span className="truncate">{item.label}</span>}
+                    </Link>
+                  </TooltipTrigger>
+                  {isCollapsed && (
+                    <TooltipContent side="right">
+                      <p>{item.label}</p>
+                    </TooltipContent>
                   )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {!isCollapsed && <span className="truncate">{item.label}</span>}
-                </Link>
-              </TooltipTrigger>
-              {isCollapsed && (
-                <TooltipContent side="right">
-                  <p>{item.label}</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </TooltipProvider>
-        ))}
+                </Tooltip>
+              </TooltipProvider>
+            )
+          )}
+        </Accordion>
       </nav>
       <div className="mt-auto p-4">
         <div

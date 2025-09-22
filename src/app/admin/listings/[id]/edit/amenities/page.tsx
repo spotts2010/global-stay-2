@@ -6,16 +6,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, ListChecks } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Accommodation } from '@/lib/data';
 import { Form, FormLabel } from '@/components/ui/form';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
 import { fetchAccommodationById } from '@/lib/firestore';
 import { updateAccommodationAction } from '@/app/actions';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type Amenity = {
   id: string;
@@ -204,7 +211,7 @@ const AmenityItem = ({ amenity }: { amenity: Amenity }) => {
 function AmenitiesPageClient({ listing }: { listing: Accommodation }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<Amenity['category']>('All');
+  const [activeCategory, setActiveCategory] = useState<Amenity['category']>('All');
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -250,9 +257,9 @@ function AmenitiesPageClient({ listing }: { listing: Accommodation }) {
   );
 
   const filteredAmenities =
-    activeTab === 'All'
+    activeCategory === 'All'
       ? amenitiesList
-      : amenitiesList.filter((amenity) => amenity.category === activeTab);
+      : amenitiesList.filter((amenity) => amenity.category === activeCategory);
 
   return (
     <Form {...form}>
@@ -265,58 +272,72 @@ function AmenitiesPageClient({ listing }: { listing: Accommodation }) {
           ]}
         />
         <Card>
-          <CardHeader className="flex flex-col sm:flex-row items-start justify-between gap-4">
-            <div>
-              <CardTitle>Shared Amenities &amp; Facilities</CardTitle>
-              <CardDescription>
-                Select all shared amenities for this property and specify if fees apply.
-              </CardDescription>
-              <div className="!mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="h-5 w-5 inline-block">
-                  <ActiveFeeIcon className="h-5 w-5" />
-                </span>
-                <span>
-                  = When enabled, this icon indicates that additional fees may be applicable.
-                </span>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <ListChecks className="h-5 w-5 text-primary" />
+                  Shared Amenities &amp; Facilities
+                </CardTitle>
+                <CardDescription>
+                  Select all shared amenities for this property and specify if fees apply.
+                </CardDescription>
               </div>
+              <Button
+                type="submit"
+                disabled={isPending || !form.formState.isDirty}
+                className="w-full sm:w-auto"
+              >
+                {isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
+                Save Changes
+              </Button>
             </div>
-            <Button
-              type="submit"
-              disabled={isPending || !form.formState.isDirty}
-              className="w-full sm:w-auto"
-            >
-              {isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="mr-2 h-4 w-4" />
-              )}
-              Save Changes
-            </Button>
+            <div className="!mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="h-5 w-5 inline-block">
+                <ActiveFeeIcon className="h-5 w-5" />
+              </span>
+              <span>
+                = When enabled, this icon indicates that additional fees may be applicable.
+              </span>
+            </div>
           </CardHeader>
           <CardContent>
-            <Tabs
-              defaultValue="All"
-              value={activeTab}
-              onValueChange={(value) => setActiveTab(value as Amenity['category'])}
-            >
-              <TabsList className="mb-4 flex-wrap h-auto">
-                {amenityCategories.map((category) => {
-                  const selectedInCategory = amenitiesList.filter(
-                    (a) =>
-                      selectedAmenities.includes(a.id) &&
-                      (category === 'All' || a.category === category)
-                  );
-                  return (
-                    <TabsTrigger key={category} value={category}>
-                      {category}
-                      <Badge variant="secondary" className="ml-2 px-1.5 py-0">
-                        {selectedInCategory.length}
-                      </Badge>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-            </Tabs>
+            <div className="mb-4 flex items-center gap-2">
+              <Label htmlFor="amenity-category-filter" className="text-sm font-medium">
+                Filter by:
+              </Label>
+              <Select
+                value={activeCategory}
+                onValueChange={(value) => setActiveCategory(value as Amenity['category'])}
+              >
+                <SelectTrigger id="amenity-category-filter" className="w-full sm:w-[280px]">
+                  <SelectValue placeholder="Filter by category..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {amenityCategories.map((category) => {
+                    const selectedInCategory = amenitiesList.filter(
+                      (a) =>
+                        selectedAmenities.includes(a.id) &&
+                        (category === 'All' || a.category === category)
+                    );
+                    return (
+                      <SelectItem key={category} value={category}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{category}</span>
+                          <Badge variant="secondary" className="ml-4 px-1.5 py-0">
+                            {selectedInCategory.length}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
             <AmenityGrid amenities={filteredAmenities} />
           </CardContent>
         </Card>

@@ -9,11 +9,13 @@ import {
   Cog,
   Package2,
   PanelRight,
-  Building,
-  ClipboardCheck,
+  LayoutList,
   ChevronDown,
   ChevronRight,
   CalendarDays,
+  Bed,
+  ListChecks,
+  Database,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
@@ -29,25 +31,17 @@ type NavItem = {
 
 export const menuItems: NavItem[] = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutGrid },
-  {
-    label: 'Bookings',
-    icon: CalendarDays,
-    children: [
-      { href: '/admin/bookings/calendar', label: 'Bookings Calendar', icon: CalendarDays },
-    ],
-  },
-  {
-    label: 'Listings',
-    icon: Building,
-    children: [{ href: '/admin/listings', label: 'Manage Listings', icon: Building }],
-  },
+  { href: '/admin/bookings/calendar', label: 'Bookings', icon: CalendarDays },
+  { href: '/admin/listings', label: 'Listings', icon: LayoutList },
   { href: '/admin/users', label: 'Users', icon: Users },
   {
     label: 'System Admin',
     icon: Cog,
     children: [
-      { href: '/admin/amenities', label: 'Amenities & Inclusions', icon: ClipboardCheck },
-      { href: '/admin/database', label: 'Database Maintenance', icon: Cog },
+      { href: '/admin/amenities', label: 'Amenities & Inclusions', icon: ListChecks },
+      { href: '/admin/bed-types', label: 'Bed Types', icon: Bed },
+      { href: '/admin/database', label: 'Database Maintenance', icon: Database },
+      { href: '/admin/settings/site', label: 'Site Settings', icon: Cog },
     ],
   },
 ];

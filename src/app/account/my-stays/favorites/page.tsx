@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import AccommodationCard from '@/components/AccommodationCard';
 import { useFavorites } from '@/context/FavoritesContext';
 import { Heart } from 'lucide-react';
-import { fetchAccommodations } from '@/lib/firestore';
+import { fetchAccommodationById } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -16,15 +16,19 @@ export default function FavoritesPage() {
   useEffect(() => {
     const loadAccommodations = async () => {
       setLoading(true);
-      const allAccommodations = await fetchAccommodations();
-      setAccommodations(allAccommodations);
+      const favoriteAccommodations = (
+        await Promise.all(favorites.map((id) => fetchAccommodationById(id)))
+      ).filter((a): a is Accommodation => a !== null);
+      setAccommodations(favoriteAccommodations);
       setLoading(false);
     };
 
-    loadAccommodations();
-  }, []);
-
-  const favoriteAccommodations = accommodations.filter((acc) => favorites.includes(acc.id));
+    if (favorites.length > 0) {
+      loadAccommodations();
+    } else {
+      setLoading(false);
+    }
+  }, [favorites]);
 
   return (
     <Card>
@@ -35,9 +39,9 @@ export default function FavoritesPage() {
       <CardContent>
         {loading ? (
           <div className="text-center text-muted-foreground">Loading saved places...</div>
-        ) : favoriteAccommodations.length > 0 ? (
+        ) : accommodations.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-            {favoriteAccommodations.map((accommodation) => (
+            {accommodations.map((accommodation) => (
               <AccommodationCard key={accommodation.id} accommodation={accommodation} />
             ))}
           </div>

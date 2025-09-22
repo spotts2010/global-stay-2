@@ -46,6 +46,18 @@ export type Collection = {
   imageHint: string;
 };
 
+export type BedType = {
+  id: string;
+  name: string;
+  systemId: string;
+};
+
+export type HeroImage = {
+  url: string;
+  alt: string;
+  hint: string;
+};
+
 // --- Example collections for seeding ---
 export const collections: Collection[] = [
   {
@@ -76,5 +88,33 @@ export const collections: Collection[] = [
     description: 'Charming houses in the countryside',
     image: 'https://images.unsplash.com/photo-1560325037-b85138d77884',
     imageHint: 'modern country house',
+  },
+  {
+    id: 'ski_chalets',
+    title: 'Ski Chalets',
+    description: 'Hit the slopes from these cozy cabins',
+    image: 'https://images.unsplash.com/photo-1709508496457-e2f9c42493c6',
+    imageHint: 'snowy cabin night',
+  },
+  {
+    id: 'luxury_lofts',
+    title: 'Luxury Lofts',
+    description: 'Open-plan living in the heart of the city',
+    image: 'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6',
+    imageHint: 'loft apartment city',
+  },
+  {
+    id: 'historic_homes',
+    title: 'Historic Homes',
+    description: 'Properties with classic charm and history',
+    image: 'https://images.unsplash.com/photo-1757593596664-282bb7af9bd8',
+    imageHint: 'historic manor house',
+  },
+  {
+    id: 'unique_stays',
+    title: 'Unique Stays',
+    description: 'Unconventional stays, from boats to treehouses',
+    image: 'https://images.unsplash.com/photo-1615354310157-c78b1be66eed',
+    imageHint: 'glass tiny house',
   },
 ];

@@ -3,7 +3,44 @@ dotenv.config({ path: '.env' }); // Load .env variables
 
 import { getAdminDb } from './firebaseAdmin';
 import { collections as curatedCollectionsData } from './data';
-import type { Amenity, Currency } from './data';
+import type { Amenity, Currency, BedType } from './data';
+
+// --- Bed Types Data ---
+const bedTypesData: BedType[] = [
+  { id: 'single', name: 'Single', systemId: 'single' },
+  { id: 'double', name: 'Double', systemId: 'double' },
+  { id: 'queen', name: 'Queen', systemId: 'queen' },
+  { id: 'king', name: 'King', systemId: 'king' },
+  { id: 'bunk', name: 'Bunk Bed', systemId: 'bunk' },
+  { id: 'sofa', name: 'Sofa Bed', systemId: 'sofa' },
+];
+
+// --- Site Settings: Hero Images ---
+const heroImagesData = {
+  id: 'homePage',
+  heroImages: [
+    {
+      url: '/uploads/1726966144837-tropical-bungalow.jpg',
+      alt: 'A tropical bungalow over clear water',
+      hint: 'tropical resort',
+    },
+    {
+      url: '/uploads/1726966157077-hotel-pool.jpg',
+      alt: 'A beautiful hotel pool with sun loungers at dusk',
+      hint: 'hotel pool evening',
+    },
+    {
+      url: '/uploads/1726966166016-luxury-hotel-room.jpg',
+      alt: 'A luxurious hotel room with a made-up bed and stylish decor',
+      hint: 'luxury hotel room',
+    },
+    {
+      url: '/uploads/1726966173820-luxury-hotel-exterior.jpg',
+      alt: 'Exterior of a grand, luxurious hotel with a swimming pool',
+      hint: 'luxury hotel exterior',
+    },
+  ],
+};
 
 // --- Mock Accommodations Data ---
 const accommodationsData: {
@@ -35,11 +72,11 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.9,
     reviewsCount: 120,
-    image: 'https://picsum.photos/seed/pearl/800/600',
+    image: '/uploads/1726967006847-malibu-villa.jpg',
     images: [
-      'https://picsum.photos/seed/pearl/800/600',
-      'https://picsum.photos/seed/pearl2/800/600',
-      'https://picsum.photos/seed/pearl3/800/600',
+      '/uploads/1726967006847-malibu-villa.jpg',
+      '/uploads/1726967015424-malibu-villa-2.jpg',
+      '/uploads/1726967022067-malibu-villa-3.jpg',
     ],
     amenities: ['wifi', 'pool', 'kitchen', 'parking'],
     type: 'Villa',
@@ -59,11 +96,11 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.7,
     reviewsCount: 250,
-    image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2',
+    image: 'https://picsum.photos/seed/1/800/600',
     images: [
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2',
-      'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af',
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688',
+      'https://picsum.photos/seed/1/800/600',
+      'https://picsum.photos/seed/2/800/600',
+      'https://picsum.photos/seed/3/800/600',
     ],
     amenities: ['wifi', 'kitchen', 'gym'],
     type: 'Loft',
@@ -83,11 +120,11 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 5.0,
     reviewsCount: 1932,
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945',
+    image: 'https://picsum.photos/seed/4/800/600',
     images: [
-      'https://images.unsplash.com/photo-1566073771259-6a8506099945',
-      'https://images.unsplash.com/photo-1542314831-068cd1dbb563',
-      'https://images.unsplash.com/photo-1571896349842-33c89424de2d',
+      'https://picsum.photos/seed/4/800/600',
+      'https://picsum.photos/seed/5/800/600',
+      'https://picsum.photos/seed/6/800/600',
     ],
     amenities: ['wifi', 'pool', 'gym', 'parking'],
     type: 'Hotel',
@@ -107,11 +144,11 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.8,
     reviewsCount: 85,
-    image: 'https://picsum.photos/seed/aspen/800/600',
+    image: '/uploads/1726967086884-aspen-cabin.jpg',
     images: [
-      'https://picsum.photos/seed/aspen/800/600',
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7',
-      'https://images.unsplash.com/photo-1594484208280-efa0e5c572c3',
+      '/uploads/1726967086884-aspen-cabin.jpg',
+      'https://picsum.photos/seed/7/800/600',
+      'https://picsum.photos/seed/8/800/600',
     ],
     amenities: ['wifi', 'kitchen', 'parking'],
     type: 'House',
@@ -131,11 +168,11 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.6,
     reviewsCount: 450,
-    image: 'https://images.unsplash.com/photo-1623052635676-e8d8881412e2',
+    image: 'https://picsum.photos/seed/9/800/600',
     images: [
-      'https://images.unsplash.com/photo-1623052635676-e8d8881412e2',
-      'https://images.unsplash.com/photo-1516455590571-18256e5bb9ff',
-      'https://images.unsplash.com/photo-1501183638710-841dd1904471',
+      'https://picsum.photos/seed/9/800/600',
+      'https://picsum.photos/seed/10/800/600',
+      'https://picsum.photos/seed/11/800/600',
     ],
     amenities: ['wifi', 'pool', 'gym'],
     type: 'Apartment',
@@ -155,11 +192,11 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.9,
     reviewsCount: 320,
-    image: 'https://picsum.photos/seed/bali/800/600',
+    image: '/uploads/1726967201633-bali-treehouse.jpg',
     images: [
-      'https://picsum.photos/seed/bali/800/600',
-      'https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b',
-      'https://images.unsplash.com/photo-1540541338287-41700207dee6',
+      '/uploads/1726967201633-bali-treehouse.jpg',
+      'https://picsum.photos/seed/12/800/600',
+      'https://picsum.photos/seed/13/800/600',
     ],
     amenities: ['wifi', 'pool'],
     type: 'House',
@@ -179,11 +216,11 @@ const accommodationsData: {
     currency: 'GBP',
     rating: 4.8,
     reviewsCount: 180,
-    image: 'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea',
+    image: 'https://picsum.photos/seed/14/800/600',
     images: [
-      'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea',
-      'https://images.unsplash.com/photo-1513694203232-719a280e022f',
-      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6',
+      'https://picsum.photos/seed/14/800/600',
+      'https://picsum.photos/seed/15/800/600',
+      'https://picsum.photos/seed/16/800/600',
     ],
     amenities: ['wifi', 'kitchen'],
     type: 'House',
@@ -203,11 +240,11 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.7,
     reviewsCount: 400,
-    image: 'https://picsum.photos/seed/paris/800/600',
+    image: '/uploads/1726967261054-paris-rooftop.jpg',
     images: [
-      'https://picsum.photos/seed/paris/800/600',
-      'https://images.unsplash.com/photo-1564501049412-61c2a3083791',
-      'https://images.unsplash.com/photo-1596386461350-326ccb383e9f',
+      '/uploads/1726967261054-paris-rooftop.jpg',
+      'https://picsum.photos/seed/17/800/600',
+      'https://picsum.photos/seed/18/800/600',
     ],
     amenities: ['wifi', 'kitchen'],
     type: 'Apartment',
@@ -227,11 +264,11 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.2,
     reviewsCount: 500,
-    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbb563',
+    image: 'https://picsum.photos/seed/19/800/600',
     images: [
-      'https://images.unsplash.com/photo-1542314831-068cd1dbb563',
-      'https://images.unsplash.com/photo-1568495248636-6432b97bd949',
-      'https://images.unsplash.com/photo-1522798514-97ceb8c4f1c8',
+      'https://picsum.photos/seed/19/800/600',
+      'https://picsum.photos/seed/20/800/600',
+      'https://picsum.photos/seed/21/800/600',
     ],
     amenities: ['wifi', 'pool', 'kitchen'],
     type: 'Hostel',
@@ -251,11 +288,11 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.3,
     reviewsCount: 900,
-    image: 'https://images.unsplash.com/photo-1594957648163-c3599b512999',
+    image: 'https://picsum.photos/seed/22/800/600',
     images: [
-      'https://images.unsplash.com/photo-1594957648163-c3599b512999',
-      'https://images.unsplash.com/photo-1594957648163-c3599b512999',
-      'https://images.unsplash.com/photo-1594957648163-c3599b512999',
+      'https://picsum.photos/seed/22/800/600',
+      'https://picsum.photos/seed/23/800/600',
+      'https://picsum.photos/seed/24/800/600',
     ],
     amenities: ['wifi', 'gym'],
     type: 'Hotel',
@@ -275,11 +312,11 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.9,
     reviewsCount: 210,
-    image: 'https://images.unsplash.com/photo-1585544733929-25713434c549',
+    image: 'https://picsum.photos/seed/25/800/600',
     images: [
-      'https://images.unsplash.com/photo-1585544733929-25713434c549',
-      'https://images.unsplash.com/photo-1579990867807-a6345863544f',
-      'https://images.unsplash.com/photo-1579990867807-a6345863544f',
+      'https://picsum.photos/seed/25/800/600',
+      'https://picsum.photos/seed/26/800/600',
+      'https://picsum.photos/seed/27/800/600',
     ],
     amenities: ['wifi', 'pool'],
     type: 'Villa',
@@ -299,11 +336,11 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 5,
     reviewsCount: 95,
-    image: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791',
+    image: 'https://picsum.photos/seed/28/800/600',
     images: [
-      'https://images.unsplash.com/photo-1564501049412-61c2a3083791',
-      'https://images.unsplash.com/photo-1610641818989-c2051b5e2cfd',
-      'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf',
+      'https://picsum.photos/seed/28/800/600',
+      'https://picsum.photos/seed/29/800/600',
+      'https://picsum.photos/seed/30/800/600',
     ],
     amenities: ['wifi', 'pool', 'kitchen', 'parking'],
     type: 'Villa',
@@ -323,11 +360,11 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.9,
     reviewsCount: 300,
-    image: 'https://images.unsplash.com/photo-1590422899462-031075653513',
+    image: 'https://picsum.photos/seed/31/800/600',
     images: [
-      'https://images.unsplash.com/photo-1590422899462-031075653513',
-      'https://images.unsplash.com/photo-1564013799919-ab600027ffc6',
-      'https://images.unsplash.com/photo-1519046904884-53103b34b206',
+      'https://picsum.photos/seed/31/800/600',
+      'https://picsum.photos/seed/32/800/600',
+      'https://picsum.photos/seed/33/800/600',
     ],
     amenities: ['wifi', 'pool', 'kitchen'],
     type: 'House',
@@ -347,11 +384,11 @@ const accommodationsData: {
     currency: 'USD',
     rating: 5,
     reviewsCount: 50,
-    image: 'https://picsum.photos/seed/penthouse/800/600',
+    image: '/uploads/1726967341078-penthouse-view.jpg',
     images: [
-      'https://picsum.photos/seed/penthouse/800/600',
-      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6',
-      'https://images.unsplash.com/photo-1560185893-a55d8c8c743d',
+      '/uploads/1726967341078-penthouse-view.jpg',
+      'https://picsum.photos/seed/34/800/600',
+      'https://picsum.photos/seed/35/800/600',
     ],
     amenities: ['wifi', 'pool', 'gym', 'parking'],
     type: 'Apartment',
@@ -371,11 +408,11 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.6,
     reviewsCount: 150,
-    image: 'https://images.unsplash.com/photo-1594563703937-fdc640497dcd',
+    image: 'https://picsum.photos/seed/36/800/600',
     images: [
-      'https://images.unsplash.com/photo-1594563703937-fdc640497dcd',
-      'https://images.unsplash.com/photo-1540998145393-7fb5038b3321',
-      'https://images.unsplash.com/photo-1540998145393-7fb5038b3321',
+      'https://picsum.photos/seed/36/800/600',
+      'https://picsum.photos/seed/37/800/600',
+      'https://picsum.photos/seed/38/800/600',
     ],
     amenities: ['wifi', 'kitchen'],
     type: 'Loft',
@@ -395,11 +432,11 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.7,
     reviewsCount: 200,
-    image: 'https://images.unsplash.com/photo-1517093954238-67413650426c',
+    image: 'https://picsum.photos/seed/39/800/600',
     images: [
-      'https://images.unsplash.com/photo-1517093954238-67413650426c',
-      'https://images.unsplash.com/photo-1572178358409-b73845bce5b5',
-      'https://images.unsplash.com/photo-1572178358409-b73845bce5b5',
+      'https://picsum.photos/seed/39/800/600',
+      'https://picsum.photos/seed/40/800/600',
+      'https://picsum.photos/seed/41/800/600',
     ],
     amenities: ['wifi', 'kitchen'],
     type: 'Apartment',
@@ -419,11 +456,11 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.9,
     reviewsCount: 500,
-    image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4',
+    image: 'https://picsum.photos/seed/42/800/600',
     images: [
-      'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4',
-      'https://images.unsplash.com/photo-1596436889106-be35e843f974',
-      'https://images.unsplash.com/photo-1596436889106-be35e843f974',
+      'https://picsum.photos/seed/42/800/600',
+      'https://picsum.photos/seed/43/800/600',
+      'https://picsum.photos/seed/44/800/600',
     ],
     amenities: ['wifi', 'pool', 'gym', 'parking'],
     type: 'Hotel',
@@ -443,11 +480,11 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.9,
     reviewsCount: 250,
-    image: 'https://images.unsplash.com/photo-1593940193822-54060c8680a9',
+    image: 'https://picsum.photos/seed/45/800/600',
     images: [
-      'https://images.unsplash.com/photo-1593940193822-54060c8680a9',
-      'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf',
-      'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf',
+      'https://picsum.photos/seed/45/800/600',
+      'https://picsum.photos/seed/46/800/600',
+      'https://picsum.photos/seed/47/800/600',
     ],
     amenities: ['wifi'],
     type: 'House',
@@ -467,11 +504,11 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.8,
     reviewsCount: 120,
-    image: 'https://images.unsplash.com/photo-1598422215978-984b06981b19',
+    image: 'https://picsum.photos/seed/48/800/600',
     images: [
-      'https://images.unsplash.com/photo-1598422215978-984b06981b19',
-      'https://images.unsplash.com/photo-1587061949409-02df41d54562',
-      'https://images.unsplash.com/photo-1587061949409-02df41d54562',
+      'https://picsum.photos/seed/48/800/600',
+      'https://picsum.photos/seed/49/800/600',
+      'https://picsum.photos/seed/50/800/600',
     ],
     amenities: ['wifi', 'kitchen', 'parking'],
     type: 'House',
@@ -491,11 +528,11 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.7,
     reviewsCount: 300,
-    image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6',
+    image: 'https://picsum.photos/seed/51/800/600',
     images: [
-      'https://images.unsplash.com/photo-1564013799919-ab600027ffc6',
-      'https://images.unsplash.com/photo-1513694203232-719a280e022f',
-      'https://images.unsplash.com/photo-1513694203232-719a280e022f',
+      'https://picsum.photos/seed/51/800/600',
+      'https://picsum.photos/seed/52/800/600',
+      'https://picsum.photos/seed/53/800/600',
     ],
     amenities: ['wifi', 'kitchen'],
     type: 'Apartment',
@@ -515,11 +552,11 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.8,
     reviewsCount: 180,
-    image: 'https://images.unsplash.com/photo-1631630623253-3c66f50b37f4',
+    image: 'https://picsum.photos/seed/54/800/600',
     images: [
-      'https://images.unsplash.com/photo-1631630623253-3c66f50b37f4',
-      'https://images.unsplash.com/photo-1594882645126-14020914d58d',
-      'https://images.unsplash.com/photo-1594882645126-14020914d58d',
+      'https://picsum.photos/seed/54/800/600',
+      'https://picsum.photos/seed/55/800/600',
+      'https://picsum.photos/seed/56/800/600',
     ],
     amenities: ['wifi', 'kitchen'],
     type: 'Loft',
@@ -539,11 +576,11 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.7,
     reviewsCount: 400,
-    image: 'https://images.unsplash.com/photo-1579564118318-7a54414de4c3',
+    image: 'https://picsum.photos/seed/57/800/600',
     images: [
-      'https://images.unsplash.com/photo-1579564118318-7a54414de4c3',
-      'https://images.unsplash.com/photo-1582719508461-905c673771fd',
-      'https://images.unsplash.com/photo-1582719508461-905c673771fd',
+      'https://picsum.photos/seed/57/800/600',
+      'https://picsum.photos/seed/58/800/600',
+      'https://picsum.photos/seed/59/800/600',
     ],
     amenities: ['wifi', 'kitchen', 'parking'],
     type: 'Hotel',
@@ -563,11 +600,11 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.9,
     reviewsCount: 350,
-    image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
+    image: 'https://picsum.photos/seed/60/800/600',
     images: [
-      'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
-      'https://images.unsplash.com/photo-1533109721025-d1ae7de7c782',
-      'https://images.unsplash.com/photo-1533109721025-d1ae7de7c782',
+      'https://picsum.photos/seed/60/800/600',
+      'https://picsum.photos/seed/61/800/600',
+      'https://picsum.photos/seed/62/800/600',
     ],
     amenities: ['wifi', 'kitchen'],
     type: 'Apartment',
@@ -587,11 +624,11 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.9,
     reviewsCount: 200,
-    image: 'https://images.unsplash.com/photo-1603276672039-fda6395b3e6e',
+    image: 'https://picsum.photos/seed/63/800/600',
     images: [
-      'https://images.unsplash.com/photo-1603276672039-fda6395b3e6e',
-      'https://images.unsplash.com/photo-1603276672039-fda6395b3e6e',
-      'https://images.unsplash.com/photo-1603276672039-fda6395b3e6e',
+      'https://picsum.photos/seed/63/800/600',
+      'https://picsum.photos/seed/64/800/600',
+      'https://picsum.photos/seed/65/800/600',
     ],
     amenities: ['wifi', 'pool', 'kitchen', 'parking'],
     type: 'Villa',
@@ -611,11 +648,11 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.8,
     reviewsCount: 450,
-    image: 'https://images.unsplash.com/photo-1595287513843-c97c185b3a53',
+    image: 'https://picsum.photos/seed/66/800/600',
     images: [
-      'https://images.unsplash.com/photo-1595287513843-c97c185b3a53',
-      'https://images.unsplash.com/photo-1568605117036-5fe5e7185743',
-      'https://images.unsplash.com/photo-1568605117036-5fe5e7185743',
+      'https://picsum.photos/seed/66/800/600',
+      'https://picsum.photos/seed/67/800/600',
+      'https://picsum.photos/seed/68/800/600',
     ],
     amenities: ['wifi', 'kitchen'],
     type: 'Apartment',
@@ -657,10 +694,11 @@ async function clearCollection(db: FirebaseFirestore.Firestore, collectionName: 
  * @param collectionName - The name of the collection to seed.
  * @param data - An array of objects to add to the collection.
  */
-async function seedCollection(collectionName: string, data: { id: string }[]) {
+async function seedCollection(collectionName: string, data: { id?: string }[]) {
   const db = getAdminDb();
 
-  if (collectionName === 'accommodations') {
+  // Clear only specified collections, not all.
+  if (['accommodations', 'bedTypes', 'siteSettings'].includes(collectionName)) {
     await clearCollection(db, collectionName);
   }
 
@@ -671,7 +709,7 @@ async function seedCollection(collectionName: string, data: { id: string }[]) {
   console.log(`\nSeeding collection: "${collectionName}"...`);
 
   for (const item of data) {
-    const docRef = collectionRef.doc(item.id);
+    const docRef = item.id ? collectionRef.doc(item.id) : collectionRef.doc();
     batch.set(docRef, item);
     count++;
   }
@@ -685,10 +723,10 @@ async function seedCollection(collectionName: string, data: { id: string }[]) {
  */
 async function seedAll() {
   try {
-    // Note: Seeding accommodations will now clear existing ones first.
     await seedCollection('accommodations', accommodationsData);
     await seedCollection('curated_collections', curatedCollectionsData);
-    // Add other collections to seed here, e.g., bookings, users etc.
+    await seedCollection('bedTypes', bedTypesData);
+    await seedCollection('siteSettings', [heroImagesData]);
   } catch (error) {
     console.error('❌ Error seeding Firestore:', error);
     process.exit(1);
