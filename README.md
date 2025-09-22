@@ -125,12 +125,13 @@ The action buttons displayed on the notification detail page change based on the
 
 ### Known Issues
 
-- **`useSearchParams()` Error**: The build fails with a `useSearchParams() should be wrapped in a suspense boundary` error on the `/admin/listings` page. This is because the `ListingsClient` component uses this hook but is being rendered as a Server Component. It needs to be wrapped in a `<Suspense>` boundary to be rendered correctly on the client.
+- None at present.
 
 ### Resolved Issues
 
 - **Map Interaction Issues** (Resolved: 26/09/2024): The interactive maps on both the accommodation detail page and the admin "Edit Listing" page were not allowing users to pan or zoom. This was caused by the map components being initialized without a valid `mapId`. The issue was resolved by adding `mapId="DEMO_MAP_ID"` to the `<Map>` components, which is a requirement for using Advanced Markers and enables full interactivity.
 - **404 Errors on Hard Refresh** (Resolved: 22/09/2024): The `/account/my-stays/upcoming` and `/account/my-stays/past` pages were consistently producing a 404 error on a hard refresh. This was resolved by fixing an issue in the routing and layout structure.
+- **`useSearchParams()` Error** (Resolved: 22/09/2024): The build failed with a `useSearchParams() should be wrapped in a suspense boundary` error on the `/admin/listings` page. This was resolved by wrapping the `ListingsClient` component (which uses the hook) in a `<Suspense>` boundary on the server component page.
 - **Linting Error on Commit** (Resolved: 22/09/2024): A pre-commit hook was failing due to an ESLint error (`no-async-client-component`) in the `src/components/SearchParamsClient.tsx` file. This file was a redundant and unused duplicate of the home page. The issue was resolved by deleting the file.
 - **Admin Area Layout & Routing Issues** (Resolved: 22/09/2024): A series of issues related to Next.js App Router conventions were resolved. This included:
   - **Clunky UI**: The "Edit Listing" section was refactored to use a single, dedicated sidebar that replaces the main admin sidebar, providing a cleaner, full-screen editing experience.
