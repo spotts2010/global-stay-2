@@ -1,4 +1,4 @@
-// src/components/ListingsClient.tsx
+// src/components/ListingsPageClient.tsx
 'use client';
 
 import Link from 'next/link';
@@ -66,13 +66,12 @@ type ListingStatus = 'All' | 'Published' | 'Draft' | 'Archived';
 type SortKey = 'name' | 'price' | 'status' | 'host' | 'lastModified';
 type SortDirection = 'asc' | 'desc';
 
-// Define an enriched property type that includes the extra fields
 type EnrichedProperty = Accommodation & {
   host: string;
   units: number;
 };
 
-export default function ListingsClient({
+export default function ListingsPageClient({
   initialProperties,
 }: {
   initialProperties: Accommodation[];
@@ -84,7 +83,6 @@ export default function ListingsClient({
   const { preferences } = useUserPreferences();
   const [isPending, startTransition] = useTransition();
 
-  // Initialize state from URL params or defaults
   const [properties, setProperties] = useState<EnrichedProperty[]>([]);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [statusFilter, setStatusFilter] = useState<ListingStatus>(
@@ -97,7 +95,6 @@ export default function ListingsClient({
     direction: (searchParams.get('sortDir') as SortDirection) || 'desc',
   });
 
-  // Effect to synchronize component state with URL search parameters
   useEffect(() => {
     setSearchTerm(searchParams.get('q') || '');
     setStatusFilter((searchParams.get('status') as ListingStatus) || 'All');
@@ -109,7 +106,6 @@ export default function ListingsClient({
     });
   }, [searchParams]);
 
-  // Update URL when state changes
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     if (searchTerm) params.set('q', searchTerm);
@@ -125,7 +121,6 @@ export default function ListingsClient({
     if (sortConfig.direction !== 'desc') params.set('sortDir', sortConfig.direction);
     else params.delete('sortDir');
 
-    // Use replace to avoid adding to history stack
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [
     searchTerm,
@@ -139,7 +134,6 @@ export default function ListingsClient({
   ]);
 
   useEffect(() => {
-    // Enrich properties with 'host' and 'units' when they are first received or updated.
     const enriched = initialProperties.map((p) => ({
       ...p,
       host: 'Sam Potts', // Placeholder
@@ -148,7 +142,6 @@ export default function ListingsClient({
     setProperties(enriched);
   }, [initialProperties]);
 
-  // Reset page number when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, itemsPerPage]);
@@ -161,7 +154,6 @@ export default function ListingsClient({
           title: 'Status Updated',
           description: `The listing status has been changed to ${status}.`,
         });
-        // Optimistically update the UI, or wait for revalidation
         setProperties((prev) =>
           prev.map((p) => (p.id === id ? { ...p, status, lastModified: new Date() } : p))
         );

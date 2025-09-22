@@ -1,12 +1,21 @@
 // src/app/admin/listings/page.tsx
 import { Suspense } from 'react';
-import { fetchAccommodations } from '@/lib/firestore.server'; // Use server-specific fetch
+import dynamic from 'next/dynamic';
+import { fetchAccommodations } from '@/lib/firestore.server';
 import type { Accommodation } from '@/lib/data';
-import ListingsClient from '@/components/ListingsClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LayoutList, Loader2 } from 'lucide-react';
 
-// Helper to check if a value is a Firestore-like Timestamp
+// Dynamically import the client component with SSR disabled
+const ListingsPageClient = dynamic(() => import('@/components/ListingsPageClient'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-64 items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
+  ),
+});
+
 function isTimestamp(value: unknown): value is { toDate: () => Date } {
   return (
     typeof value === 'object' &&
@@ -15,16 +24,14 @@ function isTimestamp(value: unknown): value is { toDate: () => Date } {
   );
 }
 
-// This is now a SERVER component responsible for data fetching
 export default async function AdminListingsPage() {
   const properties: Accommodation[] = await fetchAccommodations();
 
-  // Create a serializable version of the properties to pass to the client
   const serializableProperties = properties.map((p) => ({
     ...p,
     lastModified: isTimestamp(p.lastModified)
       ? p.lastModified.toDate().toISOString()
-      : new Date().toISOString(), // Fallback to current date if invalid
+      : new Date().toISOString(),
   }));
 
   return (
@@ -44,7 +51,7 @@ export default async function AdminListingsPage() {
             </div>
           }
         >
-          <ListingsClient
+          <ListingsPageClient
             initialProperties={serializableProperties as unknown as Accommodation[]}
           />
         </Suspense>
