@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -31,23 +32,36 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Accommodation } from '@/lib/data';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Save, Loader2, Home, MapPin } from 'lucide-react';
+import { Save, Loader2, Home, MapPin, MousePointerClick } from 'lucide-react';
 import React, { useEffect, useState, useTransition, use } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { fetchAccommodationById } from '@/lib/firestore';
 import { updateAccommodationAction } from '@/app/actions';
+import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'gmp-place-picker': any;
+    }
+  }
+}
 
 const propertyFormSchema = z.object({
   name: z.string().min(1, 'Listing name is required'),
   type: z.string().min(1, 'Property type is required'),
   location: z.string().min(1, 'Location is required'),
   description: z.string().optional(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
 });
 
 type PropertyFormValues = z.infer<typeof propertyFormSchema>;
+type Position = { lat: number; lng: number };
 
 const AddressAutocomplete = ({
   field,
+  onPlaceSelected,
 }: {
   field: {
     onChange: (value: string) => void;
@@ -56,9 +70,10 @@ const AddressAutocomplete = ({
     onBlur: () => void;
     ref: React.Ref<HTMLInputElement>;
   };
+  onPlaceSelected: (position: Position) => void;
 }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const placePickerRef = React.useRef<HTMLElement & { value: google.maps.places.Place }>(null); // Ref for the web component
+  const placePickerRef = React.useRef<any>(null);
 
   React.useEffect(() => {
     const picker = placePickerRef.current;
@@ -66,17 +81,17 @@ const AddressAutocomplete = ({
 
     const handlePlaceChange = () => {
       const place = picker.value;
-      if (place?.formattedAddress) {
+      if (place?.formattedAddress && place.location) {
         field.onChange(place.formattedAddress);
+        onPlaceSelected({ lat: place.location.latitude, lng: place.location.longitude });
       }
     };
 
     picker.addEventListener('gmp-placechange', handlePlaceChange);
-
     return () => {
       picker.removeEventListener('gmp-placechange', handlePlaceChange);
     };
-  }, [field]);
+  }, [field, onPlaceSelected]);
 
   return (
     <div className="relative">
@@ -84,10 +99,15 @@ const AddressAutocomplete = ({
         ref={placePickerRef}
         for-input-id="address-input"
         class="w-full"
-        placeholder="Search for an address"
-        country-codes={['AU', 'US', 'GB', 'NZ']}
+        country-codes="AU,US,GB,NZ"
       >
-        <Input id="address-input" {...field} ref={inputRef} className="pr-8" />
+        <Input
+          id="address-input"
+          {...field}
+          ref={inputRef}
+          placeholder="Search for an address"
+          className="pr-8"
+        />
       </gmp-place-picker>
       <MapPin className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
     </div>
@@ -98,6 +118,10 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
+  const [markerPosition, setMarkerPosition] = useState<Position | null>(
+    listing.lat && listing.lng ? { lat: listing.lat, lng: listing.lng } : null
+  );
+
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertyFormSchema),
     defaultValues: {
@@ -105,8 +129,30 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
       type: listing?.type || 'Hotel',
       location: listing?.location || '',
       description: listing?.description || '',
+      lat: listing?.lat,
+      lng: listing?.lng,
     },
   });
+
+  const handlePlaceSelected = (newPosition: Position) => {
+    setMarkerPosition(newPosition);
+    form.setValue('lat', newPosition.lat, { shouldDirty: true });
+    form.setValue('lng', newPosition.lng, { shouldDirty: true });
+  };
+
+  const handleMarkerDragEnd = (e: google.maps.MapMouseEvent) => {
+    const lat = e.latLng?.lat();
+    const lng = e.latLng?.lng();
+    if (lat === undefined || lng === undefined) return;
+    const newPos = { lat, lng };
+    setMarkerPosition(newPos);
+    form.setValue('lat', newPos.lat, { shouldDirty: true });
+    form.setValue('lng', newPos.lng, { shouldDirty: true });
+    toast({
+      title: 'Location Updated',
+      description: 'The map marker has been moved.',
+    });
+  };
 
   const handleSave = (formData: PropertyFormValues) => {
     startTransition(async () => {
@@ -116,7 +162,7 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
           title: 'Changes Saved',
           description: 'The property details have been updated.',
         });
-        form.reset(formData); // Resets the form's dirty state to the new values
+        form.reset(formData);
       } else {
         toast({
           variant: 'destructive',
@@ -133,13 +179,11 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
         <Breadcrumbs
           items={[
             { label: 'Listings', href: '/admin/listings' },
-            {
-              label: listing.name,
-              href: `/admin/listings/${listing.id}/edit/about`,
-            },
+            { label: listing.name, href: `/admin/listings/${listing.id}/edit/about` },
             { label: 'About' },
           ]}
         />
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -148,7 +192,8 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
             </CardTitle>
             <CardDescription>Update the core details of your listing here.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -188,38 +233,81 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
                   </FormItem>
                 )}
               />
-              <div className="md:col-span-2">
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location</FormLabel>
-                      <FormControl>
-                        <AddressAutocomplete field={field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Overall Description</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} rows={6} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <AddressAutocomplete field={field} onPlaceSelected={handlePlaceSelected} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <FormLabel>Map View</FormLabel>
+                {markerPosition && (
+                  <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <MousePointerClick className="h-3 w-3" />
+                    <span>You can drag the marker or click on the map to adjust location</span>
+                  </div>
+                )}
               </div>
-              <div className="md:col-span-2">
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Overall Description</FormLabel>
-                      <FormControl>
-                        <Textarea {...field} rows={5} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
+              <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                {markerPosition ? (
+                  <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+                    <Map
+                      mapId="DEMO_MAP_ID"
+                      defaultCenter={markerPosition}
+                      defaultZoom={15}
+                      gestureHandling="greedy"
+                      onClick={(ev: any) => {
+                        const lat = ev.latLng?.lat();
+                        const lng = ev.latLng?.lng();
+                        if (!lat || !lng) return;
+                        const newPos = { lat, lng };
+                        setMarkerPosition(newPos);
+                        form.setValue('lat', newPos.lat, { shouldDirty: true });
+                        form.setValue('lng', newPos.lng, { shouldDirty: true });
+                      }}
+                    >
+                      <AdvancedMarker
+                        position={markerPosition}
+                        draggable
+                        onDragEnd={handleMarkerDragEnd}
+                      />
+                    </Map>
+                  </APIProvider>
+                ) : (
+                  <div className="h-full w-full bg-muted flex items-center justify-center text-muted-foreground text-center p-4">
+                    Enter an address to see its location on the map.
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
+
           <CardFooter>
             <Button type="submit" disabled={isPending || !form.formState.isDirty}>
               {isPending ? (
@@ -236,7 +324,6 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
   );
 }
 
-// This is the main page component that receives props from the layout
 export default function AboutPage({ params }: { params: { id: string } }) {
   const resolvedParams = use(params);
   const [listing, setListing] = useState<Accommodation | null>(null);
@@ -248,11 +335,8 @@ export default function AboutPage({ params }: { params: { id: string } }) {
       setLoading(true);
       try {
         const data = await fetchAccommodationById(resolvedParams.id);
-        if (data) {
-          setListing(data);
-        } else {
-          setError('Listing not found.');
-        }
+        if (data) setListing(data);
+        else setError('Listing not found.');
       } catch (err) {
         setError('Failed to load listing data.');
         console.error(err);
@@ -263,21 +347,20 @@ export default function AboutPage({ params }: { params: { id: string } }) {
     loadListing();
   }, [resolvedParams.id]);
 
-  if (loading) {
+  if (loading)
     return (
       <div className="flex h-full min-h-[50vh] w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  }
 
-  if (error || !listing) {
+  if (error || !listing)
     return (
       <div className="text-center text-destructive">
         <h1 className="font-bold text-2xl">Error</h1>
         <p>{error}</p>
       </div>
     );
-  }
+
   return <AboutPageClient listing={listing} />;
 }

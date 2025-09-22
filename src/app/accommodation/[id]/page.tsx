@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Star, MapPin, Award, Loader2 } from 'lucide-react';
@@ -225,25 +226,8 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
             <h2 className="font-headline text-2xl font-bold mb-4">Location</h2>
             <div className="aspect-video rounded-lg overflow-hidden border">
               <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
-                <Map
-                  mapId="DEMO_MAP_ID"
-                  defaultCenter={position}
-                  defaultZoom={15}
-                  gestureHandling={'greedy'}
-                  disableDefaultUI={true}
-                >
-                  <AdvancedMarker position={position}>
-                    <div className="w-10 h-10 transform -translate-y-4">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="hsl(var(--primary))"
-                        className="drop-shadow-lg"
-                      >
-                        <path d="M12 0C7.589 0 4 3.589 4 8c0 4.411 8 16 8 16s8-11.589 8-16c0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" />
-                      </svg>
-                    </div>
-                  </AdvancedMarker>
+                <Map mapId="DEMO_MAP_ID" defaultCenter={position} defaultZoom={15}>
+                  <AdvancedMarker position={position} />
                 </Map>
               </APIProvider>
             </div>

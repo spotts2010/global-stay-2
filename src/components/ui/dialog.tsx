@@ -40,11 +40,7 @@ const DialogContent = React.forwardRef<
       onInteractOutside={(e) => {
         // Prevent closing when clicking on Google Maps autocomplete suggestions
         const target = e.target as HTMLElement;
-        if (
-          target.closest('.pac-container') ||
-          target.closest('gmp-place-picker') ||
-          target.closest('.gmp-place-guard-container')
-        ) {
+        if (target.closest('.pac-container')) {
           e.preventDefault();
         }
       }}
