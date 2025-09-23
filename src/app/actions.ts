@@ -7,8 +7,7 @@ import {
   type AccommodationRecommendationsOutput,
 } from '@/ai/flows/accommodation-recommendations';
 import { getAdminDb } from '@/lib/firebaseAdmin';
-import type { Place } from '@/components/PointsOfInterest';
-import type { Accommodation, HeroImage } from './lib/data';
+import type { Place, Accommodation, HeroImage } from './lib/data';
 
 interface ActionResult extends Partial<AccommodationRecommendationsOutput> {
   error?: string;
@@ -26,11 +25,10 @@ export async function handleGetRecommendations(
   }
 }
 
-// --- Unified Accommodation Update Action ---
+// --- Accommodation Update Action ---
 export async function updateAccommodationAction(
   id: string,
-  accommodationData: Partial<Accommodation>,
-  pointsOfInterestData?: Place[] // Make POIs optional
+  accommodationData: Partial<Accommodation>
 ): Promise<{ success: boolean; error?: string }> {
   if (!id) {
     return { success: false, error: 'Accommodation ID is missing.' };
@@ -39,60 +37,57 @@ export async function updateAccommodationAction(
   const accommodationRef = db.collection('accommodations').doc(id);
 
   try {
-    // Start a transaction or batch write
-    const batch = db.batch(); // Admin SDK batch
-
-    // Step 1: Update the main accommodation document
-    batch.update(accommodationRef, accommodationData);
-
-    // Step 2: If pointsOfInterestData is provided, update the POIs subcollection
-    if (pointsOfInterestData) {
-      const poiCollectionRef = accommodationRef.collection('pointsOfInterest');
-      const existingPoisSnapshot = await poiCollectionRef.get();
-
-      // Delete old POIs
-      existingPoisSnapshot.docs.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-
-      // Add new POIs
-      for (const newPlace of pointsOfInterestData) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { geometry, ...placeData } = newPlace; // Exclude complex geometry object
-
-        const dataToSet: Partial<Place> & { lat?: number; lng?: number } = {
-          ...placeData,
-        };
-
-        if (newPlace.geometry && typeof newPlace.geometry.lat === 'function') {
-          dataToSet.lat = newPlace.geometry.lat();
-          dataToSet.lng = newPlace.geometry.lng();
-        } else if (newPlace.lat && newPlace.lng) {
-          dataToSet.lat = newPlace.lat;
-          dataToSet.lng = newPlace.lng;
-        }
-        const newPoiDocRef = poiCollectionRef.doc(newPlace.id);
-        batch.set(newPoiDocRef, dataToSet);
-      }
-    }
-
-    // Commit the entire batch
-    await batch.commit();
-
-    // Revalidate paths to update cached data on the front end
+    await accommodationRef.update(accommodationData);
     revalidatePath(`/admin/listings/${id}/edit/about`);
-    revalidatePath(`/admin/listings/${id}/edit/photos`);
     revalidatePath(`/admin/listings`);
     revalidatePath(`/accommodation/${id}`);
-
     return { success: true };
   } catch (error) {
     console.error('Error updating accommodation:', error);
-    let errorMessage = 'An unknown error occurred.';
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update accommodation: ${errorMessage}` };
+  }
+}
+
+// --- Points of Interest Update Action ---
+export async function updatePointsOfInterestAction(
+  accommodationId: string,
+  pointsOfInterestData: Place[]
+): Promise<{ success: boolean; error?: string }> {
+  if (!accommodationId) {
+    return { success: false, error: 'Accommodation ID is missing.' };
+  }
+  const db = getAdminDb();
+  const accommodationRef = db.collection('accommodations').doc(accommodationId);
+  const poiCollectionRef = accommodationRef.collection('pointsOfInterest');
+
+  try {
+    const batch = db.batch();
+    const existingPoisSnapshot = await poiCollectionRef.get();
+
+    // Delete old POIs
+    existingPoisSnapshot.docs.forEach((doc) => batch.delete(doc.ref));
+
+    // Add new POIs
+    pointsOfInterestData.forEach((place) => {
+      // Create a plain object without any complex types (like geometry)
+      const { id, name, address, category, source, visible, distance, lat, lng } = place;
+      const newPoiData = { name, address, category, source, visible, distance, lat, lng };
+
+      const newPoiDocRef = poiCollectionRef.doc(id);
+      batch.set(newPoiDocRef, newPoiData);
+    });
+
+    await batch.commit();
+
+    revalidatePath(`/admin/listings/${accommodationId}/edit/pois`);
+    revalidatePath(`/accommodation/${accommodationId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error(`Error updating points of interest for accommodation ${accommodationId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update points of interest: ${errorMessage}` };
   }
 }
 

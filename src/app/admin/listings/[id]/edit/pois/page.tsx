@@ -1,31 +1,13 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Save, Loader2, Map } from 'lucide-react';
-import React, { useState, useTransition, useEffect, use } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { Loader2, Map } from 'lucide-react';
+import React, { useState, useEffect, use } from 'react';
 import type { Accommodation } from '@/lib/data';
-import PointsOfInterest, { type Place } from '@/components/PointsOfInterest';
 import { fetchAccommodationById } from '@/lib/firestore';
 
 function PoisPageClient({ listing }: { listing: Accommodation }) {
-  const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
-  const [pointsOfInterest, setPointsOfInterest] = useState<Place[]>([]);
-
-  const handleSave = () => {
-    startTransition(async () => {
-      console.log('Saving POIs:', pointsOfInterest);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast({
-        title: 'Changes Saved',
-        description: 'The points of interest have been updated.',
-      });
-    });
-  };
-
   return (
     <div className="space-y-6">
       <Breadcrumbs
@@ -47,23 +29,11 @@ function PoisPageClient({ listing }: { listing: Accommodation }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <PointsOfInterest
-            propertyLocation={listing.location}
-            places={pointsOfInterest}
-            setPlaces={setPointsOfInterest}
-          />
+          <div className="text-center text-muted-foreground py-20 border-2 border-dashed rounded-lg">
+            <p>This feature is currently being rebuilt. Please check back soon.</p>
+          </div>
         </CardContent>
       </Card>
-      <div className="sticky bottom-0 py-4 flex justify-start">
-        <Button onClick={handleSave} disabled={isPending}>
-          {isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="mr-2 h-4 w-4" />
-          )}
-          Save Changes
-        </Button>
-      </div>
     </div>
   );
 }
@@ -75,23 +45,23 @@ export default function PoisPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadListing = async () => {
+    const loadData = async () => {
       setLoading(true);
       try {
-        const data = await fetchAccommodationById(resolvedParams.id);
-        if (data) {
-          setListing(data);
+        const listingData = await fetchAccommodationById(resolvedParams.id);
+        if (listingData) {
+          setListing(listingData);
         } else {
           setError('Listing not found.');
         }
       } catch (err) {
-        setError('Failed to load listing data.');
+        setError('Failed to load data.');
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
-    loadListing();
+    loadData();
   }, [resolvedParams.id]);
 
   if (loading) {

@@ -1,6 +1,30 @@
 export type Amenity = 'wifi' | 'pool' | 'gym' | 'parking' | 'kitchen';
 export type Currency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
+export type PoiCategory =
+  | 'Attraction'
+  | 'Transport'
+  | 'Shopping'
+  | 'Dining'
+  | 'Beach & Nature'
+  | 'Business & Events'
+  | 'Healthcare'
+  | 'Default';
+
+export type PoiSource = 'Host' | 'API';
+
+export type Place = {
+  id: string;
+  name: string;
+  address: string;
+  category: PoiCategory;
+  source: PoiSource;
+  visible: boolean;
+  distance?: number;
+  lat?: number;
+  lng?: number;
+};
+
 export type Accommodation = {
   id: string;
   slug: string;

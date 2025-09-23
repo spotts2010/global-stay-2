@@ -1,8 +1,8 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Sparkles, Building } from 'lucide-react';
-import { Suspense, useMemo, useState } from 'react';
+import { ArrowRight, Sparkles, Building, Loader2 } from 'lucide-react';
+import { Suspense, useMemo, useState, useEffect } from 'react';
 
 import { collections, type Collection } from '@/lib/data';
 import { Button } from '@/components/ui/button';
@@ -19,16 +19,42 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
 
 type HomeContentProps = {
   initialAccommodations: Accommodation[];
-  heroImage: HeroImage;
+  heroImages: HeroImage[];
 };
 
-export default function HomeContent({ initialAccommodations, heroImage }: HomeContentProps) {
+const defaultHeroImage: HeroImage = {
+  url: 'https://images.unsplash.com/photo-1460627390041-532a28402358',
+  alt: 'A tropical bungalow over clear water',
+  hint: 'tropical resort',
+};
+
+export default function HomeContent({ initialAccommodations, heroImages }: HomeContentProps) {
   const [accommodations, _setAccommodations] = useState<Accommodation[]>(initialAccommodations);
-  const [loading, _setLoading] = useState(false); // Data is now pre-loaded
+  const [loading, _setLoading] = useState(false);
+  const [selectedHeroImage, setSelectedHeroImage] = useState<HeroImage | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (hasMounted && heroImages && heroImages.length > 0) {
+      setSelectedHeroImage(heroImages[0]);
+    } else if (hasMounted) {
+      setSelectedHeroImage(defaultHeroImage);
+    }
+  }, [hasMounted, heroImages]);
+
+  useEffect(() => {
+    if (hasMounted && heroImages.length > 0) {
+      const randomIndex = Math.floor(Math.random() * heroImages.length);
+      setSelectedHeroImage(heroImages[randomIndex]);
+    }
+  }, [hasMounted, heroImages]);
 
   const topRatedAccommodations: Accommodation[] = useMemo(
     () => [...accommodations].sort((a, b) => b.rating - a.rating),
@@ -39,18 +65,25 @@ export default function HomeContent({ initialAccommodations, heroImage }: HomeCo
     <div className="flex flex-col gap-16 md:gap-24 pb-16">
       {/* Hero Section */}
       <section
-        className="relative h-[60vh] md:h-[70vh] flex items-center justify-center text-center text-white"
+        className="relative h-[60vh] md:h-[70vh] flex items-center justify-center text-center text-white bg-black"
         aria-labelledby="hero-heading"
       >
-        <Image
-          src={heroImage.url}
-          alt={heroImage.alt}
-          data-ai-hint={heroImage.hint}
-          fill
-          sizes="100vw"
-          priority
-          className="z-0 object-cover"
-        />
+        {hasMounted && selectedHeroImage ? (
+          <Image
+            src={selectedHeroImage.url}
+            alt={selectedHeroImage.alt}
+            data-ai-hint={selectedHeroImage.hint}
+            fill
+            sizes="100vw"
+            priority
+            className="z-0 object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-muted">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          </div>
+        )}
+
         <div className="absolute inset-0 bg-black/50 z-10" />
         <div className="relative z-20 flex flex-col items-center gap-6 px-4">
           <h1
@@ -94,11 +127,25 @@ export default function HomeContent({ initialAccommodations, heroImage }: HomeCo
             </Link>
           </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {collections.map((collection: Collection) => (
-            <CuratedCollectionCard key={collection.id} collection={collection} />
-          ))}
-        </div>
+        <Carousel
+          opts={{
+            align: 'start',
+            loop: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent>
+            {collections.map((collection: Collection) => (
+              <CarouselItem key={collection.id} className="basis-full sm:basis-1/2 lg:basis-1/4">
+                <div className="p-1 h-full">
+                  <CuratedCollectionCard collection={collection} />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+        </Carousel>
       </section>
 
       {/* Top-rated Stays Section */}

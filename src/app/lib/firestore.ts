@@ -1,3 +1,5 @@
+'use client';
+
 import {
   collection,
   getDocs as getDocsClient,
@@ -5,8 +7,7 @@ import {
   getDoc as getDocClient,
 } from 'firebase/firestore';
 import { db } from './firebase-config'; // CLIENT SDK for client-side actions
-import type { Accommodation, EnrichedBooking, Booking } from './data';
-import type { Place } from '@/components/PointsOfInterest';
+import type { Accommodation, EnrichedBooking, Booking, Place } from './data';
 import { isBefore } from 'date-fns';
 
 // This file should now ONLY contain client-side or shared Firestore logic.

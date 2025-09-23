@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import dynamic from 'next/dynamic';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Loader2, ImageIcon, UploadCloud } from 'lucide-react';
+import { Loader2, ImageIcon, UploadCloud, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Accommodation } from '@/lib/data';
 import { updateAccommodationAction } from '@/app/actions';
@@ -30,50 +30,18 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [hasMounted, setHasMounted] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
-  // Ref to prevent initial autosave on component mount
-  const isInitialMount = React.useRef(true);
-
-  // Autosave effect
+  // Check if the current state is different from the original listing state
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
-    // Do nothing if there's no actual change
-    if (JSON.stringify(images) === JSON.stringify(listing.images)) {
-      return;
-    }
-
-    const autosave = async () => {
-      const dataToSave = {
-        images,
-        image: images[0] || '', // first image is cover
-      };
-      const result = await updateAccommodationAction(listing.id, dataToSave);
-      if (result.success) {
-        toast({
-          title: 'Autosaved!',
-          description: 'Your photo gallery has been updated.',
-        });
-        // Update the listing prop to match the new state to prevent future unnecessary saves
-        listing.images = images;
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Autosave Failed',
-          description: result.error || 'An unknown error occurred.',
-        });
-      }
-    };
-    autosave();
-  }, [images, listing, toast]);
+    setIsDirty(JSON.stringify(images) !== JSON.stringify(listing.images));
+  }, [images, listing.images]);
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -126,7 +94,10 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
 
       if (response.ok && result.success && result.urls) {
         setImages((prev) => [...prev, ...result.urls!]);
-        // The autosave useEffect will handle the update
+        toast({
+          title: 'Images Ready',
+          description: `Added ${result.urls.length} new image(s). Click Save Changes to confirm.`,
+        });
         setFilesToUpload([]);
         setIsAddModalOpen(false);
       } else {
@@ -144,6 +115,30 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
     }
   };
 
+  const handleSaveChanges = () => {
+    startTransition(async () => {
+      const dataToSave = {
+        images,
+        image: images[0] || '', // first image is cover
+      };
+      const result = await updateAccommodationAction(listing.id, dataToSave);
+      if (result.success) {
+        toast({
+          title: 'Changes Saved',
+          description: 'Your photo gallery has been updated.',
+        });
+        listing.images = images; // Update original state to reset dirty check
+        setIsDirty(false);
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Save Failed',
+          description: result.error || 'An unknown error occurred.',
+        });
+      }
+    });
+  };
+
   return (
     <div className="space-y-6">
       <Breadcrumbs
@@ -155,14 +150,25 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
       />
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ImageIcon className="h-5 w-5 text-primary" />
-            Property Photo Gallery
-          </CardTitle>
-          <CardDescription>
-            Sort images by drag & drop. Please note the first image will be used as the 'Hero/Cover'
-            image. All changes will be autosaved.
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+            <div className="mb-4 sm:mb-0">
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-primary" />
+                Property Photo Gallery
+              </CardTitle>
+              <CardDescription>
+                Drag and drop to reorder images. The first image is the cover photo.
+              </CardDescription>
+            </div>
+            <Button onClick={handleSaveChanges} disabled={isPending || !isDirty}>
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              Save Changes
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {hasMounted ? (

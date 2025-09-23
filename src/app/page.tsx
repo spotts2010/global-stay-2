@@ -19,15 +19,6 @@ export default async function Home() {
   const siteSettings = await fetchSiteSettings();
   const heroImages: HeroImage[] = siteSettings?.heroImages || [];
 
-  // Randomly select one hero image on the server.
-  const selectedHeroImage =
-    heroImages[Math.floor(Math.random() * heroImages.length)] ||
-    ({
-      url: 'https://images.unsplash.com/photo-1460627390041-532a28402358',
-      alt: 'A tropical bungalow over clear water',
-      hint: 'tropical resort',
-    } as HeroImage);
-
   // Create a serializable version of the properties to pass to the client
   const serializableAccommodations = accommodations.map((p) => ({
     ...p,
@@ -39,7 +30,7 @@ export default async function Home() {
   return (
     <HomeContent
       initialAccommodations={serializableAccommodations as unknown as Accommodation[]}
-      heroImage={selectedHeroImage}
+      heroImages={heroImages}
     />
   );
 }

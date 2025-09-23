@@ -83,7 +83,7 @@ export default function PhotoGallery({ images, imageHints }: PhotoGalleryProps) 
         >
           <Button
             onClick={closeModal}
-            className="absolute top-4 right-4 z-20 text-white rounded-full h-12 w-12 md:h-auto md:w-auto md:px-4 md:py-2 md:bg-black/50 md:hover:bg-black/70"
+            className="absolute top-4 right-4 z-20 text-white rounded-full h-12 w-12 md:h-auto md:w-auto md:px-4 md:py-2 md:bg-black/50 md:hover:bg-white/10"
             aria-label="Close gallery"
             variant="ghost"
           >

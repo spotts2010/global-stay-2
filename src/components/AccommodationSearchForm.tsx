@@ -6,6 +6,7 @@ import { MapPin, Calendar, Users, Search } from 'lucide-react';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import { cn } from '@/lib/utils';
 
 function formatRangeUK(range: DateRange | undefined) {
   if (!range?.from || !range?.to) return '';
@@ -161,11 +162,14 @@ export default function AccommodationSearchForm() {
           </select>
         </div>
 
-        {/* Search Button */}
-        <div>
+        {/* Search Button - restructured for mobile */}
+        <div className="p-2 md:p-0">
           <button
             type="submit"
-            className="inline-flex h-full w-full items-center justify-center gap-2 rounded-r-md bg-blue-600 px-6 text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className={cn(
+              'inline-flex h-full min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-6 text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+              'md:min-h-0 md:rounded-l-none md:rounded-r-md'
+            )}
           >
             <Search className="w-4 h-4" aria-hidden />
             <span className="text-[15px] font-medium">Search</span>

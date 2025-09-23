@@ -9,7 +9,7 @@ type CuratedCollectionCardProps = {
 
 const CuratedCollectionCard = ({ collection }: CuratedCollectionCardProps) => {
   return (
-    <Link href="#" className="group relative block overflow-hidden rounded-lg">
+    <Link href="/collections" className="group relative block overflow-hidden rounded-lg">
       <div className="aspect-[3/4] relative">
         <Image
           src={collection.image}

@@ -122,6 +122,7 @@ The action buttons displayed on the notification detail page change based on the
   - **Bulk Import**: Allow hosts to add multiple points of interest at once by entering a list of addresses or Google Place IDs.
   - **API Quota Management**: Implement strategies (like caching or deferred requests) to manage and minimize calls to the Google Places API to stay within usage limits.
 - **Property Type Management**: A dedicated settings page for Super Admins to manage the available "Property Types" (e.g., Hotel, Hostel, Villa). This would allow adding new types, editing existing ones, or removing them from the system. It should also support importing a list of types from a CSV file.
+- **Rebuild of Points of Interest page**: The "Places & Points of Interest" feature is being rebuilt to provide a more stable and user-friendly experience for managing listing locations.
 
 ### Known Issues
 

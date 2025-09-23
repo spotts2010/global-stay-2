@@ -143,9 +143,9 @@ function AboutPageClient({ listing }: { listing: Accommodation }) {
     form.setValue('lng', newPosition.lng, { shouldDirty: true });
   };
 
-  const handleMarkerDragEnd = (e: MapMouseEvent) => {
-    const lat = e.detail.latLng?.lat;
-    const lng = e.detail.latLng?.lng;
+  const handleMarkerDragEnd = (e: google.maps.MapMouseEvent) => {
+    const lat = e.latLng?.lat();
+    const lng = e.latLng?.lng();
     if (lat === undefined || lng === undefined) return;
     const newPos = { lat, lng };
     setMarkerPosition(newPos);
