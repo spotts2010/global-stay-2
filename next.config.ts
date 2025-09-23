@@ -39,6 +39,26 @@ const nextConfig: NextConfig = {
   devIndicators: {
     allowedDevOrigins: ['*.cloudworkstations.dev'],
   },
+  webpack(config) {
+    // Find the existing rule that handles SVGs
+    const fileLoaderRule = config.module.rules.find((rule) =>
+      rule.test?.test?.('.svg')
+    );
+
+    // Exclude SVGs from the default file loader
+    if (fileLoaderRule) {
+      fileLoaderRule.exclude = /\.svg$/i;
+    }
+
+    // Add @svgr/webpack for SVGs
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      use: ['@svgr/webpack'],
+    });
+
+    return config;
+  },
 };
 
 export default nextConfig;

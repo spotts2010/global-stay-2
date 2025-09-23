@@ -2,14 +2,17 @@ export type Amenity = 'wifi' | 'pool' | 'gym' | 'parking' | 'kitchen';
 export type Currency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
 export type PoiCategory =
-  | 'Attraction'
-  | 'Transport'
-  | 'Shopping'
   | 'Dining'
-  | 'Beach & Nature'
-  | 'Business & Events'
-  | 'Healthcare'
-  | 'Default';
+  | 'Food & Drink'
+  | 'Nature & Outdoors'
+  | 'Attractions & Entertainment'
+  | 'Medical & Emergency'
+  | 'Shopping & Retail'
+  | 'Transport'
+  | 'Activities & Tours'
+  | 'Business & Services'
+  | 'Beauty & Wellbeing'
+  | 'Unassigned';
 
 export type PoiSource = 'Host' | 'API';
 

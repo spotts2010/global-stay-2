@@ -20,26 +20,26 @@ const heroImagesData = {
   id: 'homePage',
   heroImages: [
     {
-      url: '/uploads/1726966144837-tropical-bungalow.jpg',
-      alt: 'A tropical bungalow over clear water',
-      hint: 'tropical resort',
+      "url": "/uploads/1726966144837-tropical-bungalow.jpg",
+      "alt": "A tropical bungalow over clear water",
+      "hint": "tropical resort"
     },
     {
-      url: '/uploads/1726966157077-hotel-pool.jpg',
-      alt: 'A beautiful hotel pool with sun loungers at dusk',
-      hint: 'hotel pool evening',
+      "url": "/uploads/1726966157077-hotel-pool.jpg",
+      "alt": "A beautiful hotel pool with sun loungers at dusk",
+      "hint": "hotel pool evening"
     },
     {
-      url: '/uploads/1726966166016-luxury-hotel-room.jpg',
-      alt: 'A luxurious hotel room with a made-up bed and stylish decor',
-      hint: 'luxury hotel room',
+      "url": "/uploads/1726966166016-luxury-hotel-room.jpg",
+      "alt": "A luxurious hotel room with a made-up bed and stylish decor",
+      "hint": "luxury hotel room"
     },
     {
-      url: '/uploads/1726966173820-luxury-hotel-exterior.jpg',
-      alt: 'Exterior of a grand, luxurious hotel with a swimming pool',
-      hint: 'luxury hotel exterior',
-    },
-  ],
+      "url": "/uploads/1726966173820-luxury-hotel-exterior.jpg",
+      "alt": "Exterior of a grand, luxurious hotel with a swimming pool",
+      "hint": "luxury hotel exterior"
+    }
+  ]
 };
 
 // --- Mock Accommodations Data ---

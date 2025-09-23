@@ -25,6 +25,7 @@ This is a Next.js project for "Global Stay 2.0", an accommodation booking platfo
 - **Bookings Management**: A placeholder page for users to view their upcoming and past stays.
 - **Functional "About Property" Form**: The form for editing the core details of a listing (name, type, location, etc.) is now fully functional and saves data directly to the Firestore database.
 - **Functional Photo Gallery Management**: The "Photo Gallery" section within "Edit Listing" now allows for uploading, reordering (via drag-and-drop), and deleting images, with changes saved to the Firestore database.
+- **Intelligent POI Categorization**: When adding a new Point of Interest (POI) via Google Places search, the system automatically assigns a logical category (e.g., 'Dining', 'Transport') based on the type of place selected. This provides a smarter default than just 'Unassigned', which the host can still override.
 
 ## Notification System Logic
 
@@ -117,7 +118,7 @@ The action buttons displayed on the notification detail page change based on the
 - **Contact Host**: Consider a "Contact" button on booking cards. This would initiate an internally managed communication thread between the guest and the property host, possibly integrated within the notification system or a new dedicated messaging page.
 - **Dynamic Language/Currency Selector**: The Language/Currency indicator in the main header is an actionable item. When clicked, it opens a modal allowing users to temporarily change their language and currency for the current browsing session. This modal will also provide a choice to make the change permanent by updating their default profile settings.
 - **Points of Interest Enhancements**:
-  - **Customer-Facing Map View**: On the front-end accommodation detail page, implement an interactive map that displays markers for all saved points of interest. These could be color-coded by category, with a different marker for the property's location. This allows guests to visually understand the proximity of attractions.
+  - **Customer-Facing Map View**: On the front-end accommodation detail page, implement an interactive map that displays markers for all saved points of interest. These could be color-coded by category, with a different marker for the property's location. This allows guests to visually understand the proximity of attractions. A "View Map" option could trigger this.
   - **Map Directions**: Clicking on a point of interest marker on the map should generate a Google Maps Directions URL, showing the route from the property to that point of interest.
   - **Bulk Import**: Allow hosts to add multiple points of interest at once by entering a list of addresses or Google Place IDs.
   - **API Quota Management**: Implement strategies (like caching or deferred requests) to manage and minimize calls to the Google Places API to stay within usage limits.
@@ -130,6 +131,8 @@ The action buttons displayed on the notification detail page change based on the
 
 ### Resolved Issues
 
+- **`use()` Hook in Client Component** (Resolved: 26/09/2024): The `/admin/listings/[id]/edit/pois` page was incorrectly using the React `use()` hook within a `useEffect` block, which is not a valid pattern and was causing data fetching to fail intermittently. The `use()` hook was removed, and the component now relies solely on standard `useEffect` for client-side data fetching, ensuring that the POIs load correctly and consistently.
+- **Incorrect POI Category Mapping** (Resolved: 26/09/2024): Natural features like beaches were being incorrectly assigned the 'Default' category. This was because the `natural_feature` place type from Google was missing from the category mapping function. The mapping has been updated to correctly assign these places to the 'Nature & Outdoors' category.
 - **Map Interaction Issues** (Resolved: 26/09/2024): The interactive maps on both the accommodation detail page and the admin "Edit Listing" page were not allowing users to pan or zoom. This was caused by the map components being initialized without a valid `mapId`. The issue was resolved by adding `mapId="DEMO_MAP_ID"` to the `<Map>` components, which is a requirement for using Advanced Markers and enables full interactivity.
 - **404 Errors on Hard Refresh** (Resolved: 22/09/2024): The `/account/my-stays/upcoming` and `/account/my-stays/past` pages were consistently producing a 404 error on a hard refresh. This was resolved by fixing an issue in the routing and layout structure.
 - **`useSearchParams()` Error** (Resolved: 22/09/2024): The build failed with a `useSearchParams() should be wrapped in a suspense boundary` error on the `/admin/listings` page. This was resolved by wrapping the `ListingsClient` component (which uses the hook) in a `<Suspense>` boundary on the server component page.

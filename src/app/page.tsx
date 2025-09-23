@@ -1,3 +1,4 @@
+
 // src/app/page.tsx
 
 import { fetchAccommodations, fetchSiteSettings } from '@/lib/firestore.server';
@@ -22,6 +23,7 @@ export default async function Home() {
   // Create a serializable version of the properties to pass to the client
   const serializableAccommodations = accommodations.map((p) => ({
     ...p,
+    // Convert Firestore Timestamp to ISO string to make it serializable
     lastModified: isTimestamp(p.lastModified)
       ? p.lastModified.toDate().toISOString()
       : new Date().toISOString(), // Fallback to current date if invalid

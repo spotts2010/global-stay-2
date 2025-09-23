@@ -1,109 +1,31 @@
-'use client';
-
-import { Star, MapPin, Award, Loader2 } from 'lucide-react';
-import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import PhotoGallery from '@/components/PhotoGallery';
-import ReviewCard from '@/components/ReviewCard';
-import { Separator } from '@/components/ui/separator';
-import { fetchAccommodationById } from '@/lib/firestore';
+// src/app/accommodation/[id]/page.tsx
+import 'server-only';
+import { fetchAccommodationById, fetchPointsOfInterest } from '@/lib/firestore.server';
+import AccommodationDetailClient from '@/components/AccommodationDetailClient';
 import type { Accommodation } from '@/lib/data';
-import Link from 'next/link';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { useEffect, useState, use } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useUserPreferences } from '@/context/UserPreferencesContext';
-import { convertCurrency, formatCurrency } from '@/lib/currency';
 
-const FeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <circle cx="12" cy="12" r="10" fill="#2682CE" stroke="#2682CE" strokeWidth="1.5" />
-    <path
-      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c1.1 0 2 .9 2 2s-.9 2-2 2H8"
-      stroke="#fff"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-    <path
-      d="M12 18V6"
-      stroke="#fff"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-  </svg>
-);
+// Helper to check if a value is a Firestore-like Timestamp and convert it
+function isTimestamp(value: unknown): value is { toDate: () => Date } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { toDate: () => Date }).toDate === 'function'
+  );
+}
 
-const StarRating = ({ rating }: { rating: number }) => (
-  <div className="flex items-center gap-0.5">
-    {[...Array(5)].map((_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${
-          i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'
-        }`}
-      />
-    ))}
-  </div>
-);
+// This is now a SERVER component responsible for data fetching
+export default async function AccommodationDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
 
-export default function AccommodationDetailPage({ params }: { params: { id: string } }) {
-  const id = use(params);
-  const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const searchParams = useSearchParams();
-  const { preferences } = useUserPreferences();
-
-  useEffect(() => {
-    const getAccommodation = async () => {
-      setLoading(true);
-      setError(false);
-      try {
-        const data = await fetchAccommodationById(id.id);
-        setAccommodation(data);
-      } catch (e) {
-        console.error(`Failed to fetch accommodation for id ${id.id}:`, e);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-    getAccommodation();
-  }, [id.id]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
+  if (!id) {
+    return <div>Error: Accommodation ID is missing.</div>;
   }
 
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 md:px-6 py-12 text-center pb-16">
-        <h1 className="font-headline text-2xl font-bold text-destructive">An Error Occurred</h1>
-        <p className="text-muted-foreground mt-2">
-          We couldn&apos;t load the accommodation details. Please try again later.
-        </p>
-      </div>
-    );
-  }
+  // Fetch all data on the server first
+  const accommodationData = await fetchAccommodationById(id);
+  const poiData = await fetchPointsOfInterest(id);
 
-  if (!accommodation) {
+  if (!accommodationData) {
     return (
       <div className="container mx-auto px-4 md:px-6 py-12 text-center pb-16">
         <h1 className="font-headline text-2xl font-bold">Accommodation not found</h1>
@@ -114,173 +36,18 @@ export default function AccommodationDetailPage({ params }: { params: { id: stri
     );
   }
 
-  // TODO: Replace with dynamic reviews from Firestore
-  const reviews = [
-    {
-      id: 'r1',
-      author: 'Jane Doe',
-      rating: 5,
-      comment:
-        "Absolutely stunning villa with breathtaking views. The pool was amazing and the host was very accommodating. Can't wait to come back!",
-    },
-    {
-      id: 'r2',
-      author: 'John Smith',
-      rating: 4,
-      comment:
-        'Great location and very clean. The apartment had everything we needed for a comfortable stay in the city.',
-    },
-  ];
-
-  const cleanSearchParams: Record<string, string> = {};
-  for (const [key, value] of searchParams.entries()) {
-    if (value) {
-      cleanSearchParams[key] = value;
-    }
-  }
-
-  const resultsLink = `/results?${new URLSearchParams(cleanSearchParams).toString()}`;
-
-  const convertedPrice = convertCurrency(
-    accommodation.price,
-    accommodation.currency,
-    preferences.currency
-  );
-
-  const position = { lat: accommodation.lat, lng: accommodation.lng };
+  // Ensure all data passed to the client component is serializable
+  const serializableAccommodation = {
+    ...accommodationData,
+    lastModified: isTimestamp(accommodationData.lastModified)
+      ? accommodationData.lastModified.toDate().toISOString()
+      : new Date().toISOString(),
+  } as Accommodation;
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-6 pb-16">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/">Home</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href={resultsLink}>Show Results</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{accommodation.name}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-      <PhotoGallery
-        images={accommodation.images.length > 0 ? accommodation.images : [accommodation.image]}
-        imageHints={[accommodation.imageHint, 'living room', 'bedroom', 'bathroom', 'exterior']}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12 mt-8">
-        <div className="lg:col-span-2">
-          {/* Header Section */}
-          <div className="pb-4 border-b">
-            <h1 className="font-headline text-4xl md:text-5xl font-bold">{accommodation.name}</h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                <span>{accommodation.location}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4" />
-                <span>
-                  {accommodation.rating} ({accommodation.reviewsCount} reviews)
-                </span>
-              </div>
-              {accommodation.starRating && accommodation.starRating > 0 && (
-                <div className="flex items-center gap-1">
-                  <StarRating rating={accommodation.starRating} />
-                </div>
-              )}
-              <div className="flex items-center gap-1">
-                <Award className="h-4 w-4" />
-                <span>{accommodation.type}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Description Section */}
-          {accommodation.description && (
-            <>
-              <div className="pt-6">
-                <p className="text-muted-foreground whitespace-pre-line">
-                  {accommodation.description}
-                </p>
-              </div>
-              <Separator className="my-6" />
-            </>
-          )}
-
-          {/* Amenities Section */}
-          <div>
-            <div className="flex items-baseline justify-between">
-              <h2 className="font-headline text-2xl font-bold mb-4">Amenities</h2>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <FeeIcon className="h-4 w-4" />
-                <span>Additional fees may apply</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {accommodation.amenities.map((amenity) => (
-                <div key={amenity} className="flex items-center gap-3">
-                  <span className="capitalize">{amenity}</span>
-                  {accommodation.chargeableAmenities?.includes(amenity) && (
-                    <FeeIcon className="h-5 w-5" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator className="my-6" />
-
-          {/* Location & Map Section */}
-          <div>
-            <h2 className="font-headline text-2xl font-bold mb-4">Location</h2>
-            <div className="aspect-video rounded-lg overflow-hidden border">
-              <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
-                <Map mapId="DEMO_MAP_ID" defaultCenter={position} defaultZoom={15}>
-                  <AdvancedMarker position={position} />
-                </Map>
-              </APIProvider>
-            </div>
-            <p className="text-muted-foreground mt-2">{accommodation.location}</p>
-          </div>
-
-          <Separator className="my-6" />
-
-          {/* Reviews Section */}
-          <div>
-            <h2 className="font-headline text-2xl font-bold mb-4">Reviews</h2>
-            <div className="space-y-6">
-              {reviews.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Booking Card Section */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-24 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-3xl font-bold text-primary">
-                  {formatCurrency(convertedPrice, preferences.currency)}
-                </span>
-                <span className="text-muted-foreground">/ night</span>
-              </div>
-              <Button className="w-full text-lg" size="lg">
-                Book Now
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+    <AccommodationDetailClient
+      accommodation={serializableAccommodation}
+      pointsOfInterest={poiData}
+    />
   );
 }

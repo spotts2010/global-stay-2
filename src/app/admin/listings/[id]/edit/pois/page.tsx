@@ -1,84 +1,61 @@
-'use client';
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// src/app/admin/listings/[id]/edit/pois/page.tsx
+import 'server-only';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Loader2, Map } from 'lucide-react';
-import React, { useState, useEffect, use } from 'react';
-import type { Accommodation } from '@/lib/data';
-import { fetchAccommodationById } from '@/lib/firestore';
+import type { Accommodation, Place } from '@/lib/data';
+import { fetchAccommodationById, fetchPointsOfInterest } from '@/lib/firestore.server';
+import PointsOfInterest from '@/components/PointsOfInterest';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
-function PoisPageClient({ listing }: { listing: Accommodation }) {
+// Helper to check if a value is a Firestore-like Timestamp
+function isTimestamp(value: unknown): value is { toDate: () => Date } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { toDate: () => Date }).toDate === 'function'
+  );
+}
+
+export default async function PoisPage({ params }: { params: { id: string } }) {
+  const listingData = await fetchAccommodationById(params.id);
+  const initialPlaces: Place[] = await fetchPointsOfInterest(params.id);
+
+  if (!listingData) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Listing not found.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Create a serializable version of the listing object
+  const serializableListing = {
+    ...listingData,
+    lastModified: isTimestamp(listingData.lastModified)
+      ? listingData.lastModified.toDate().toISOString()
+      : new Date().toISOString(), // Fallback
+  };
+
   return (
     <div className="space-y-6">
       <Breadcrumbs
         items={[
           { label: 'Listings', href: '/admin/listings' },
-          { label: listing.name, href: `/admin/listings/${listing.id}/edit/about` },
+          {
+            label: serializableListing.name,
+            href: `/admin/listings/${serializableListing.id}/edit/about`,
+          },
           { label: 'Points of Interest' },
         ]}
       />
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Map className="h-5 w-5 text-primary" />
-            Places & Points of Interest
-          </CardTitle>
-          <CardDescription>
-            Add nearby attractions, restaurants, and transport links to help guests explore the
-            area.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center text-muted-foreground py-20 border-2 border-dashed rounded-lg">
-            <p>This feature is currently being rebuilt. Please check back soon.</p>
-          </div>
-        </CardContent>
-      </Card>
+      <PointsOfInterest
+        listing={serializableListing as Accommodation}
+        initialPlaces={initialPlaces}
+      />
     </div>
   );
-}
-
-export default function PoisPage({ params }: { params: { id: string } }) {
-  const resolvedParams = use(params);
-  const [listing, setListing] = useState<Accommodation | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const listingData = await fetchAccommodationById(resolvedParams.id);
-        if (listingData) {
-          setListing(listingData);
-        } else {
-          setError('Listing not found.');
-        }
-      } catch (err) {
-        setError('Failed to load data.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, [resolvedParams.id]);
-
-  if (loading) {
-    return (
-      <div className="flex h-full min-h-[50vh] w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (error || !listing) {
-    return (
-      <div className="text-center text-destructive">
-        <h1 className="font-bold text-2xl">Error</h1>
-        <p>{error}</p>
-      </div>
-    );
-  }
-  return <PoisPageClient listing={listing} />;
 }

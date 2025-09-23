@@ -20,8 +20,6 @@ const quicksand = Quicksand({
   variable: '--font-quicksand',
 });
 
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +29,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${quicksand.variable}`}>
       <head>
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geocoding&v=beta`}
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places,marker&loading=async`}
           strategy="beforeInteractive"
         />
       </head>

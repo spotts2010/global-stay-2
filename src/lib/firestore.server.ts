@@ -2,7 +2,7 @@
 import 'server-only'; // Ensures this file is never included in a client bundle
 
 import { getAdminDb } from './firebaseAdmin';
-import type { Accommodation, BedType } from './data';
+import type { Accommodation, BedType, Place } from './data';
 
 // Server-side function using Admin SDK (bypasses security rules)
 export async function fetchAccommodations(): Promise<Accommodation[]> {
@@ -18,6 +18,39 @@ export async function fetchAccommodations(): Promise<Accommodation[]> {
   } catch (error) {
     console.error('Error fetching accommodations with Admin SDK:', error);
     return []; // Return empty array on server-side errors
+  }
+}
+
+export async function fetchAccommodationById(id: string): Promise<Accommodation | null> {
+  if (!id) return null;
+  try {
+    const adminDb = getAdminDb();
+    const docRef = adminDb.collection('accommodations').doc(id);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) {
+      return null;
+    }
+    return { id: docSnap.id, ...docSnap.data() } as Accommodation;
+  } catch (error) {
+    console.error(`Error fetching accommodation by id ${id} with Admin SDK:`, error);
+    return null;
+  }
+}
+
+export async function fetchPointsOfInterest(accommodationId: string): Promise<Place[]> {
+  if (!accommodationId) return [];
+  try {
+    const adminDb = getAdminDb();
+    const poiSnapshot = await adminDb
+      .collection(`accommodations/${accommodationId}/pointsOfInterest`)
+      .get();
+    if (poiSnapshot.empty) {
+      return [];
+    }
+    return poiSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Place);
+  } catch (error) {
+    console.error(`Error fetching POIs for accommodation ${accommodationId} with Admin SDK:`, error);
+    return [];
   }
 }
 

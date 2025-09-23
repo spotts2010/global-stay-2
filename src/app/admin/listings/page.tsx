@@ -1,3 +1,4 @@
+
 // src/app/admin/listings/page.tsx
 import { Suspense } from 'react';
 import { fetchAccommodations } from '@/lib/firestore.server';
@@ -17,6 +18,7 @@ function isTimestamp(value: unknown): value is { toDate: () => Date } {
 export default async function AdminListingsPage() {
   const properties: Accommodation[] = await fetchAccommodations();
 
+  // Convert Firestore Timestamps to serializable ISO strings before passing to client.
   const serializableProperties = properties.map((p) => ({
     ...p,
     lastModified: isTimestamp(p.lastModified)

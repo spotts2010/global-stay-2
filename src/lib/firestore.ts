@@ -7,24 +7,10 @@ import {
   getDoc as getDocClient,
 } from 'firebase/firestore';
 import { db } from './firebase-config'; // CLIENT SDK for client-side actions
-import type { Accommodation, EnrichedBooking, Booking } from './data';
-import type { Place } from '@/components/PointsOfInterest';
+import type { Accommodation, EnrichedBooking, Booking, Place } from './data';
 import { isBefore } from 'date-fns';
 
 // This file should now ONLY contain client-side or shared Firestore logic.
-
-export async function fetchAccommodations(): Promise<Accommodation[]> {
-  try {
-    const querySnapshot = await getDocsClient(collection(db, 'accommodations'));
-    if (querySnapshot.empty) {
-      return [];
-    }
-    return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Accommodation);
-  } catch (error) {
-    console.error('Error fetching accommodations:', error);
-    return [];
-  }
-}
 
 // Client-side function remains for components that need it
 export async function fetchAccommodationById(id: string): Promise<Accommodation | null> {
@@ -125,4 +111,19 @@ export async function fetchPastBookings(userId: string): Promise<EnrichedBooking
   );
 
   return enrichedBookings;
+}
+
+// Client-side function to get site settings
+export async function fetchSiteSettings() {
+  try {
+    const docRef = doc(db, 'siteSettings', 'homePage');
+    const docSnap = await getDocClient(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data();
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching site settings:', error);
+    return null;
+  }
 }

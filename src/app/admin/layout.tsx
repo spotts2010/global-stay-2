@@ -1,10 +1,9 @@
-// src/app/admin/layout.tsx
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PanelLeft, Package2 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -17,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { menuItems } from '@/components/AdminSidebar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function MobileAdminSheet() {
   const pathname = usePathname();
@@ -98,9 +98,34 @@ function MobileAdminSheet() {
   );
 }
 
+const SidebarSkeleton = ({ isCollapsed }: { isCollapsed: boolean }) => (
+  <aside
+    className={cn(
+      'fixed inset-y-0 left-0 z-10 hidden flex-col border-r bg-background sm:flex',
+      isCollapsed ? 'w-20' : 'w-64'
+    )}
+  >
+    <div className="flex h-16 items-center border-b px-6">
+      <Skeleton className="h-8 w-8 rounded-full" />
+      {!isCollapsed && <Skeleton className="ml-2 h-6 w-24" />}
+    </div>
+    <div className="flex flex-col gap-2 p-4">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+    </div>
+  </aside>
+);
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [hasMounted, setHasMounted] = React.useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // The "Edit Listing" pages have their own layout.
   // This check prevents the main admin layout from wrapping them and causing conflicts.
@@ -113,7 +138,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Otherwise, wrap with the main admin sidebar layout
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <AdminSidebar isCollapsed={isCollapsed} toggleSidebar={() => setIsCollapsed(!isCollapsed)} />
+      {hasMounted ? (
+        <AdminSidebar
+          isCollapsed={isCollapsed}
+          toggleSidebar={() => setIsCollapsed(!isCollapsed)}
+        />
+      ) : (
+        <SidebarSkeleton isCollapsed={isCollapsed} />
+      )}
       <div
         className={cn(
           'flex flex-col sm:py-4 transition-all duration-300',

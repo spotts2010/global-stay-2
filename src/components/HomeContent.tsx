@@ -206,7 +206,7 @@ export default function HomeContent({ initialAccommodations, heroImages }: HomeC
             </div>
             <p className="text-muted-foreground">
               Our AI can help you find the perfect stay based on your unique tastes. Tell us what
-              you&apos;re looking for, and we&apos;ll do the rest.
+              you&apos;re looking for, and we&aposll do the rest.
             </p>
             <AIRecommendations />
           </div>
