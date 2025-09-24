@@ -38,13 +38,15 @@ export const menuItems = [
       { label: 'Photo Gallery', href: '/edit/photos', icon: ImageIcon },
       { label: 'Shared Amenities', href: '/edit/amenities', icon: ListChecks },
       { label: 'Points of Interest', href: '/edit/pois', icon: Map },
-      { label: 'Policies & Terms', href: '/edit/policies', icon: ShieldQuestion },
     ],
   },
   {
     label: 'Unit Setup',
     icon: BedDouble,
-    children: [{ label: 'Room Configuration', href: '/edit/rooms', icon: Bed }],
+    children: [
+      { label: 'Room Configuration', href: '/edit/rooms', icon: Bed },
+      { label: 'Policies & Terms', href: '/edit/policies', icon: ShieldQuestion },
+    ],
   },
   { label: 'User Access', href: '/edit/users', icon: Users },
   { label: 'Publish Schedule', href: '/edit/schedule', icon: Calendar },
