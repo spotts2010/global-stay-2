@@ -1,6 +1,7 @@
-'use client';
-
-import { collections, type Collection } from '@/lib/data';
+// src/app/collections/page.tsx
+import 'server-only';
+import { fetchCollections } from '@/lib/firestore.server';
+import type { Collection } from '@/lib/data';
 import CuratedCollectionCard from '@/components/CuratedCollectionCard';
 import {
   Breadcrumb,
@@ -11,8 +12,12 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
-export default function CollectionsPage() {
+export default async function CollectionsPage() {
+  const collections: Collection[] = await fetchCollections();
+
   return (
     <div className="container mx-auto px-4 md:px-6 py-8 pb-16">
       <Breadcrumb className="mb-6">
@@ -36,11 +41,22 @@ export default function CollectionsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {collections.map((collection: Collection) => (
-          <CuratedCollectionCard key={collection.id} collection={collection} />
-        ))}
-      </div>
+      {collections.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {collections.map((collection: Collection) => (
+            <CuratedCollectionCard key={collection.id} collection={collection} />
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading Collections...</CardTitle>
+          </CardHeader>
+          <CardContent className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

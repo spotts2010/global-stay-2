@@ -24,6 +24,8 @@ type AccommodationCardProps = {
   searchParams?: { [key: string]: string | string[] | undefined };
 };
 
+const PLACEHOLDER_IMAGE = 'https://picsum.photos/seed/1/600/400';
+
 const AccommodationCard = ({ accommodation, searchParams }: AccommodationCardProps) => {
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const { preferences } = useUserPreferences();
@@ -61,7 +63,7 @@ const AccommodationCard = ({ accommodation, searchParams }: AccommodationCardPro
         >
           <div className="relative aspect-video">
             <Image
-              src={accommodation.image}
+              src={accommodation.image || PLACEHOLDER_IMAGE}
               alt={accommodation.name}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"

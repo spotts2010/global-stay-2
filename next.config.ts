@@ -2,6 +2,16 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  experimental: {
+    // This is required for the development environment to work correctly.
+    allowedDevOrigins: [
+      'https://6000-firebase-studio-1753950960099.cluster-m7dwy2bmizezqukxkuxd55k5ka.cloudworkstations.dev',
+    ],
+  },
+  // Suppresses the warning about multiple lockfiles, which can cause instability.
+  turbopack: {
+    root: process.cwd(),
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -35,29 +45,6 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
-  },
-  devIndicators: {
-    allowedDevOrigins: ['*.cloudworkstations.dev'],
-  },
-  webpack(config) {
-    // Find the existing rule that handles SVGs
-    const fileLoaderRule = config.module.rules.find((rule) =>
-      rule.test?.test?.('.svg')
-    );
-
-    // Exclude SVGs from the default file loader
-    if (fileLoaderRule) {
-      fileLoaderRule.exclude = /\.svg$/i;
-    }
-
-    // Add @svgr/webpack for SVGs
-    config.module.rules.push({
-      test: /\.svg$/i,
-      issuer: /\.[jt]sx?$/,
-      use: ['@svgr/webpack'],
-    });
-
-    return config;
   },
 };
 

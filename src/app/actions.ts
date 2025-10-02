@@ -37,7 +37,7 @@ export async function updateAccommodationAction(
   const accommodationRef = db.collection('accommodations').doc(id);
 
   try {
-    await accommodationRef.update(accommodationData);
+    await accommodationRef.update({ ...accommodationData, lastModified: new Date() });
     revalidatePath(`/admin/listings/${id}/edit/about`);
     revalidatePath(`/admin/listings`);
     revalidatePath(`/accommodation/${id}`);
@@ -122,16 +122,21 @@ export async function updateAccommodationStatusAction(
 export async function addBedTypeAction(bedType: {
   name: string;
   systemId: string;
+  sleeps: number | null;
 }): Promise<{ success: boolean; id?: string; error?: string }> {
   const db = getAdminDb();
   try {
-    // Check for duplicates
-    const querySnapshot = await db
+    // Check for duplicates by name or systemId
+    const nameQuery = await db.collection('bedTypes').where('name', '==', bedType.name).get();
+    if (!nameQuery.empty) {
+      return { success: false, error: 'A bed type with this name already exists.' };
+    }
+    const systemIdQuery = await db
       .collection('bedTypes')
       .where('systemId', '==', bedType.systemId)
       .get();
-    if (!querySnapshot.empty) {
-      return { success: false, error: 'A bed type with this name or system ID already exists.' };
+    if (!systemIdQuery.empty) {
+      return { success: false, error: 'A bed type with this system ID already exists.' };
     }
 
     const docRef = await db.collection('bedTypes').add(bedType);
@@ -175,4 +180,51 @@ export async function updateHeroImagesAction(
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update hero images: ${errorMessage}` };
   }
+}
+
+// --- Amenity & Inclusion Actions ---
+type Item = {
+  id: string;
+  label: string;
+  systemTag: string;
+  category: string;
+};
+
+async function updateMasterList(
+  collectionName: 'sharedAmenities' | 'privateInclusions',
+  items: Item[]
+): Promise<{ success: boolean; error?: string }> {
+  const db = getAdminDb();
+  const collectionRef = db.collection(collectionName);
+
+  try {
+    const batch = db.batch();
+    const snapshot = await collectionRef.get();
+    snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+    items.forEach((item) => {
+      const docRef = collectionRef.doc(item.systemTag); // Use systemTag as ID
+      batch.set(docRef, {
+        label: item.label,
+        category: item.category,
+      });
+    });
+    await batch.commit();
+    revalidatePath('/admin/amenities');
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update ${collectionName}: ${errorMessage}` };
+  }
+}
+
+export async function updateSharedAmenitiesAction(
+  items: Item[]
+): Promise<{ success: boolean; error?: string }> {
+  return updateMasterList('sharedAmenities', items);
+}
+
+export async function updatePrivateInclusionsAction(
+  items: Item[]
+): Promise<{ success: boolean; error?: string }> {
+  return updateMasterList('privateInclusions', items);
 }

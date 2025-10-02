@@ -47,7 +47,7 @@ const initialCategories: PoiCategory[] = [
   'Attractions & Entertainment',
   'Medical & Emergency',
   'Shopping & Retail',
-  'Transport',
+  'Transport & Fuel',
   'Activities & Tours',
   'Business & Services',
   'Beauty & Wellbeing',
@@ -103,7 +103,7 @@ const categoryMappings: Record<string, string[]> = {
     'home_goods_store',
     'store',
   ],
-  Transport: [
+  'Transport & Fuel': [
     'train_station',
     'subway_station',
     'light_rail_station',

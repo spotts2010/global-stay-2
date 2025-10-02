@@ -6,13 +6,13 @@ import { collections as curatedCollectionsData } from './data';
 import type { Amenity, Currency, BedType } from './data';
 
 // --- Bed Types Data ---
-const bedTypesData: BedType[] = [
-  { id: 'single', name: 'Single', systemId: 'single' },
-  { id: 'double', name: 'Double', systemId: 'double' },
-  { id: 'queen', name: 'Queen', systemId: 'queen' },
-  { id: 'king', name: 'King', systemId: 'king' },
-  { id: 'bunk', name: 'Bunk Bed', systemId: 'bunk' },
-  { id: 'sofa', name: 'Sofa Bed', systemId: 'sofa' },
+const bedTypesData: Omit<BedType, 'id'>[] = [
+  { name: 'Single', systemId: 'single', sleeps: 1 },
+  { name: 'Double', systemId: 'double', sleeps: 2 },
+  { name: 'Queen', systemId: 'queen', sleeps: 2 },
+  { name: 'King', systemId: 'king', sleeps: 2 },
+  { name: 'Bunk Bed', systemId: 'bunk', sleeps: 2 },
+  { name: 'Sofa Bed', systemId: 'sofa', sleeps: 1 },
 ];
 
 // --- Site Settings: Hero Images ---
@@ -20,26 +20,26 @@ const heroImagesData = {
   id: 'homePage',
   heroImages: [
     {
-      "url": "/uploads/1726966144837-tropical-bungalow.jpg",
-      "alt": "A tropical bungalow over clear water",
-      "hint": "tropical resort"
+      url: 'https://images.unsplash.com/photo-1460627390041-532a28402358',
+      alt: 'A tropical bungalow over clear water',
+      hint: 'tropical resort',
     },
     {
-      "url": "/uploads/1726966157077-hotel-pool.jpg",
-      "alt": "A beautiful hotel pool with sun loungers at dusk",
-      "hint": "hotel pool evening"
+      url: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9',
+      alt: 'A beautiful hotel pool with sun loungers at dusk',
+      hint: 'hotel pool evening',
     },
     {
-      "url": "/uploads/1726966166016-luxury-hotel-room.jpg",
-      "alt": "A luxurious hotel room with a made-up bed and stylish decor",
-      "hint": "luxury hotel room"
+      url: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4',
+      alt: 'A luxurious hotel room with a made-up bed and stylish decor',
+      hint: 'luxury hotel room',
     },
     {
-      "url": "/uploads/1726966173820-luxury-hotel-exterior.jpg",
-      "alt": "Exterior of a grand, luxurious hotel with a swimming pool",
-      "hint": "luxury hotel exterior"
-    }
-  ]
+      url: 'https://images.unsplash.com/photo-1542314831-068cd1dbb563',
+      alt: 'Exterior of a grand, luxurious hotel with a swimming pool',
+      hint: 'luxury hotel exterior',
+    },
+  ],
 };
 
 // --- Mock Accommodations Data ---
@@ -72,12 +72,8 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.9,
     reviewsCount: 120,
-    image: '/uploads/1726967006847-malibu-villa.jpg',
-    images: [
-      '/uploads/1726967006847-malibu-villa.jpg',
-      '/uploads/1726967015424-malibu-villa-2.jpg',
-      '/uploads/1726967022067-malibu-villa-3.jpg',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool', 'kitchen', 'parking'],
     type: 'Villa',
     bookingType: 'room',
@@ -96,12 +92,8 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.7,
     reviewsCount: 250,
-    image: 'https://picsum.photos/seed/1/800/600',
-    images: [
-      'https://picsum.photos/seed/1/800/600',
-      'https://picsum.photos/seed/2/800/600',
-      'https://picsum.photos/seed/3/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen', 'gym'],
     type: 'Loft',
     bookingType: 'room',
@@ -120,12 +112,8 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 5.0,
     reviewsCount: 1932,
-    image: 'https://picsum.photos/seed/4/800/600',
-    images: [
-      'https://picsum.photos/seed/4/800/600',
-      'https://picsum.photos/seed/5/800/600',
-      'https://picsum.photos/seed/6/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool', 'gym', 'parking'],
     type: 'Hotel',
     bookingType: 'room',
@@ -144,12 +132,8 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.8,
     reviewsCount: 85,
-    image: '/uploads/1726967086884-aspen-cabin.jpg',
-    images: [
-      '/uploads/1726967086884-aspen-cabin.jpg',
-      'https://picsum.photos/seed/7/800/600',
-      'https://picsum.photos/seed/8/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen', 'parking'],
     type: 'House',
     bookingType: 'room',
@@ -168,12 +152,8 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.6,
     reviewsCount: 450,
-    image: 'https://picsum.photos/seed/9/800/600',
-    images: [
-      'https://picsum.photos/seed/9/800/600',
-      'https://picsum.photos/seed/10/800/600',
-      'https://picsum.photos/seed/11/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool', 'gym'],
     type: 'Apartment',
     bookingType: 'room',
@@ -192,12 +172,8 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.9,
     reviewsCount: 320,
-    image: '/uploads/1726967201633-bali-treehouse.jpg',
-    images: [
-      '/uploads/1726967201633-bali-treehouse.jpg',
-      'https://picsum.photos/seed/12/800/600',
-      'https://picsum.photos/seed/13/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool'],
     type: 'House',
     bookingType: 'room',
@@ -216,12 +192,8 @@ const accommodationsData: {
     currency: 'GBP',
     rating: 4.8,
     reviewsCount: 180,
-    image: 'https://picsum.photos/seed/14/800/600',
-    images: [
-      'https://picsum.photos/seed/14/800/600',
-      'https://picsum.photos/seed/15/800/600',
-      'https://picsum.photos/seed/16/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen'],
     type: 'House',
     bookingType: 'room',
@@ -240,12 +212,8 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.7,
     reviewsCount: 400,
-    image: '/uploads/1726967261054-paris-rooftop.jpg',
-    images: [
-      '/uploads/1726967261054-paris-rooftop.jpg',
-      'https://picsum.photos/seed/17/800/600',
-      'https://picsum.photos/seed/18/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen'],
     type: 'Apartment',
     bookingType: 'room',
@@ -264,12 +232,8 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.2,
     reviewsCount: 500,
-    image: 'https://picsum.photos/seed/19/800/600',
-    images: [
-      'https://picsum.photos/seed/19/800/600',
-      'https://picsum.photos/seed/20/800/600',
-      'https://picsum.photos/seed/21/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool', 'kitchen'],
     type: 'Hostel',
     bookingType: 'bed',
@@ -288,12 +252,8 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.3,
     reviewsCount: 900,
-    image: 'https://picsum.photos/seed/22/800/600',
-    images: [
-      'https://picsum.photos/seed/22/800/600',
-      'https://picsum.photos/seed/23/800/600',
-      'https://picsum.photos/seed/24/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'gym'],
     type: 'Hotel',
     bookingType: 'bed',
@@ -312,12 +272,8 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.9,
     reviewsCount: 210,
-    image: 'https://picsum.photos/seed/25/800/600',
-    images: [
-      'https://picsum.photos/seed/25/800/600',
-      'https://picsum.photos/seed/26/800/600',
-      'https://picsum.photos/seed/27/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool'],
     type: 'Villa',
     bookingType: 'room',
@@ -336,12 +292,8 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 5,
     reviewsCount: 95,
-    image: 'https://picsum.photos/seed/28/800/600',
-    images: [
-      'https://picsum.photos/seed/28/800/600',
-      'https://picsum.photos/seed/29/800/600',
-      'https://picsum.photos/seed/30/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool', 'kitchen', 'parking'],
     type: 'Villa',
     bookingType: 'room',
@@ -360,12 +312,8 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.9,
     reviewsCount: 300,
-    image: 'https://picsum.photos/seed/31/800/600',
-    images: [
-      'https://picsum.photos/seed/31/800/600',
-      'https://picsum.photos/seed/32/800/600',
-      'https://picsum.photos/seed/33/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool', 'kitchen'],
     type: 'House',
     bookingType: 'room',
@@ -384,12 +332,8 @@ const accommodationsData: {
     currency: 'USD',
     rating: 5,
     reviewsCount: 50,
-    image: '/uploads/1726967341078-penthouse-view.jpg',
-    images: [
-      '/uploads/1726967341078-penthouse-view.jpg',
-      'https://picsum.photos/seed/34/800/600',
-      'https://picsum.photos/seed/35/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool', 'gym', 'parking'],
     type: 'Apartment',
     bookingType: 'room',
@@ -408,12 +352,8 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.6,
     reviewsCount: 150,
-    image: 'https://picsum.photos/seed/36/800/600',
-    images: [
-      'https://picsum.photos/seed/36/800/600',
-      'https://picsum.photos/seed/37/800/600',
-      'https://picsum.photos/seed/38/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen'],
     type: 'Loft',
     bookingType: 'room',
@@ -432,12 +372,8 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.7,
     reviewsCount: 200,
-    image: 'https://picsum.photos/seed/39/800/600',
-    images: [
-      'https://picsum.photos/seed/39/800/600',
-      'https://picsum.photos/seed/40/800/600',
-      'https://picsum.photos/seed/41/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen'],
     type: 'Apartment',
     bookingType: 'room',
@@ -456,12 +392,8 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.9,
     reviewsCount: 500,
-    image: 'https://picsum.photos/seed/42/800/600',
-    images: [
-      'https://picsum.photos/seed/42/800/600',
-      'https://picsum.photos/seed/43/800/600',
-      'https://picsum.photos/seed/44/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool', 'gym', 'parking'],
     type: 'Hotel',
     bookingType: 'room',
@@ -480,12 +412,8 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.9,
     reviewsCount: 250,
-    image: 'https://picsum.photos/seed/45/800/600',
-    images: [
-      'https://picsum.photos/seed/45/800/600',
-      'https://picsum.photos/seed/46/800/600',
-      'https://picsum.photos/seed/47/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi'],
     type: 'House',
     bookingType: 'room',
@@ -504,12 +432,8 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.8,
     reviewsCount: 120,
-    image: 'https://picsum.photos/seed/48/800/600',
-    images: [
-      'https://picsum.photos/seed/48/800/600',
-      'https://picsum.photos/seed/49/800/600',
-      'https://picsum.photos/seed/50/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen', 'parking'],
     type: 'House',
     bookingType: 'room',
@@ -528,12 +452,8 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.7,
     reviewsCount: 300,
-    image: 'https://picsum.photos/seed/51/800/600',
-    images: [
-      'https://picsum.photos/seed/51/800/600',
-      'https://picsum.photos/seed/52/800/600',
-      'https://picsum.photos/seed/53/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen'],
     type: 'Apartment',
     bookingType: 'room',
@@ -552,12 +472,8 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.8,
     reviewsCount: 180,
-    image: 'https://picsum.photos/seed/54/800/600',
-    images: [
-      'https://picsum.photos/seed/54/800/600',
-      'https://picsum.photos/seed/55/800/600',
-      'https://picsum.photos/seed/56/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen'],
     type: 'Loft',
     bookingType: 'room',
@@ -576,12 +492,8 @@ const accommodationsData: {
     currency: 'AUD',
     rating: 4.7,
     reviewsCount: 400,
-    image: 'https://picsum.photos/seed/57/800/600',
-    images: [
-      'https://picsum.photos/seed/57/800/600',
-      'https://picsum.photos/seed/58/800/600',
-      'https://picsum.photos/seed/59/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen', 'parking'],
     type: 'Hotel',
     bookingType: 'hybrid',
@@ -600,12 +512,8 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.9,
     reviewsCount: 350,
-    image: 'https://picsum.photos/seed/60/800/600',
-    images: [
-      'https://picsum.photos/seed/60/800/600',
-      'https://picsum.photos/seed/61/800/600',
-      'https://picsum.photos/seed/62/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen'],
     type: 'Apartment',
     bookingType: 'room',
@@ -624,12 +532,8 @@ const accommodationsData: {
     currency: 'USD',
     rating: 4.9,
     reviewsCount: 200,
-    image: 'https://picsum.photos/seed/63/800/600',
-    images: [
-      'https://picsum.photos/seed/63/800/600',
-      'https://picsum.photos/seed/64/800/600',
-      'https://picsum.photos/seed/65/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'pool', 'kitchen', 'parking'],
     type: 'Villa',
     bookingType: 'room',
@@ -648,12 +552,8 @@ const accommodationsData: {
     currency: 'EUR',
     rating: 4.8,
     reviewsCount: 450,
-    image: 'https://picsum.photos/seed/66/800/600',
-    images: [
-      'https://picsum.photos/seed/66/800/600',
-      'https://picsum.photos/seed/67/800/600',
-      'https://picsum.photos/seed/68/800/600',
-    ],
+    image: '',
+    images: [],
     amenities: ['wifi', 'kitchen'],
     type: 'Apartment',
     bookingType: 'room',
@@ -693,40 +593,56 @@ async function clearCollection(db: FirebaseFirestore.Firestore, collectionName: 
  * Seeds a specific collection in Firestore.
  * @param collectionName - The name of the collection to seed.
  * @param data - An array of objects to add to the collection.
+ * @param destructive - If true, clears the collection before seeding.
  */
-async function seedCollection(collectionName: string, data: { id?: string }[]) {
+async function seedCollection(
+  collectionName: string,
+  data: { id?: string }[],
+  destructive: boolean = false
+) {
   const db = getAdminDb();
+  const collectionRef = db.collection(collectionName);
 
-  // Clear only specified collections, not all.
-  if (['accommodations', 'bedTypes', 'siteSettings'].includes(collectionName)) {
+  if (destructive) {
     await clearCollection(db, collectionName);
   }
 
-  const collectionRef = db.collection(collectionName);
   const batch = db.batch();
   let count = 0;
 
   console.log(`\nSeeding collection: "${collectionName}"...`);
 
   for (const item of data) {
-    const docRef = item.id ? collectionRef.doc(item.id) : collectionRef.doc();
-    batch.set(docRef, item);
+    if (!item.id) {
+      console.warn('Skipping item without ID:', item);
+      continue;
+    }
+    const docRef = collectionRef.doc(item.id);
+    // Use merge: true to avoid overwriting fields you have manually changed (like images)
+    batch.set(docRef, item, { merge: true });
     count++;
   }
 
   await batch.commit();
-  console.log(`✅ Successfully seeded ${count} documents into "${collectionName}".`);
+  console.log(`✅ Successfully seeded/updated ${count} documents in "${collectionName}".`);
 }
 
 /**
  * Main function to run all seeding operations.
  */
 async function seedAll() {
+  const db = getAdminDb();
   try {
-    await seedCollection('accommodations', accommodationsData);
-    await seedCollection('curated_collections', curatedCollectionsData);
-    await seedCollection('bedTypes', bedTypesData);
-    await seedCollection('siteSettings', [heroImagesData]);
+    // Accommodations will be merged, not destroyed. This preserves manually uploaded images.
+    await seedCollection('accommodations', accommodationsData, false);
+
+    // These collections will be completely overwritten for consistency.
+    await seedCollection('collections', curatedCollectionsData, true);
+    await seedCollection('bedTypes', bedTypesData, true);
+    await seedCollection('siteSettings', [heroImagesData], true);
+
+    // Also clear the old collection
+    await clearCollection(db, 'curated_collections');
   } catch (error) {
     console.error('❌ Error seeding Firestore:', error);
     process.exit(1);

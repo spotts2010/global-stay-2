@@ -127,25 +127,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setHasMounted(true);
   }, []);
 
-  // The "Edit Listing" pages have their own layout.
-  // This check prevents the main admin layout from wrapping them and causing conflicts.
-  const isEditListingPage = pathname.includes('/admin/listings/') && pathname.includes('/edit');
+  // Check for the "Edit Listing" section and its sub-pages (e.g., rooms)
+  const isEditListingSection = pathname.includes('/admin/listings/') && pathname.includes('/edit');
 
-  if (isEditListingPage) {
+  if (isEditListingSection) {
     return <>{children}</>;
   }
 
-  // Otherwise, wrap with the main admin sidebar layout
+  // This is the key change: we avoid rendering the interactive sidebar on the server.
+  // We show a skeleton during server render and initial client render, then the
+  // real sidebar once `hasMounted` is true. This prevents hydration mismatch.
+  const SidebarComponent = hasMounted ? (
+    <AdminSidebar isCollapsed={isCollapsed} toggleSidebar={() => setIsCollapsed(!isCollapsed)} />
+  ) : (
+    <SidebarSkeleton isCollapsed={isCollapsed} />
+  );
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      {hasMounted ? (
-        <AdminSidebar
-          isCollapsed={isCollapsed}
-          toggleSidebar={() => setIsCollapsed(!isCollapsed)}
-        />
-      ) : (
-        <SidebarSkeleton isCollapsed={isCollapsed} />
-      )}
+      {SidebarComponent}
       <div
         className={cn(
           'flex flex-col sm:py-4 transition-all duration-300',
@@ -153,7 +153,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         )}
       >
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
-          <MobileAdminSheet />
+          {hasMounted && <MobileAdminSheet />}
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           {children}

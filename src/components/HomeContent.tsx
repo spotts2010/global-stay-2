@@ -69,39 +69,41 @@ export default function HomeContent({ initialAccommodations, heroImages }: HomeC
         aria-labelledby="hero-heading"
       >
         {hasMounted && selectedHeroImage ? (
-          <Image
-            src={selectedHeroImage.url}
-            alt={selectedHeroImage.alt}
-            data-ai-hint={selectedHeroImage.hint}
-            fill
-            sizes="100vw"
-            priority
-            className="z-0 object-cover"
-          />
+          <>
+            <Image
+              src={selectedHeroImage.url || defaultHeroImage.url}
+              alt={selectedHeroImage.alt}
+              data-ai-hint={selectedHeroImage.hint}
+              fill
+              sizes="100vw"
+              priority
+              className="z-0 object-cover"
+              onError={() => setSelectedHeroImage(defaultHeroImage)}
+            />
+            <div className="absolute inset-0 bg-black/50 z-10" />
+            <div className="relative z-20 flex flex-col items-center gap-6 px-4">
+              <h1
+                id="hero-heading"
+                className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight"
+              >
+                Find Your Next Stay
+              </h1>
+              <p className="max-w-2xl text-lg md:text-xl text-primary-foreground/90">
+                Unforgettable properties for your next holiday or business trip. Discover a place
+                you&apos;ll love to stay.
+              </p>
+              <div className="w-full max-w-4xl mt-4 shadow-lg rounded-lg">
+                <Suspense fallback={<div className="h-14 bg-white rounded-lg" />}>
+                  <AccommodationSearchForm />
+                </Suspense>
+              </div>
+            </div>
+          </>
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-muted">
+          <div className="flex h-full w-full items-center justify-center bg-black">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
           </div>
         )}
-
-        <div className="absolute inset-0 bg-black/50 z-10" />
-        <div className="relative z-20 flex flex-col items-center gap-6 px-4">
-          <h1
-            id="hero-heading"
-            className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight"
-          >
-            Find Your Next Stay
-          </h1>
-          <p className="max-w-2xl text-lg md:text-xl text-primary-foreground/90">
-            Unforgettable properties for your next holiday or business trip. Discover a place
-            you&apos;ll love to stay.
-          </p>
-          <div className="w-full max-w-4xl mt-4 shadow-lg rounded-lg">
-            <Suspense fallback={<div className="h-14 bg-white rounded-lg" />}>
-              <AccommodationSearchForm />
-            </Suspense>
-          </div>
-        </div>
       </section>
 
       {/* Curated Collections Section */}

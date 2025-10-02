@@ -2,7 +2,14 @@
 import 'server-only'; // Ensures this file is never included in a client bundle
 
 import { getAdminDb } from './firebaseAdmin';
-import type { Accommodation, BedType, Place } from './data';
+import type { Accommodation, BedType, Place, Collection } from './data';
+
+type AmenityOrInclusion = {
+  id: string;
+  label: string;
+  systemTag: string;
+  category: string;
+};
 
 // Server-side function using Admin SDK (bypasses security rules)
 export async function fetchAccommodations(): Promise<Accommodation[]> {
@@ -49,7 +56,10 @@ export async function fetchPointsOfInterest(accommodationId: string): Promise<Pl
     }
     return poiSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Place);
   } catch (error) {
-    console.error(`Error fetching POIs for accommodation ${accommodationId} with Admin SDK:`, error);
+    console.error(
+      `Error fetching POIs for accommodation ${accommodationId} with Admin SDK:`,
+      error
+    );
     return [];
   }
 }
@@ -62,7 +72,16 @@ export async function fetchBedTypes(): Promise<BedType[]> {
     if (bedTypesSnapshot.empty) {
       return [];
     }
-    return bedTypesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as BedType);
+    const bedTypes = bedTypesSnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.name,
+        systemId: data.systemId,
+        sleeps: data.sleeps || null, // Default to null if not set
+      } as BedType;
+    });
+    return bedTypes;
   } catch (error) {
     console.error('Error fetching bed types with Admin SDK:', error);
     return [];
@@ -82,5 +101,46 @@ export async function fetchSiteSettings() {
   } catch (error) {
     console.error('Error fetching site settings with Admin SDK:', error);
     return null;
+  }
+}
+
+// Server-side functions to fetch amenities and inclusions
+async function fetchMasterList(collectionName: string): Promise<AmenityOrInclusion[]> {
+  try {
+    const adminDb = getAdminDb();
+    const snapshot = await adminDb.collection(collectionName).get();
+    if (snapshot.empty) {
+      return [];
+    }
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      systemTag: doc.id,
+      ...doc.data(),
+    })) as AmenityOrInclusion[];
+  } catch (error) {
+    console.error(`Error fetching ${collectionName} with Admin SDK:`, error);
+    return [];
+  }
+}
+
+export async function fetchSharedAmenities(): Promise<AmenityOrInclusion[]> {
+  return fetchMasterList('sharedAmenities');
+}
+
+export async function fetchPrivateInclusions(): Promise<AmenityOrInclusion[]> {
+  return fetchMasterList('privateInclusions');
+}
+
+export async function fetchCollections(): Promise<Collection[]> {
+  try {
+    const adminDb = getAdminDb();
+    const collectionsSnapshot = await adminDb.collection('collections').get();
+    if (collectionsSnapshot.empty) {
+      return [];
+    }
+    return collectionsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Collection);
+  } catch (error) {
+    console.error('Error fetching collections with Admin SDK:', error);
+    return [];
   }
 }

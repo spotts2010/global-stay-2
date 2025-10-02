@@ -30,6 +30,8 @@ import Link from 'next/link';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { convertCurrency, formatCurrency } from '@/lib/currency';
 
+const PLACEHOLDER_IMAGE = 'https://picsum.photos/seed/1/600/400';
+
 // Card for the Modal view - more spacious
 const BookingSummaryCard = ({ booking }: { booking: EnrichedBooking }) => {
   const { preferences } = useUserPreferences();
@@ -55,7 +57,7 @@ const BookingSummaryCard = ({ booking }: { booking: EnrichedBooking }) => {
           aria-label={`View details for ${booking.accommodation.name}`}
         >
           <Image
-            src={booking.accommodation.image}
+            src={booking.accommodation.image || PLACEHOLDER_IMAGE}
             alt={booking.accommodation.name}
             fill
             sizes="(max-width: 640px) 90vw, 480px"

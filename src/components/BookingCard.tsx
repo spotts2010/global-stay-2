@@ -11,6 +11,8 @@ import { CalendarDays, Eye, Users } from 'lucide-react';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { convertCurrency, formatCurrency } from '@/lib/currency';
 
+const PLACEHOLDER_IMAGE = 'https://picsum.photos/seed/1/600/400';
+
 export const BookingCard = ({ booking }: { booking: EnrichedBooking }) => {
   const { preferences } = useUserPreferences();
   if (!booking.accommodation) return null;
@@ -29,7 +31,7 @@ export const BookingCard = ({ booking }: { booking: EnrichedBooking }) => {
           aria-label={`View details for ${booking.accommodation.name}`}
         >
           <Image
-            src={booking.accommodation.image}
+            src={booking.accommodation.image || PLACEHOLDER_IMAGE}
             alt={booking.accommodation.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

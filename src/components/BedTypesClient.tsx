@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Trash2, PlusCircle, Loader2, Bed } from 'lucide-react';
+import { Trash2, PlusCircle, Loader2, Bed, Users } from 'lucide-react';
 import React, { useState, useTransition } from 'react';
 import type { BedType } from '@/lib/data';
 import { useForm } from 'react-hook-form';
@@ -47,6 +47,7 @@ const bedTypeSchema = z.object({
     .refine((val) => /^[a-zA-Z0-9\s\-/]+$/.test(val), {
       message: 'Name can only contain letters, numbers, spaces, hyphens, and slashes.',
     }),
+  sleeps: z.union([z.coerce.number().int().min(1, 'Value must be 1 or greater.'), z.literal('')]),
 });
 
 type BedTypeFormValues = z.infer<typeof bedTypeSchema>;
@@ -60,7 +61,7 @@ export default function BedTypesClient({ initialBedTypes }: { initialBedTypes: B
 
   const form = useForm<BedTypeFormValues>({
     resolver: zodResolver(bedTypeSchema),
-    defaultValues: { name: '' },
+    defaultValues: { name: '', sleeps: '' },
   });
 
   const createSystemId = (name: string) => {
@@ -70,6 +71,7 @@ export default function BedTypesClient({ initialBedTypes }: { initialBedTypes: B
   const onSubmit = (data: BedTypeFormValues) => {
     const newBedType = {
       name: data.name,
+      sleeps: data.sleeps === '' ? null : data.sleeps,
       systemId: createSystemId(data.name),
     };
 
@@ -80,7 +82,7 @@ export default function BedTypesClient({ initialBedTypes }: { initialBedTypes: B
           [...prev, { ...newBedType, id: result.id! }].sort((a, b) => a.name.localeCompare(b.name))
         );
         toast({ title: 'Bed Type Added', description: `"${data.name}" has been created.` });
-        form.reset();
+        form.reset({ name: '', sleeps: '' });
       } else {
         toast({
           variant: 'destructive',
@@ -131,6 +133,7 @@ export default function BedTypesClient({ initialBedTypes }: { initialBedTypes: B
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>System ID</TableHead>
+                    <TableHead>Sleeps</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -139,6 +142,12 @@ export default function BedTypesClient({ initialBedTypes }: { initialBedTypes: B
                     <TableRow key={bedType.id}>
                       <TableCell className="font-medium">{bedType.name}</TableCell>
                       <TableCell className="font-mono text-xs">{bedType.systemId}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          {bedType.sleeps || 'N/A'}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -197,6 +206,25 @@ export default function BedTypesClient({ initialBedTypes }: { initialBedTypes: B
                       <Label htmlFor="name">Bed Type Name</Label>
                       <FormControl>
                         <Input id="name" placeholder="e.g. Sofa Bed" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="sleeps"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label htmlFor="sleeps">Sleeps</Label>
+                      <FormControl>
+                        <Input
+                          id="sleeps"
+                          type="number"
+                          min="1"
+                          placeholder="e.g. 2 (optional)"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -8,7 +8,6 @@ import Footer from '@/components/Footer';
 import { Quicksand } from 'next/font/google';
 import { NotificationsProvider } from '@/context/NotificationsContext';
 import { UserPreferencesProvider } from '@/context/UserPreferencesContext';
-import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'Global Stay 2.0',
@@ -27,12 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${quicksand.variable}`}>
-      <head>
-        <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places,marker&loading=async`}
-          strategy="beforeInteractive"
-        />
-      </head>
+      <head />
       <body className={cn('font-body antialiased bg-background text-foreground')}>
         <UserPreferencesProvider>
           <NotificationsProvider>

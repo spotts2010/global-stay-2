@@ -83,7 +83,6 @@ The action buttons displayed on the notification detail page change based on the
     - Create a new admin interface to manage these tags on each listing.
     - Update the "Collections" page to dynamically filter and display accommodations that match the tags associated with each collection (e.g., the "Beach Villas" collection would show all listings tagged with `beach` and `villa`).
 - **Dynamic Amenity Loading**: Refactor the amenities management in the admin section to dynamically load the list of available amenities from a central Firestore collection, rather than using a hard-coded list in the component. This will make the system more scalable and easier to manage.
-- **Chargeable Amenities**: A new option in the Admin section to mark specific amenities or inclusions (e.g., Mini Bar, Airport Transfer, Spa Treatments) as having an additional cost. On the front-end accommodation details page, these items will be displayed with a currency icon to clearly indicate to guests that charges apply.
 - **Secure Document Hosting**: Implement a secure, encrypted hosting solution for travel documents (passports, licenses). This feature would allow users to optionally attach their documents to bookings, speeding up the check-in and booking process. Security and privacy must be the top priorities.
 - **Image File Storage Backend**: Implement a file storage solution (e.g., Firebase Storage) to allow for actual file uploads in the "Photo Gallery" management section, replacing the current URL-based system.
 - **Language Translations API**: Integration with a translation service for global language support.
@@ -124,10 +123,26 @@ The action buttons displayed on the notification detail page change based on the
   - **API Quota Management**: Implement strategies (like caching or deferred requests) to manage and minimize calls to the Google Places API to stay within usage limits.
 - **Property Type Management**: A dedicated settings page for Super Admins to manage the available "Property Types" (e.g., Hotel, Hostel, Villa). This would allow adding new types, editing existing ones, or removing them from the system. It should also support importing a list of types from a CSV file.
 - **Rebuild of Points of Interest page**: The "Places & Points of Interest" feature is being rebuilt to provide a more stable and user-friendly experience for managing listing locations.
-
-### Known Issues
-
-- None at present.
+- **Unit Setup Enhancements**:
+  - **Floor / Building Location**: Add an optional field to the "Basic Info" section of a unit to specify its location within the property (e.g., "Second Floor", "Building B").
+  - **Tags**: Add a multi-select tagging system to units for filtering and identification (e.g., “Sea View”, “Pet-Friendly”, “Non-Smoking”).
+  - **Internal Notes**: Add a multi-line text area for admin-only notes about a specific unit, not visible to guests.
+  - **Layout Details**: Add fields for Floor Level/Building Wing, Room Size (m²/ft²), and Sleeping Arrangement Notes to provide more granular detail about the unit's physical layout.
+  - **Automated Occupancy Calculation**: The "Max Occupancy" for a unit will be automatically calculated based on the total capacity of all beds configured (`Sleeps` x `Qty`). The "Min. Occupancy" field remains optional, but if a value is entered, it will be enforced during the booking process to ensure minimum guest requirements are met.
+  - **Pricing (Phase 2)**:
+    - **Seasonal Rates**: Allow hosts to define date ranges with different base pricing (e.g., higher rates for summer, lower for winter).
+    - **Day-of-Week Pricing**: Implement different rates for weekdays versus weekends.
+    - **Promotions & Discounts**: Add options for long-stay discounts (e.g., 10% off for 7+ nights) and early-bird offers.
+    - **Dynamic Pricing Integration**: Plan for future integration with third-party dynamic pricing APIs like PriceLabs.
+    - **Per-Bed Pricing**: For hostel-style units, enable pricing on a per-bed basis rather than per-room.
+  - **Inclusions (Phase 2)**:
+    - **Chargeable Extras**: Add the ability to mark specific inclusions as having an additional cost (e.g., “Towels $5 hire”, “Parking $10 per night”).
+    - **Photos/Icons**: Allow hosts to associate an icon or photo with each inclusion for a richer display on the front-end.
+    - **Grouping & Priority**: Implement a system to group inclusions and set a display priority, allowing hosts to emphasize key features like A/C, WiFi, or a TV.
+  - **Custom Inclusions Workflow**:
+    - **Verification**: Custom inclusions added by hosts must be reviewed by an admin.
+    - **Approval**: If approved, the custom inclusion is added to the master list under an appropriate category for future use by all hosts.
+    - **Denial**: If denied, the inclusion is hidden from view, and an automated system notification and email are sent to the host, explaining the reason for the denial (e.g., already exists, inappropriate, etc.).
 
 ### Resolved Issues
 
@@ -142,3 +157,4 @@ The action buttons displayed on the notification detail page change based on the
   - **404 & Runtime Errors**: Multiple 404 and Firebase runtime errors in the `/admin/listings` pages were fixed. The root causes were improper use of client-side hooks in server components, incorrect Firebase SDK initialization, and mixing client/server SDKs within Server Actions. The codebase has been refactored to follow correct Next.js and Firebase best practices.
   - **Incorrect `params` Handling**: Several components were accessing `params` directly instead of using `React.use()` as required by the latest Next.js version, which was causing console errors. This has been fixed across the affected admin pages.
 - **`react-beautiful-dnd` Console Warning** (Resolved: 22/09/2024): A development-only warning (`Invariant failed: isDropDisabled must be a boolean`) that appeared in the console on the "Photo Gallery" edit page has been resolved.
+- **Admin Map Interaction** (Resolved: 27/09/2024): The map on the `/admin/listings/[id]/edit/about` page now correctly supports drag and zoom functionality. The issue was resolved by implementing the modern `Places API (New)` and correctly managing the map's camera state, preventing conflicts that previously locked user interaction.

@@ -125,21 +125,20 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     setHasMounted(true);
   }, []);
 
+  const SidebarComponent = hasMounted ? (
+    <AccountSidebar isCollapsed={isCollapsed} toggleSidebar={() => setIsCollapsed(!isCollapsed)} />
+  ) : (
+    <SidebarSkeleton isCollapsed={isCollapsed} />
+  );
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      {hasMounted ? (
-        <AccountSidebar
-          isCollapsed={isCollapsed}
-          toggleSidebar={() => setIsCollapsed(!isCollapsed)}
-        />
-      ) : (
-        <SidebarSkeleton isCollapsed={isCollapsed} />
-      )}
+      {SidebarComponent}
       <div
         className={`flex flex-col sm:py-4 transition-all duration-300 ${isCollapsed ? 'sm:pl-20' : 'sm:pl-64'}`}
       >
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
-          <MobileAccountSheet />
+          {hasMounted && <MobileAccountSheet />}
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           {children}

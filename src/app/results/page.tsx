@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { fetchAccommodationById } from '@/lib/firestore';
+import { fetchAccommodations } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
 import AccommodationCard from '@/components/AccommodationCard';
 import { MapPin, Calendar, Users, Loader2 } from 'lucide-react';
@@ -43,36 +43,7 @@ function ResultsPageContent() {
     const loadAccommodations = async () => {
       setLoading(true);
       // NOTE: This should be a more efficient query, e.g. using a server-side search function
-      const accommodationIds = [
-        'oceanfront-pearl-malibu',
-        'downtown-artist-loft-nyc',
-        'grand-budapest-hotel',
-        'secluded-mountain-cabin-aspen',
-        'sydney-harbour-view-suite',
-        'tropical-treehouse-bali',
-        'historic-london-townhouse',
-        'paris-rooftop-apartment',
-        'nomads-noosa-youth-resort',
-        'tokyo-capsule-hotel',
-        'beachfront-bungalow-fiji',
-        'lake-como-villa-italy',
-        'santorini-cave-house',
-        'new-york-penthouse',
-        'berlin-warehouse-loft',
-        'melbourne-laneway-apartment',
-        'dubai-luxury-hotel-suite',
-        'kyoto-ryokan-machiya',
-        'vancouver-seaside-house',
-        'lisbon-historic-apartment',
-        'copenhagen-design-loft',
-        'queenstown-adventure-lodge',
-        'rome-colosseum-view-apartment',
-        'cape-town-villa-table-mountain',
-        'prague-old-town-apartment',
-      ];
-      const allAccommodations = (
-        await Promise.all(accommodationIds.map((id) => fetchAccommodationById(id)))
-      ).filter((a): a is Accommodation => a !== null);
+      const allAccommodations = await fetchAccommodations();
 
       const filtered = allAccommodations.filter((accommodation) => {
         if (

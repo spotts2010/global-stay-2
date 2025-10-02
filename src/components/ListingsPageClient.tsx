@@ -184,14 +184,26 @@ export default function ListingsPageClient({
     );
   };
 
-  const getShortLocation = (fullLocation: string) => {
+  const getShortLocation = (fullLocation: string): string => {
     if (!fullLocation) return '';
-    const parts = fullLocation.split(',').map((part) => part.trim());
-    if (parts.length <= 2) {
-      return fullLocation;
-    }
+    const parts = fullLocation.split(',').map((p) => p.trim());
+    if (parts.length < 2) return fullLocation;
+
     const country = parts[parts.length - 1];
-    const city = parts[parts.length - 2].split(' ')[0];
+    let city = parts[0];
+
+    // Handle US address format where state and zip might be present
+    if (country.toLowerCase() === 'usa' || country.toLowerCase() === 'united states') {
+      if (parts.length > 2) {
+        city = parts[parts.length - 3]; // Assumes format: City, ST ZIP, USA
+      }
+      return `${city}, USA`;
+    }
+
+    // Handle international formats
+    if (parts.length > 1) {
+      city = parts[parts.length - 2];
+    }
     return `${city}, ${country}`;
   };
 
@@ -349,6 +361,10 @@ export default function ListingsPageClient({
                 property.currency,
                 preferences.currency
               );
+              // The `images` array is what determines publishability.
+              const canPublish = property.images && property.images.length > 0;
+              // The `image` prop is guaranteed by the server component to be a valid URL or placeholder.
+              const coverImage = property.image;
 
               return (
                 <TableRow key={property.id}>
@@ -357,7 +373,7 @@ export default function ListingsPageClient({
                       alt={property.name}
                       className="aspect-square rounded-md object-cover"
                       height="64"
-                      src={property.image}
+                      src={coverImage}
                       width="64"
                       data-ai-hint={property.imageHint}
                     />
@@ -438,13 +454,13 @@ export default function ListingsPageClient({
                           </Tooltip>
                         ) : (
                           <Tooltip>
-                            <TooltipTrigger asChild>
+                            <TooltipTrigger disabled={!canPublish}>
                               <Button
                                 variant="outline"
                                 size="icon"
                                 className="h-8 w-8 text-green-600"
                                 onClick={() => handleStatusChange(property.id, 'Published')}
-                                disabled={isPending}
+                                disabled={isPending || !canPublish}
                               >
                                 {isPending ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -453,9 +469,16 @@ export default function ListingsPageClient({
                                 )}
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Publish Listing</p>
-                            </TooltipContent>
+                            {!canPublish && (
+                              <TooltipContent>
+                                <p>A cover image is required to publish.</p>
+                              </TooltipContent>
+                            )}
+                            {canPublish && (
+                              <TooltipContent>
+                                <p>Publish Listing</p>
+                              </TooltipContent>
+                            )}
                           </Tooltip>
                         )}
 

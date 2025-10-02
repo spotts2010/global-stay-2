@@ -4,11 +4,10 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
-  Bed,
   ListChecks,
   Calendar,
   ImageIcon,
-  Map,
+  Info,
   Package2,
   PanelLeft,
   PanelRight,
@@ -37,17 +36,11 @@ export const menuItems = [
       { label: 'About the Property', href: '/edit/about', icon: SquarePen },
       { label: 'Photo Gallery', href: '/edit/photos', icon: ImageIcon },
       { label: 'Shared Amenities', href: '/edit/amenities', icon: ListChecks },
-      { label: 'Points of Interest', href: '/edit/pois', icon: Map },
+      { label: 'Points of Interest', href: '/edit/pois', icon: Info },
+      { label: 'Property Policies', href: '/edit/property-policies', icon: ShieldQuestion },
     ],
   },
-  {
-    label: 'Unit Setup',
-    icon: BedDouble,
-    children: [
-      { label: 'Room Configuration', href: '/edit/rooms', icon: Bed },
-      { label: 'Policies & Terms', href: '/edit/policies', icon: ShieldQuestion },
-    ],
-  },
+  { label: 'Unit Setup', href: '/edit/units', icon: BedDouble },
   { label: 'User Access', href: '/edit/users', icon: Users },
   { label: 'Publish Schedule', href: '/edit/schedule', icon: Calendar },
 ];
@@ -66,7 +59,6 @@ export function EditListingSidebar({
   const { id: listingId } = use(params);
   const searchParams = useSearchParams();
   const [listingName, setListingName] = useState('Edit Listing');
-  const [activeAccordion, setActiveAccordion] = useState<string[]>([]);
 
   useEffect(() => {
     async function getListingName() {
@@ -78,15 +70,11 @@ export function EditListingSidebar({
     getListingName();
   }, [listingId]);
 
-  useEffect(() => {
-    const activeParent = menuItems.find(
-      (item) =>
-        item.children && item.children.some((child) => currentPath.endsWith(child.href || '---'))
-    );
-    if (activeParent) {
-      setActiveAccordion([activeParent.label]);
-    }
-  }, [currentPath]);
+  const activeParent = menuItems.find(
+    (item) =>
+      item.children && item.children.some((child) => currentPath.endsWith(child.href || '---'))
+  );
+  const defaultActiveAccordion = activeParent ? [activeParent.label] : [];
 
   const backLink = `/admin/listings?${searchParams.toString()}`;
 
@@ -126,12 +114,7 @@ export function EditListingSidebar({
           </Tooltip>
         </TooltipProvider>
 
-        <Accordion
-          type="multiple"
-          value={activeAccordion}
-          onValueChange={setActiveAccordion}
-          className="space-y-2"
-        >
+        <Accordion type="multiple" defaultValue={defaultActiveAccordion} className="space-y-2">
           {menuItems.map((item) =>
             item.children ? (
               <AccordionItem key={item.label} value={item.label} className="border-b-0">

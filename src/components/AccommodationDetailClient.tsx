@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Star, MapPin, Award } from 'lucide-react';
@@ -95,12 +94,13 @@ const PointsOfInterestDisplay = ({
         return [...visiblePlaces].sort((a, b) => b.name.localeCompare(a.name));
       case 'distance':
       default:
-        return [...visiblePlaces].sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+        return [...visiblePlaces].sort(
+          (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity)
+        );
     }
   }, [places, sort]);
 
-  const placesToShow =
-    sort === 'distance' && !showAll ? sortedPlaces.slice(0, 10) : sortedPlaces;
+  const placesToShow = sort === 'distance' && !showAll ? sortedPlaces.slice(0, 10) : sortedPlaces;
 
   let lastCategory = '';
 
@@ -204,6 +204,12 @@ export default function AccommodationDetailClient({
   );
 
   const position = { lat: accommodation.lat, lng: accommodation.lng };
+  const allImages =
+    accommodation.images && accommodation.images.length > 0
+      ? accommodation.images.filter(Boolean) // Filter out empty strings
+      : accommodation.image
+        ? [accommodation.image]
+        : [];
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-6 pb-16">
@@ -227,7 +233,7 @@ export default function AccommodationDetailClient({
         </BreadcrumbList>
       </Breadcrumb>
       <PhotoGallery
-        images={accommodation.images.length > 0 ? accommodation.images : [accommodation.image]}
+        images={allImages}
         imageHints={[accommodation.imageHint, 'living room', 'bedroom', 'bathroom', 'exterior']}
       />
 
@@ -299,7 +305,12 @@ export default function AccommodationDetailClient({
             <h2 className="font-headline text-2xl font-bold mb-4">Location</h2>
             <div className="aspect-video rounded-lg overflow-hidden border">
               <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
-                <Map mapId="DEMO_MAP_ID" defaultCenter={position} defaultZoom={15}>
+                <Map
+                  mapId="DEMO_MAP_ID"
+                  defaultCenter={position}
+                  defaultZoom={15}
+                  gestureHandling="greedy"
+                >
                   <AdvancedMarker position={position} />
                 </Map>
               </APIProvider>

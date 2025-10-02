@@ -8,7 +8,7 @@ export type PoiCategory =
   | 'Attractions & Entertainment'
   | 'Medical & Emergency'
   | 'Shopping & Retail'
-  | 'Transport'
+  | 'Transport & Fuel'
   | 'Activities & Tours'
   | 'Business & Services'
   | 'Beauty & Wellbeing'
@@ -26,6 +26,7 @@ export type Place = {
   distance?: number;
   lat?: number;
   lng?: number;
+  isNew?: boolean;
 };
 
 export type Accommodation = {
@@ -78,6 +79,7 @@ export type BedType = {
   id: string;
   name: string;
   systemId: string;
+  sleeps: number | null;
 };
 
 export type HeroImage = {

@@ -21,6 +21,8 @@ runConfig:
       value: "1:450626789210:web:948bdc7bbf3b1af0935d63"
     - key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
       value: "AIzaSyCHZq1aVpyfRQcnPvtBrp8HM3ggFRBxe2Q"
+    - key: NEXT_PUBLIC_GOOGLE_MAP_ID
+      value: "6737a7af708eb1b639cc5d01e"
 
     # --- Server-only secrets (do NOT expose to browser) ---
     - key: GENERATIVE_AI_API_KEY

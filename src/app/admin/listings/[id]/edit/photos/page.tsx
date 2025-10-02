@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
 import type { Accommodation } from '@/lib/data';
 import { fetchAccommodationById } from '@/lib/firestore';
+import { useParams } from 'next/navigation';
 
 // Dynamically import the client component that uses react-beautiful-dnd
 const PhotosPageClient = dynamic(() => import('@/components/PhotosPageClient'), {
@@ -16,8 +17,9 @@ const PhotosPageClient = dynamic(() => import('@/components/PhotosPageClient'), 
   ),
 });
 
-export default function PhotosPage({ params }: { params: { id: string } }) {
-  const { id } = use(params);
+export default function PhotosPage() {
+  const params = useParams();
+  const id = params.id as string;
   const [listing, setListing] = useState<Accommodation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

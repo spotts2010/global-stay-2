@@ -17,6 +17,7 @@ import {
   ListChecks,
   Database,
   MapPin,
+  Home,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
@@ -41,6 +42,7 @@ export const menuItems: NavItem[] = [
     children: [
       { href: '/admin/amenities', label: 'Amenities & Inclusions', icon: ListChecks },
       { href: '/admin/bed-types', label: 'Bed Types', icon: Bed },
+      { href: '/admin/property-types', label: 'Property Types', icon: Home },
       { href: '/admin/poi-categories', label: 'POI Categories', icon: MapPin },
       { href: '/admin/database', label: 'Database Maintenance', icon: Database },
       { href: '/admin/settings/site', label: 'Site Settings', icon: Cog },

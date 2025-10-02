@@ -1,13 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useTransition, useMemo } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -27,7 +21,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import {
   Loader2,
-  Map,
+  Info,
   Save,
   Trash2,
   GripVertical,
@@ -44,6 +38,7 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from 'react-be
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 // Helper for distance calculation
 function getDistance(
@@ -73,7 +68,7 @@ const POI_CATEGORIES: PoiCategory[] = [
   'Attractions & Entertainment',
   'Medical & Emergency',
   'Shopping & Retail',
-  'Transport',
+  'Transport & Fuel',
   'Activities & Tours',
   'Business & Services',
   'Beauty & Wellbeing',
@@ -126,14 +121,14 @@ function getCategoryFromPlaceTypes(types: string[] = []): PoiCategory {
     furniture_store: 'Shopping & Retail',
     home_goods_store: 'Shopping & Retail',
     store: 'Shopping & Retail',
-    train_station: 'Transport',
-    subway_station: 'Transport',
-    light_rail_station: 'Transport',
-    bus_station: 'Transport',
-    airport: 'Transport',
-    taxi_stand: 'Transport',
-    car_rental: 'Transport',
-    gas_station: 'Transport',
+    train_station: 'Transport & Fuel',
+    subway_station: 'Transport & Fuel',
+    light_rail_station: 'Transport & Fuel',
+    bus_station: 'Transport & Fuel',
+    airport: 'Transport & Fuel',
+    taxi_stand: 'Transport & Fuel',
+    car_rental: 'Transport & Fuel',
+    gas_station: 'Transport & Fuel',
     travel_agency: 'Activities & Tours',
     bank: 'Business & Services',
     atm: 'Business & Services',
@@ -180,31 +175,22 @@ export default function PointsOfInterest({
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [tempCategory, setTempCategory] = useState<PoiCategory | null>(null);
 
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [inputValue, setInputValue] = useState('');
+  const autocompleteRef = useRef<HTMLInputElement>(null);
   const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
 
   useEffect(() => {
-    if (window.google && inputRef.current && !autocompleteRef.current) {
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-        fields: ['place_id', 'name', 'formatted_address', 'geometry', 'types'],
-      });
+    const autocomplete = autocompleteRef.current;
+    if (!autocomplete) return;
 
-      autocompleteRef.current.addListener('place_changed', () => {
-        const place = autocompleteRef.current!.getPlace();
-        if (place.place_id && place.name && place.formatted_address) {
-          setSelectedPlace(place);
-          setInputValue(place.name);
-        }
-      });
-    }
+    const listener = autocomplete.addEventListener('gmp-placechange', () => {
+      const place = autocomplete.place;
+      if (place?.place_id && place.name && place.formatted_address) {
+        setSelectedPlace(place);
+      }
+    });
+
+    return () => autocomplete.removeEventListener('gmp-placechange', listener);
   }, []);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-    setSelectedPlace(null);
-  };
 
   const handleAddPlace = () => {
     if (!selectedPlace || !selectedPlace.place_id) {
@@ -239,11 +225,14 @@ export default function PointsOfInterest({
       lat,
       lng,
       distance: getDistance(listing.lat, listing.lng, lat, lng, preferences.distanceUnit),
+      isNew: true,
     };
 
-    setPlaces((prev) => [...prev, newPlace]);
-    setInputValue('');
+    setPlaces((prev) => [newPlace, ...prev]);
     setSelectedPlace(null);
+    if (autocompleteRef.current) {
+      autocompleteRef.current.value = '';
+    }
   };
 
   const handleDragEnd = (result: DropResult) => {
@@ -267,9 +256,7 @@ export default function PointsOfInterest({
 
   const handleSaveEdit = (id: string) => {
     if (tempCategory) {
-      setPlaces((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, category: tempCategory } : p))
-      );
+      setPlaces((prev) => prev.map((p) => (p.id === id ? { ...p, category: tempCategory } : p)));
     }
     setEditingRowId(null);
     setTempCategory(null);
@@ -286,10 +273,13 @@ export default function PointsOfInterest({
   };
 
   const handleSaveChanges = () => {
+    const placesToSave = places.map(({ isNew: _, ...rest }) => rest);
     startTransition(async () => {
-      const result = await updatePointsOfInterestAction(listing.id, places);
+      const result = await updatePointsOfInterestAction(listing.id, placesToSave);
       if (result.success) {
         toast({ title: 'Changes Saved', description: 'Points of interest have been updated.' });
+        // Remove the isNew flag from the state after successful save
+        setPlaces((prev) => prev.map((p) => ({ ...p, isNew: false })));
       } else {
         toast({
           variant: 'destructive',
@@ -325,6 +315,10 @@ export default function PointsOfInterest({
     }
 
     sortableItems.sort((a, b) => {
+      // Always keep new items at the top
+      if (a.isNew && !b.isNew) return -1;
+      if (!a.isNew && b.isNew) return 1;
+
       const valA = a[sortConfig.key];
       const valB = b[sortConfig.key];
       let comparison = 0;
@@ -375,7 +369,7 @@ export default function PointsOfInterest({
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
             <div className="mb-4 sm:mb-0 space-y-1.5">
               <CardTitle className="flex items-center gap-2">
-                <Map className="h-5 w-5 text-primary" />
+                <Info className="h-5 w-5 text-primary" />
                 Places & Points of Interest
               </CardTitle>
               <CardDescription>
@@ -397,14 +391,11 @@ export default function PointsOfInterest({
         <CardContent>
           <div className="mb-8 flex w-full flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex w-full md:w-1/2 items-center gap-2">
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={handleInputChange}
+              <gmp-place-autocomplete
+                ref={autocompleteRef}
+                class="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
                 placeholder="Search for a place on Google Maps..."
-                className="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
+              ></gmp-place-autocomplete>
               <Button onClick={handleAddPlace} disabled={!selectedPlace}>
                 Add Place
               </Button>
@@ -457,14 +448,18 @@ export default function PointsOfInterest({
                     <TableHead className="w-32 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-                <Droppable droppableId="pois">
+                <Droppable droppableId="pois" isDropDisabled={false}>
                   {(provided) => (
                     <TableBody ref={provided.innerRef} {...provided.droppableProps}>
                       {sortedAndFilteredPlaces.length > 0 ? (
                         sortedAndFilteredPlaces.map((place, index) => (
                           <Draggable key={place.id} draggableId={place.id} index={index}>
                             {(provided) => (
-                              <TableRow ref={provided.innerRef} {...provided.draggableProps}>
+                              <TableRow
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={cn(place.isNew && 'bg-accent/50')}
+                              >
                                 <TableCell
                                   {...provided.dragHandleProps}
                                   className="cursor-grab text-muted-foreground hover:text-foreground"
