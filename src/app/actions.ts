@@ -228,3 +228,59 @@ export async function updatePrivateInclusionsAction(
 ): Promise<{ success: boolean; error?: string }> {
   return updateMasterList('privateInclusions', items);
 }
+
+// --- Property Type Actions ---
+
+export async function addPropertyTypeAction(
+  name: string
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const db = getAdminDb();
+  try {
+    const query = await db.collection('propertyTypes').where('name', '==', name).get();
+    if (!query.empty) {
+      return { success: false, error: 'A property type with this name already exists.' };
+    }
+    const docRef = await db.collection('propertyTypes').add({ name });
+    revalidatePath('/admin/property-types');
+    return { success: true, id: docRef.id };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to add property type: ${errorMessage}` };
+  }
+}
+
+export async function updatePropertyTypeAction(
+  id: string,
+  name: string
+): Promise<{ success: boolean; error?: string }> {
+  const db = getAdminDb();
+  try {
+    const query = await db.collection('propertyTypes').where('name', '==', name).limit(1).get();
+    if (!query.empty && query.docs[0].id !== id) {
+      return { success: false, error: 'Another property type with this name already exists.' };
+    }
+    await db.collection('propertyTypes').doc(id).update({ name });
+    revalidatePath('/admin/property-types');
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update property type: ${errorMessage}` };
+  }
+}
+
+export async function deletePropertyTypeAction(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!id) {
+    return { success: false, error: 'Property type ID is missing.' };
+  }
+  const db = getAdminDb();
+  try {
+    await db.collection('propertyTypes').doc(id).delete();
+    revalidatePath('/admin/property-types');
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to delete property type: ${errorMessage}` };
+  }
+}

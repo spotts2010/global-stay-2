@@ -1,383 +1,592 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
-import { FormProvider, useForm, useFormContext } from 'react-hook-form';
+import React, { useState, useTransition, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Save, Loader2, ListChecks, Search } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import type { Accommodation } from '@/lib/data';
-import { FormLabel } from '@/components/ui/form';
-import { updateAccommodationAction } from '@/app/actions';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Trash2,
+  PlusCircle,
+  Loader2,
+  ListChecks,
+  FilePen,
+  Check,
+  X,
+  Search,
+  ArrowUp,
+  ArrowDown,
+  ChevronsUpDown,
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { updatePrivateInclusionsAction, updateSharedAmenitiesAction } from '@/app/actions';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { cn } from '@/lib/utils';
+import { Badge } from './ui/badge';
+import { Label } from './ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from './ui/command';
 
-type Amenity = {
+type Item = {
   id: string;
   label: string;
-  category: 'All' | 'General' | 'Food & Drink' | 'Activities' | 'Outdoor' | 'Safety' | 'Services';
+  systemTag: string;
+  category: string;
 };
 
-const amenitiesList: Amenity[] = [
-  { id: 'wifi', label: 'Wi-Fi', category: 'General' },
-  { id: 'parking', label: 'Free Parking', category: 'General' },
-  { id: 'lifts', label: 'Lifts', category: 'General' },
-  { id: 'checkin_247', label: '24/7 Check-in', category: 'General' },
-  { id: 'ev_charger', label: 'EV Charging Station', category: 'General' },
-  { id: 'pet_friendly', label: 'Pet Friendly', category: 'General' },
-  { id: 'wheelchair_access', label: 'Wheelchair Access', category: 'General' },
-  { id: 'lounge', label: 'Lounge', category: 'General' },
-  { id: 'books', label: 'Book Exchange', category: 'General' },
-  { id: 'restaurant', label: 'Restaurant', category: 'Food & Drink' },
-  { id: 'bar', label: 'Bar', category: 'Food & Drink' },
-  { id: 'kitchen', label: 'Shared Kitchen', category: 'Food & Drink' },
-  { id: 'tennis', label: 'Tennis', category: 'Activities' },
-  { id: 'pool', label: 'Pool', category: 'Outdoor' },
-  { id: 'jacuzzi', label: 'Hot Tub / Jacuzzi', category: 'Outdoor' },
-  { id: 'garden', label: 'Garden', category: 'Outdoor' },
-  { id: 'bbq', label: 'BBQ', category: 'Outdoor' },
-  { id: 'basketball', label: 'Basketball Courts', category: 'Activities' },
-  { id: 'beach_volleyball', label: 'Beach Volleyball', category: 'Activities' },
-  { id: 'bike_hire', label: 'Bike Hire', category: 'Activities' },
-  { id: 'boat_hire', label: 'Boat Hire', category: 'Activities' },
-  { id: 'casino', label: 'Casino', category: 'Activities' },
-  { id: 'games_room', label: 'Games Room', category: 'Activities' },
-  { id: 'golf_course', label: 'Golf Course', category: 'Activities' },
-  { id: 'gym', label: 'Gym / Fitness Center', category: 'Activities' },
-  { id: 'kayaks', label: 'Kayaks', category: 'Activities' },
-  { id: 'volleyball', label: 'Volleyball', category: 'Activities' },
-  { id: 'smoke_detector', label: 'Smoke Detector', category: 'Safety' },
-  { id: 'co_detector', label: 'Carbon Monoxide Detector', category: 'Safety' },
-  { id: 'fire_extinguisher', label: 'Fire Extinguisher', category: 'Safety' },
-  { id: 'laundry', label: 'Laundry Facilities', category: 'Services' },
-  { id: 'concierge', label: 'Concierge Service', category: 'Services' },
-  { id: 'luggage_storage', label: 'Luggage Storage', category: 'Services' },
-  { id: 'spa_treatments', label: 'Spa Treatments', category: 'Services' },
-].sort((a, b) => a.label.localeCompare(b.label));
-
-const amenityCategories: Amenity['category'][] = [
-  'All',
-  'General',
-  'Food & Drink',
-  'Activities',
-  'Outdoor',
-  'Safety',
-  'Services',
-];
-
-type FormValues = {
-  amenities: string[];
-  chargeableAmenities: string[];
+type UnifiedAmenity = {
+  id: string; // Will use systemTag
+  label: string;
+  systemTag: string;
+  category: string;
+  isPrivate: boolean;
+  isShared: boolean;
 };
 
-// --- Custom SVG Icons ---
-const DisabledFeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <circle cx="12" cy="12" r="10" stroke="#B3B3B3" strokeWidth="1.5" />
-    <path
-      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c1.1 0 2 .9 2 2s-.9 2-2 2H8"
-      stroke="#B3B3B3"
-      strokeWidth="1.5"
-    />
-    <path d="M12 18V6" stroke="#B3B3B3" strokeWidth="1.5" />
-  </svg>
-);
+type SortKey = 'label' | 'category' | 'systemTag';
+type SortDirection = 'asc' | 'desc';
+type TypeFilter = 'All' | 'Private' | 'Shared';
 
-const InactiveFeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <circle cx="12" cy="12" r="10" stroke="black" strokeWidth="1.5" />
-    <path
-      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c1.1 0 2 .9 2 2s-.9 2-2 2H8"
-      stroke="black"
-      strokeWidth="1.5"
-    />
-    <path d="M12 18V6" stroke="black" strokeWidth="1.5" />
-  </svg>
-);
+function combineAndNormalize(
+  shared: Item[],
+  privateItems: Item[]
+): { amenities: UnifiedAmenity[]; categories: string[] } {
+  const map = new Map<string, UnifiedAmenity>();
 
-const ActiveFeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <circle cx="12" cy="12" r="10" fill="#2682CE" stroke="#2682CE" strokeWidth="1.5" />
-    <path
-      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c1.1 0 2 .9 2 2s-.9 2-2 2H8"
-      stroke="#fff"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-    <path
-      d="M12 18V6"
-      stroke="#fff"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-  </svg>
-);
-
-const AmenityItem = ({ amenity }: { amenity: Amenity }) => {
-  const { watch, setValue, getValues } = useFormContext<FormValues>();
-  const isIncluded = watch('amenities')?.includes(amenity.id);
-  const isChargeable = watch('chargeableAmenities')?.includes(amenity.id);
-
-  const handleChargeableToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isIncluded) return;
-
-    const currentChargeable = getValues('chargeableAmenities') || [];
-    const newChargeable = isChargeable
-      ? currentChargeable.filter((id) => id !== amenity.id)
-      : [...currentChargeable, amenity.id];
-    setValue('chargeableAmenities', newChargeable, { shouldDirty: true });
-  };
-
-  return (
-    <div
-      className={cn(
-        'flex items-center gap-3 p-2 rounded-md border transition-colors',
-        isIncluded ? 'bg-accent border-primary/50' : 'bg-transparent border-border'
-      )}
-    >
-      <Checkbox
-        id={`amenity-${amenity.id}`}
-        checked={isIncluded}
-        onCheckedChange={(checked) => {
-          const amenities = getValues('amenities') || [];
-          const updatedAmenities = checked
-            ? [...amenities, amenity.id]
-            : amenities.filter((value) => value !== amenity.id);
-          setValue('amenities', updatedAmenities, { shouldDirty: true });
-
-          if (!checked) {
-            const currentChargeable = getValues('chargeableAmenities');
-            setValue(
-              'chargeableAmenities',
-              currentChargeable.filter((id) => id !== amenity.id),
-              { shouldDirty: true }
-            );
-          }
-        }}
-      />
-
-      <FormLabel
-        htmlFor={`amenity-${amenity.id}`}
-        className="flex-1 text-sm font-normal truncate cursor-pointer"
-      >
-        {amenity.label}
-      </FormLabel>
-      <TooltipProvider delayDuration={0}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              className={cn('h-5 w-5', isIncluded ? 'cursor-pointer' : 'cursor-not-allowed')}
-              onClick={handleChargeableToggle}
-              disabled={!isIncluded}
-              aria-label="Toggle chargeable"
-            >
-              {!isIncluded ? (
-                <DisabledFeeIcon className="h-5 w-5" />
-              ) : isChargeable ? (
-                <ActiveFeeIcon className="h-5 w-5" />
-              ) : (
-                <InactiveFeeIcon className="h-5 w-5" />
-              )}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Toggle if fees apply</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  );
-};
-
-export default function AmenitiesPageClient({ listing }: { listing: Accommodation }) {
-  const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
-  const [activeCategory, setActiveCategory] = useState<Amenity['category']>('All');
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const formMethods = useForm<FormValues>({
-    defaultValues: {
-      amenities: listing?.amenities || [],
-      chargeableAmenities: listing?.chargeableAmenities || [],
-    },
-  });
-
-  const selectedAmenities = formMethods.watch('amenities') || [];
-
-  const handleSave = (formData: FormValues) => {
-    const cleanedData = {
-      ...formData,
-      chargeableAmenities: formData.chargeableAmenities.filter((chargeable) =>
-        formData.amenities.includes(chargeable)
-      ),
-    };
-
-    startTransition(async () => {
-      const result = await updateAccommodationAction(listing.id, cleanedData);
-      if (result.success) {
-        toast({
-          title: 'Changes Saved',
-          description: 'The shared amenities have been updated.',
-        });
-        formMethods.reset(cleanedData);
+  const processItems = (items: Item[], type: 'Shared' | 'Private') => {
+    items.forEach((item) => {
+      const existing = map.get(item.systemTag);
+      if (existing) {
+        if (type === 'Shared') existing.isShared = true;
+        if (type === 'Private') existing.isPrivate = true;
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Save Failed',
-          description: result.error || 'An unknown error occurred.',
+        map.set(item.systemTag, {
+          id: item.systemTag,
+          label: item.label,
+          systemTag: item.systemTag,
+          category: item.category,
+          isPrivate: type === 'Private',
+          isShared: type === 'Shared',
         });
       }
     });
   };
 
-  const AmenityGrid = ({ amenities }: { amenities: Amenity[] }) => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
-      {amenities.map((amenity) => (
-        <AmenityItem key={amenity.id} amenity={amenity} />
-      ))}
-    </div>
-  );
+  processItems(shared, 'Shared');
+  processItems(privateItems, 'Private');
 
-  const filteredAmenities = amenitiesList.filter((amenity) => {
-    const matchesCategory = activeCategory === 'All' || amenity.category === activeCategory;
-    const matchesSearch =
-      searchTerm === '' ||
-      amenity.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      amenity.id.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const amenities = Array.from(map.values());
+  const categories = Array.from(new Set(amenities.map((a) => a.category))).sort();
+
+  return { amenities, categories };
+}
+
+function CategoryCombobox({
+  value,
+  onChange,
+  categories,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  categories: string[];
+}) {
+  const [open, setOpen] = useState(false);
 
   return (
-    <FormProvider {...formMethods}>
-      <form onSubmit={formMethods.handleSubmit(handleSave)} className="space-y-6">
-        <Breadcrumbs
-          items={[
-            { label: 'Listings', href: '/admin/listings' },
-            { label: listing.name, href: `/admin/listings/${listing.id}/edit/about` },
-            { label: 'Amenities' },
-          ]}
-        />
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1.5 mb-4 sm:mb-0">
-                <CardTitle className="flex items-center gap-2">
-                  <ListChecks className="h-5 w-5 text-primary" />
-                  Shared Amenities &amp; Facilities
-                </CardTitle>
-                <CardDescription>
-                  Select all shared amenities for this property and specify if fees apply.
-                </CardDescription>
-              </div>
-              <Button
-                type="submit"
-                disabled={isPending || !formMethods.formState.isDirty}
-                className="w-full sm:w-auto"
-              >
-                {isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Save Changes
-              </Button>
-            </div>
-            <div className="!mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="h-5 w-5 inline-block">
-                <ActiveFeeIcon className="h-5 w-5" />
-              </span>
-              <span>
-                = When enabled, this icon indicates that additional fees may be applicable.
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4 flex flex-col sm:flex-row items-center gap-4">
-              <div className="relative w-full sm:max-w-xs">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Filter by keyword..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex w-full sm:w-auto items-center gap-2">
-                <Label
-                  htmlFor="amenity-category-filter"
-                  className="text-sm font-medium sr-only sm:not-sr-only"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between font-normal bg-white"
+        >
+          {value ? categories.find((cat) => cat === value) || value : 'Select or create...'}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[250px] p-0">
+        <Command>
+          <CommandInput
+            placeholder="Search or add category..."
+            onValueChange={(currentValue) => onChange(currentValue)}
+          />
+          <CommandList>
+            <CommandEmpty>
+              {value && !categories.includes(value) ? (
+                <div className="p-2 text-sm text-center">
+                  Create new category:
+                  <p className="font-bold">"{value}"</p>
+                </div>
+              ) : (
+                'No category found.'
+              )}
+            </CommandEmpty>
+            <CommandGroup>
+              {categories.map((cat) => (
+                <CommandItem
+                  key={cat}
+                  value={cat}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue === value ? '' : cat);
+                    setOpen(false);
+                  }}
                 >
-                  Category:
-                </Label>
-                <Select
-                  value={activeCategory}
-                  onValueChange={(value) => setActiveCategory(value as Amenity['category'])}
-                >
-                  <SelectTrigger id="amenity-category-filter" className="w-full sm:w-[280px]">
-                    <SelectValue placeholder="Filter by category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {amenityCategories.map((category) => {
-                      const selectedInCategory = amenitiesList.filter(
-                        (a) =>
-                          selectedAmenities.includes(a.id) &&
-                          (category === 'All' || a.category === category)
-                      );
-                      return (
-                        <SelectItem key={category} value={category}>
-                          <div className="flex items-center justify-between w-full">
-                            <span>{category}</span>
-                            <Badge variant="secondary" className="ml-4 px-1.5 py-0">
-                              {selectedInCategory.length}
-                            </Badge>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <AmenityGrid amenities={filteredAmenities} />
-          </CardContent>
-        </Card>
+                  <Check
+                    className={cn('mr-2 h-4 w-4', value === cat ? 'opacity-100' : 'opacity-0')}
+                  />
+                  {cat}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Custom Amenities</CardTitle>
-            <CardDescription>
-              If an amenity is not in the master list, add it here (one per line). Custom amenities
-              require admin approval before they appear on the live site.
+export default function AmenitiesManagementClient({
+  initialSharedAmenities,
+  initialPrivateInclusions,
+}: {
+  initialSharedAmenities: Item[];
+  initialPrivateInclusions: Item[];
+}) {
+  const { amenities: initialAmenities, categories: initialCategories } = combineAndNormalize(
+    initialSharedAmenities,
+    initialPrivateInclusions
+  );
+
+  const [amenities, setAmenities] = useState<UnifiedAmenity[]>(initialAmenities);
+  const [categories, setCategories] = useState<string[]>(initialCategories);
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [tempData, setTempData] = useState<Partial<UnifiedAmenity>>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('All');
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
+    key: 'label',
+    direction: 'asc',
+  });
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+
+  const handleEditStart = (amenity: UnifiedAmenity) => {
+    setEditingRowId(amenity.id);
+    setTempData(amenity);
+  };
+
+  const handleEditCancel = () => {
+    // If it was a new, unsaved row, remove it from the state
+    if (editingRowId?.startsWith('new_')) {
+      setAmenities((prev) => prev.filter((a) => a.id !== editingRowId));
+    }
+    setEditingRowId(null);
+    setTempData({});
+  };
+
+  const createSystemTag = (label: string) => {
+    return label
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/[\s-]+/g, '_');
+  };
+
+  const handleSaveEdit = () => {
+    if (!tempData.label?.trim()) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Label cannot be empty.' });
+      return;
+    }
+    if (!tempData.isPrivate && !tempData.isShared) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Amenity must be Private, Shared, or both.',
+      });
+      return;
+    }
+
+    const isDuplicate = amenities.some(
+      (a) =>
+        a.id !== editingRowId &&
+        a.label.trim().toLowerCase() === tempData.label!.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast({
+        variant: 'destructive',
+        title: 'Duplicate Item',
+        description: 'Amenity or Inclusions already exists, please try again.',
+      });
+      return;
+    }
+
+    const isNewItem = editingRowId?.startsWith('new_');
+    if (isNewItem) {
+      const newSystemTag = createSystemTag(tempData.label!);
+      const newAmenity: UnifiedAmenity = {
+        id: newSystemTag,
+        systemTag: newSystemTag,
+        label: tempData.label!,
+        category: tempData.category || 'Unassigned',
+        isPrivate: !!tempData.isPrivate,
+        isShared: !!tempData.isShared,
+      };
+      setAmenities((prev) => [...prev.filter((a) => a.id !== editingRowId), newAmenity]);
+    } else {
+      setAmenities((prev) =>
+        prev.map((a) => (a.id === editingRowId ? ({ ...a, ...tempData } as UnifiedAmenity) : a))
+      );
+    }
+
+    // Add new category if it doesn't exist
+    if (tempData.category && !categories.includes(tempData.category)) {
+      setCategories((prev) => [...prev, tempData.category!].sort());
+    }
+    handleEditCancel();
+  };
+
+  const handleAddNew = () => {
+    const newId = `new_${Date.now()}`;
+    const newAmenity: UnifiedAmenity = {
+      id: newId,
+      label: '',
+      systemTag: '(auto-generated)',
+      category: categories[0] || 'General',
+      isPrivate: false,
+      isShared: false,
+    };
+    setAmenities((prev) => [newAmenity, ...prev]);
+    handleEditStart(newAmenity);
+  };
+
+  const handleDelete = (id: string) => {
+    setAmenities((prev) => prev.filter((a) => a.id !== id));
+    toast({ title: 'Item Removed', description: 'The item will be deleted upon saving.' });
+  };
+
+  const handleSaveChanges = () => {
+    startTransition(async () => {
+      const finalAmenities = amenities
+        .filter((a) => a.label) // Filter out any empty-label new items
+        .map((a) => {
+          if (a.id.startsWith('new_')) {
+            const systemTag = a.label.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+            return { ...a, id: systemTag, systemTag };
+          }
+          return a;
+        });
+
+      const sharedToSave = finalAmenities
+        .filter((a) => a.isShared)
+        .map(({ id, label, systemTag, category }) => ({ id, label, systemTag, category }));
+      const privateToSave = finalAmenities
+        .filter((a) => a.isPrivate)
+        .map(({ id, label, systemTag, category }) => ({ id, label, systemTag, category }));
+
+      const [sharedResult, privateResult] = await Promise.all([
+        updateSharedAmenitiesAction(sharedToSave),
+        updatePrivateInclusionsAction(privateToSave),
+      ]);
+
+      if (sharedResult.success && privateResult.success) {
+        toast({ title: 'Success', description: 'All amenities have been updated.' });
+        setAmenities(finalAmenities);
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Save Failed',
+          description: sharedResult.error || privateResult.error || 'An unknown error occurred.',
+        });
+      }
+    });
+  };
+
+  const filteredAndSortedAmenities = useMemo(() => {
+    const result = [...amenities].filter((a) => {
+      // Always include the item being edited
+      if (a.id === editingRowId) return true;
+
+      // Filter by type
+      if (typeFilter !== 'All') {
+        const isCorrectType = typeFilter === 'Shared' ? a.isShared : a.isPrivate;
+        if (!isCorrectType) return false;
+      }
+      // Filter by category
+      if (categoryFilter !== 'All') {
+        if (a.category !== categoryFilter) return false;
+      }
+      // Filter by search term
+      if (searchTerm) {
+        const lowerSearch = searchTerm.toLowerCase();
+        const matches =
+          a.label.toLowerCase().includes(lowerSearch) ||
+          a.category.toLowerCase().includes(lowerSearch);
+        if (!matches) return false;
+      }
+      return true;
+    });
+
+    // Sort
+    result.sort((a, b) => {
+      const valA = a[sortConfig.key];
+      const valB = b[sortConfig.key];
+      if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [amenities, typeFilter, categoryFilter, searchTerm, sortConfig, editingRowId]);
+
+  const SortableHeader = ({
+    sortKey,
+    children,
+  }: {
+    sortKey: SortKey;
+    children: React.ReactNode;
+  }) => (
+    <TableHead>
+      <Button
+        variant="ghost"
+        onClick={() =>
+          setSortConfig((prev) => ({
+            key: sortKey,
+            direction: prev.key === sortKey && prev.direction === 'asc' ? 'desc' : 'asc',
+          }))
+        }
+        className="px-2"
+      >
+        {children}
+        {sortConfig.key === sortKey &&
+          (sortConfig.direction === 'asc' ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ))}
+      </Button>
+    </TableHead>
+  );
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <ListChecks className="h-6 w-6 text-primary" />
+              Amenities & Inclusions
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Manage the master lists for property-wide and unit-specific features.
             </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              placeholder="e.g., Rooftop Cinema&#x0a;Private Chef"
+          </div>
+          <div className="flex-shrink-0 flex items-center gap-2">
+            <Button variant="outline" onClick={handleAddNew}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add New
+            </Button>
+            <Button onClick={handleSaveChanges} disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save All Changes
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-6 mt-6 flex flex-col md:flex-row items-center gap-4">
+          <div className="relative w-full md:w-auto md:flex-grow">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter by name or category..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 w-full"
             />
-          </CardContent>
-        </Card>
-      </form>
-    </FormProvider>
+          </div>
+          <div className="w-full md:w-auto">
+            <Label htmlFor="category-filter" className="sr-only">
+              Category
+            </Label>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger id="category-filter" className="w-full md:w-[200px]">
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Categories</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full md:w-auto">
+            <Label htmlFor="type-filter" className="sr-only">
+              Type
+            </Label>
+            <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as TypeFilter)}>
+              <SelectTrigger id="type-filter" className="w-full md:w-[180px]">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Types</SelectItem>
+                <SelectItem value="Shared">Shared Only</SelectItem>
+                <SelectItem value="Private">Private Only</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <SortableHeader sortKey="label">Name / Label</SortableHeader>
+                <SortableHeader sortKey="systemTag">System Tag</SortableHeader>
+                <SortableHeader sortKey="category">Category</SortableHeader>
+                <TableHead className="text-center">Private</TableHead>
+                <TableHead className="text-center">Shared</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAndSortedAmenities.map((amenity) => {
+                const isEditing = editingRowId === amenity.id;
+                return (
+                  <TableRow key={amenity.id} className={cn(isEditing && 'bg-accent')}>
+                    <TableCell>
+                      {isEditing ? (
+                        <Input
+                          value={tempData.label ?? ''}
+                          onChange={(e) => setTempData({ ...tempData, label: e.target.value })}
+                        />
+                      ) : (
+                        <span className="font-medium">{amenity.label}</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-mono">
+                        {amenity.systemTag}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {isEditing ? (
+                        <CategoryCombobox
+                          value={tempData.category || ''}
+                          onChange={(val) => setTempData({ ...tempData, category: val })}
+                          categories={categories}
+                        />
+                      ) : (
+                        amenity.category
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Checkbox
+                        checked={isEditing ? tempData.isPrivate : amenity.isPrivate}
+                        onCheckedChange={(checked) =>
+                          isEditing
+                            ? setTempData({ ...tempData, isPrivate: !!checked })
+                            : setAmenities((prev) =>
+                                prev.map((a) =>
+                                  a.id === amenity.id ? { ...a, isPrivate: !!checked } : a
+                                )
+                              )
+                        }
+                      />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Checkbox
+                        checked={isEditing ? tempData.isShared : amenity.isShared}
+                        onCheckedChange={(checked) =>
+                          isEditing
+                            ? setTempData({ ...tempData, isShared: !!checked })
+                            : setAmenities((prev) =>
+                                prev.map((a) =>
+                                  a.id === amenity.id ? { ...a, isShared: !!checked } : a
+                                )
+                              )
+                        }
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {isEditing ? (
+                        <div className="flex gap-2 justify-end">
+                          <Button size="icon" variant="ghost" onClick={handleSaveEdit}>
+                            <Check className="h-4 w-4 text-green-600" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={handleEditCancel}>
+                            <X className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleEditStart(amenity)}
+                          >
+                            <FilePen className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="icon" variant="ghost">
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will remove "{amenity.label}" from the list. This is not
+                                  permanent until you save changes.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(amenity.id)}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

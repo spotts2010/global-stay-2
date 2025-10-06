@@ -3,7 +3,17 @@ dotenv.config({ path: '.env' }); // Load .env variables
 
 import { getAdminDb } from './firebaseAdmin';
 import { collections as curatedCollectionsData } from './data';
-import type { Amenity, Currency, BedType } from './data';
+import type { Amenity, Currency, BedType, PropertyType } from './data';
+
+// --- Property Types Data ---
+const propertyTypesData: Omit<PropertyType, 'id'>[] = [
+  { name: 'Apartment' },
+  { name: 'Villa' },
+  { name: 'Hotel' },
+  { name: 'Loft' },
+  { name: 'House' },
+  { name: 'Hostel' },
+];
 
 // --- Bed Types Data ---
 const bedTypesData: Omit<BedType, 'id'>[] = [
@@ -55,7 +65,7 @@ const accommodationsData: {
   image: string;
   images: string[];
   amenities: Amenity[];
-  type: 'Apartment' | 'Villa' | 'Hotel' | 'Loft' | 'House' | 'Hostel';
+  type: string;
   bookingType: 'room' | 'bed' | 'hybrid';
   imageHint: string;
   lat: number;
@@ -594,11 +604,13 @@ async function clearCollection(db: FirebaseFirestore.Firestore, collectionName: 
  * @param collectionName - The name of the collection to seed.
  * @param data - An array of objects to add to the collection.
  * @param destructive - If true, clears the collection before seeding.
+ * @param idField - The field to use as the document ID. If not provided, Firestore auto-generates IDs.
  */
 async function seedCollection(
   collectionName: string,
-  data: { id?: string }[],
-  destructive: boolean = false
+  data: Record<string, unknown>[],
+  destructive: boolean = false,
+  idField?: string
 ) {
   const db = getAdminDb();
   const collectionRef = db.collection(collectionName);
@@ -613,12 +625,18 @@ async function seedCollection(
   console.log(`\nSeeding collection: "${collectionName}"...`);
 
   for (const item of data) {
-    if (!item.id) {
-      console.warn('Skipping item without ID:', item);
+    let docRef;
+    if (idField && item[idField]) {
+      docRef = collectionRef.doc(item[idField] as string);
+    } else if (item.id) {
+      docRef = collectionRef.doc(item.id as string);
+    } else if (idField === undefined) {
+      // Create a new doc with auto-id if no idField is specified and item has no id
+      docRef = collectionRef.doc();
+    } else {
+      console.warn('Skipping item without an ID:', item);
       continue;
     }
-    const docRef = collectionRef.doc(item.id);
-    // Use merge: true to avoid overwriting fields you have manually changed (like images)
     batch.set(docRef, item, { merge: true });
     count++;
   }
@@ -634,12 +652,13 @@ async function seedAll() {
   const db = getAdminDb();
   try {
     // Accommodations will be merged, not destroyed. This preserves manually uploaded images.
-    await seedCollection('accommodations', accommodationsData, false);
+    await seedCollection('accommodations', accommodationsData, false, 'id');
 
     // These collections will be completely overwritten for consistency.
-    await seedCollection('collections', curatedCollectionsData, true);
-    await seedCollection('bedTypes', bedTypesData, true);
-    await seedCollection('siteSettings', [heroImagesData], true);
+    await seedCollection('collections', curatedCollectionsData, true, 'id');
+    await seedCollection('bedTypes', bedTypesData, true, 'systemId');
+    await seedCollection('siteSettings', [heroImagesData], true, 'id');
+    await seedCollection('propertyTypes', propertyTypesData, true);
 
     // Also clear the old collection
     await clearCollection(db, 'curated_collections');

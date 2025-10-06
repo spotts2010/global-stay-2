@@ -2,7 +2,7 @@
 import 'server-only'; // Ensures this file is never included in a client bundle
 
 import { getAdminDb } from './firebaseAdmin';
-import type { Accommodation, BedType, Place, Collection } from './data';
+import type { Accommodation, BedType, Place, Collection, PropertyType } from './data';
 
 type AmenityOrInclusion = {
   id: string;
@@ -141,6 +141,22 @@ export async function fetchCollections(): Promise<Collection[]> {
     return collectionsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Collection);
   } catch (error) {
     console.error('Error fetching collections with Admin SDK:', error);
+    return [];
+  }
+}
+
+export async function fetchPropertyTypes(): Promise<PropertyType[]> {
+  try {
+    const adminDb = getAdminDb();
+    const propertyTypesSnapshot = await adminDb.collection('propertyTypes').get();
+    if (propertyTypesSnapshot.empty) {
+      return [];
+    }
+    return propertyTypesSnapshot.docs.map(
+      (doc) => ({ id: doc.id, name: doc.data().name }) as PropertyType
+    );
+  } catch (error) {
+    console.error('Error fetching property types with Admin SDK:', error);
     return [];
   }
 }

@@ -1,28 +1,16 @@
 // src/app/admin/property-types/page.tsx
-'use client';
+import 'server-only';
+import { fetchPropertyTypes } from '@/lib/firestore.server';
+import PropertyTypesClient from '@/components/PropertyTypesClient';
+import type { PropertyType } from '@/lib/data';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Home } from 'lucide-react';
+// This is now a SERVER component responsible for data fetching
+export default async function PropertyTypesPage() {
+  const initialPropertyTypes: PropertyType[] = await fetchPropertyTypes();
 
-export default function PropertyTypesPage() {
   return (
     <div className="flex-1 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Home className="h-5 w-5 text-primary" />
-            Property Types
-          </CardTitle>
-          <CardDescription>
-            View and manage the available types of properties (e.g., Hotel, Villa).
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center text-muted-foreground py-20 border-2 border-dashed rounded-lg">
-            <p>Property type management will be displayed here.</p>
-          </div>
-        </CardContent>
-      </Card>
+      <PropertyTypesClient initialPropertyTypes={initialPropertyTypes} />
     </div>
   );
 }

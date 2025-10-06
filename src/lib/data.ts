@@ -29,6 +29,11 @@ export type Place = {
   isNew?: boolean;
 };
 
+export type PropertyType = {
+  id: string;
+  name: string;
+};
+
 export type Accommodation = {
   id: string;
   slug: string;
@@ -43,7 +48,7 @@ export type Accommodation = {
   images: string[];
   amenities: Amenity[];
   chargeableAmenities?: string[]; // Array of amenity IDs that have fees
-  type: 'Apartment' | 'Villa' | 'Hotel' | 'Loft' | 'House' | 'Hostel';
+  type: string; // Now a string to be dynamic
   bookingType: 'room' | 'bed' | 'hybrid';
   imageHint: string;
   lat: number;
