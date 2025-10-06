@@ -49,6 +49,31 @@ export async function updateAccommodationAction(
   }
 }
 
+// --- Policies Update Action ---
+export async function updateAccommodationPoliciesAction(
+  id: string,
+  policiesData: Pick<Accommodation, 'paymentTerms' | 'cancellationPolicy' | 'houseRules'>
+): Promise<{ success: boolean; error?: string }> {
+  if (!id) {
+    return { success: false, error: 'Accommodation ID is missing.' };
+  }
+  const db = getAdminDb();
+  const accommodationRef = db.collection('accommodations').doc(id);
+
+  try {
+    await accommodationRef.update({
+      ...policiesData,
+      lastModified: new Date(),
+    });
+    revalidatePath(`/admin/listings/${id}/edit/property-policies`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Error updating policies for accommodation ${id}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update policies: ${errorMessage}` };
+  }
+}
+
 // --- Points of Interest Update Action ---
 export async function updatePointsOfInterestAction(
   accommodationId: string,

@@ -1,13 +1,13 @@
 'use client';
 
-import { Star, MapPin, Award } from 'lucide-react';
+import { Star, MapPin, Award, ShieldQuestion, Banknote, Ban } from 'lucide-react';
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PhotoGallery from '@/components/PhotoGallery';
 import ReviewCard from '@/components/ReviewCard';
 import { Separator } from '@/components/ui/separator';
@@ -78,6 +78,11 @@ const PointsOfInterestDisplay = ({
 }) => {
   const [sort, setSort] = useState<SortOption>('distance');
   const [showAll, setShowAll] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const sortedPlaces = useMemo(() => {
     const visiblePlaces = places.filter((p) => p.visible);
@@ -112,17 +117,19 @@ const PointsOfInterestDisplay = ({
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
         <h2 className="font-headline text-2xl font-bold">Points of Interest</h2>
-        <Select value={sort} onValueChange={(value) => setSort(value as SortOption)}>
-          <SelectTrigger className="w-full sm:w-[200px] bg-card">
-            <SelectValue placeholder="View by..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="distance">Distance (nearest)</SelectItem>
-            <SelectItem value="category">Category</SelectItem>
-            <SelectItem value="a-z">A-Z</SelectItem>
-            <SelectItem value="z-a">Z-A</SelectItem>
-          </SelectContent>
-        </Select>
+        {hasMounted && (
+          <Select value={sort} onValueChange={(value) => setSort(value as SortOption)}>
+            <SelectTrigger className="w-full sm:w-[200px] bg-card">
+              <SelectValue placeholder="View by..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="distance">Distance (nearest)</SelectItem>
+              <SelectItem value="category">Category</SelectItem>
+              <SelectItem value="a-z">A-Z</SelectItem>
+              <SelectItem value="z-a">Z-A</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -153,6 +160,53 @@ const PointsOfInterestDisplay = ({
           </Button>
         </div>
       )}
+    </div>
+  );
+};
+
+const PoliciesSection = ({ accommodation }: { accommodation: Accommodation }) => {
+  const { paymentTerms, cancellationPolicy, houseRules } = accommodation;
+
+  const hasPolicies = paymentTerms || cancellationPolicy || houseRules;
+
+  if (!hasPolicies) {
+    return null;
+  }
+
+  return (
+    <div>
+      <h2 className="font-headline text-2xl font-bold mb-4">Policies &amp; Terms</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {paymentTerms && (
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-3 space-y-0">
+              <Banknote className="h-5 w-5 text-primary" />
+              <CardTitle className="text-base font-semibold">Payment Terms</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">{paymentTerms}</CardContent>
+          </Card>
+        )}
+        {cancellationPolicy && (
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-3 space-y-0">
+              <Ban className="h-5 w-5 text-primary" />
+              <CardTitle className="text-base font-semibold">Cancellation Policy</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              {cancellationPolicy}
+            </CardContent>
+          </Card>
+        )}
+        {houseRules && (
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-3 space-y-0">
+              <ShieldQuestion className="h-5 w-5 text-primary" />
+              <CardTitle className="text-base font-semibold">House Rules</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">{houseRules}</CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
@@ -242,25 +296,27 @@ export default function AccommodationDetailClient({
           {/* Header Section */}
           <div className="pb-4 border-b">
             <h1 className="font-headline text-4xl md:text-5xl font-bold">{accommodation.name}</h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-muted-foreground">
+            <div className="flex flex-col items-start mt-2 gap-y-2 text-muted-foreground">
               <div className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
                 <span>{accommodation.location}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4" />
-                <span>
-                  {accommodation.rating} ({accommodation.reviewsCount} reviews)
-                </span>
-              </div>
-              {accommodation.starRating && accommodation.starRating > 0 && (
+              <div className="flex flex-wrap items-center gap-x-4">
                 <div className="flex items-center gap-1">
-                  <StarRating rating={accommodation.starRating} />
+                  <Star className="h-4 w-4" />
+                  <span>
+                    {accommodation.rating} ({accommodation.reviewsCount} reviews)
+                  </span>
                 </div>
-              )}
-              <div className="flex items-center gap-1">
-                <Award className="h-4 w-4" />
-                <span>{accommodation.type}</span>
+                {accommodation.starRating && accommodation.starRating > 0 && (
+                  <div className="flex items-center gap-1">
+                    <StarRating rating={accommodation.starRating} />
+                  </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <Award className="h-4 w-4" />
+                  <span>{accommodation.type}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -325,6 +381,11 @@ export default function AccommodationDetailClient({
             places={pointsOfInterest}
             distanceUnit={preferences.distanceUnit}
           />
+
+          <Separator className="my-6" />
+
+          {/* Policies Section */}
+          <PoliciesSection accommodation={accommodation} />
 
           <Separator className="my-6" />
 

@@ -24,21 +24,21 @@ import {
   Info,
   Save,
   Trash2,
-  GripVertical,
   ArrowUp,
   ArrowDown,
   FilePen,
   Check,
   X,
+  MapPin,
 } from 'lucide-react';
 import type { Accommodation, Place, PoiCategory } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { updatePointsOfInterestAction } from '@/app/actions';
-import { DragDropContext, Droppable, Draggable, type DropResult } from 'react-beautiful-dnd';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
-import { APIProvider } from '@vis.gl/react-google-maps';
+import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Input } from './ui/input';
 
 // Helper for distance calculation
 function getDistance(
@@ -156,6 +156,153 @@ function getCategoryFromPlaceTypes(types: string[] = []): PoiCategory {
 type SortKey = 'name' | 'category' | 'distance' | 'visible';
 type SortDirection = 'asc' | 'desc';
 
+type PoiRowProps = {
+  place: Place;
+  preferences: { distanceUnit: 'km' | 'miles' };
+  editingRowId: string | null;
+  tempCategory: PoiCategory | null;
+  onEditClick: (place: Place) => void;
+  onSaveEdit: (id: string) => void;
+  onCancelEdit: () => void;
+  onCategoryChange: (category: PoiCategory) => void;
+  onVisibilityChange: (id: string, isVisible: boolean) => void;
+  onDelete: (id: string) => void;
+};
+
+const PoiRow = ({
+  place,
+  preferences,
+  editingRowId,
+  tempCategory,
+  onEditClick,
+  onSaveEdit,
+  onCancelEdit,
+  onCategoryChange,
+  onVisibilityChange,
+  onDelete,
+}: PoiRowProps) => {
+  const isEditing = editingRowId === place.id;
+
+  return (
+    <TableRow className={cn(place.isNew && 'bg-accent/50')}>
+      <TableCell>
+        <p className="font-medium">{place.name}</p>
+        <p className="text-xs text-muted-foreground hidden sm:block">{place.address}</p>
+      </TableCell>
+      <TableCell>
+        {isEditing ? (
+          <Select
+            value={tempCategory ?? place.category}
+            onValueChange={(val) => onCategoryChange(val as PoiCategory)}
+          >
+            <SelectTrigger className="justify-start text-left w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sortedPoiCategories.map((cat) => (
+                <SelectItem key={cat} value={cat} className="text-left">
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <span className="text-sm">{place.category}</span>
+        )}
+      </TableCell>
+      <TableCell className="hidden sm:table-cell text-muted-foreground">
+        {place.distance !== undefined
+          ? `${place.distance.toFixed(1)} ${preferences.distanceUnit}`
+          : 'N/A'}
+      </TableCell>
+      <TableCell className="text-center">
+        <Switch
+          checked={place.visible}
+          onCheckedChange={(checked) => onVisibilityChange(place.id, checked)}
+        />
+      </TableCell>
+      <TableCell className="text-right">
+        {isEditing ? (
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-green-600"
+              onClick={() => onSaveEdit(place.id)}
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive"
+              onClick={onCancelEdit}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onEditClick(place)}
+            >
+              <FilePen className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive"
+              onClick={() => onDelete(place.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+};
+
+function PlacesAutocomplete({
+  onPlaceSelected,
+  inputRef,
+}: {
+  onPlaceSelected: (place: google.maps.places.PlaceResult | null) => void;
+  inputRef: React.RefObject<HTMLInputElement>;
+}) {
+  const places = useMapsLibrary('places');
+
+  useEffect(() => {
+    if (!places || !inputRef.current) return;
+
+    const autocomplete = new places.Autocomplete(inputRef.current, {
+      fields: ['place_id', 'name', 'formatted_address', 'geometry', 'types'],
+    });
+
+    const listener = autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      onPlaceSelected(place);
+    });
+
+    return () => listener.remove();
+  }, [places, onPlaceSelected, inputRef]);
+
+  return (
+    <div className="relative w-full">
+      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+      <Input
+        ref={inputRef}
+        className="pl-10"
+        placeholder="Search for a place on Google Maps..."
+        onChange={() => onPlaceSelected(null)} // Clear selection if user types
+      />
+    </div>
+  );
+}
+
 export default function PointsOfInterest({
   listing,
   initialPlaces,
@@ -175,22 +322,8 @@ export default function PointsOfInterest({
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [tempCategory, setTempCategory] = useState<PoiCategory | null>(null);
 
-  const autocompleteRef = useRef<HTMLInputElement>(null);
   const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
-
-  useEffect(() => {
-    const autocomplete = autocompleteRef.current;
-    if (!autocomplete) return;
-
-    const listener = autocomplete.addEventListener('gmp-placechange', () => {
-      const place = autocomplete.place;
-      if (place?.place_id && place.name && place.formatted_address) {
-        setSelectedPlace(place);
-      }
-    });
-
-    return () => autocomplete.removeEventListener('gmp-placechange', listener);
-  }, []);
+  const placesInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddPlace = () => {
     if (!selectedPlace || !selectedPlace.place_id) {
@@ -230,18 +363,9 @@ export default function PointsOfInterest({
 
     setPlaces((prev) => [newPlace, ...prev]);
     setSelectedPlace(null);
-    if (autocompleteRef.current) {
-      autocompleteRef.current.value = '';
+    if (placesInputRef.current) {
+      placesInputRef.current.value = '';
     }
-  };
-
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-    const items = Array.from(places);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    setPlaces(items);
-    setSortConfig({ key: 'distance', direction: 'asc' }); // Reset sort after manual reorder
   };
 
   const handleEditClick = (place: Place) => {
@@ -278,7 +402,6 @@ export default function PointsOfInterest({
       const result = await updatePointsOfInterestAction(listing.id, placesToSave);
       if (result.success) {
         toast({ title: 'Changes Saved', description: 'Points of interest have been updated.' });
-        // Remove the isNew flag from the state after successful save
         setPlaces((prev) => prev.map((p) => ({ ...p, isNew: false })));
       } else {
         toast({
@@ -315,7 +438,6 @@ export default function PointsOfInterest({
     }
 
     sortableItems.sort((a, b) => {
-      // Always keep new items at the top
       if (a.isNew && !b.isNew) return -1;
       if (!a.isNew && b.isNew) return 1;
 
@@ -363,7 +485,7 @@ export default function PointsOfInterest({
   );
 
   return (
-    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''} libraries={['places']}>
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
@@ -391,11 +513,7 @@ export default function PointsOfInterest({
         <CardContent>
           <div className="mb-8 flex w-full flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex w-full md:w-1/2 items-center gap-2">
-              <gmp-place-autocomplete
-                ref={autocompleteRef}
-                class="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                placeholder="Search for a place on Google Maps..."
-              ></gmp-place-autocomplete>
+              <PlacesAutocomplete onPlaceSelected={setSelectedPlace} inputRef={placesInputRef} />
               <Button onClick={handleAddPlace} disabled={!selectedPlace}>
                 Add Place
               </Button>
@@ -430,140 +548,48 @@ export default function PointsOfInterest({
           </div>
 
           <div className="border rounded-lg bg-card">
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Table>
-                <TableHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <SortableHeader sortKey="name">Place</SortableHeader>
+                  <SortableHeader sortKey="category" className="w-72">
+                    Category
+                  </SortableHeader>
+                  <SortableHeader sortKey="distance" className="w-32 hidden sm:table-cell">
+                    Distance
+                  </SortableHeader>
+                  <SortableHeader sortKey="visible" className="w-24 text-center">
+                    Visible
+                  </SortableHeader>
+                  <TableHead className="w-32 text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedAndFilteredPlaces.length > 0 ? (
+                  sortedAndFilteredPlaces.map((place) => (
+                    <PoiRow
+                      key={place.id}
+                      place={place}
+                      preferences={preferences}
+                      editingRowId={editingRowId}
+                      tempCategory={tempCategory}
+                      onEditClick={handleEditClick}
+                      onSaveEdit={handleSaveEdit}
+                      onCancelEdit={handleCancelEdit}
+                      onCategoryChange={setTempCategory}
+                      onVisibilityChange={handleVisibilityChange}
+                      onDelete={handleDelete}
+                    />
+                  ))
+                ) : (
                   <TableRow>
-                    <TableHead className="w-12"></TableHead>
-                    <SortableHeader sortKey="name">Place</SortableHeader>
-                    <SortableHeader sortKey="category" className="w-72">
-                      Category
-                    </SortableHeader>
-                    <SortableHeader sortKey="distance" className="w-32 hidden sm:table-cell">
-                      Distance
-                    </SortableHeader>
-                    <SortableHeader sortKey="visible" className="w-24 text-center">
-                      Visible
-                    </SortableHeader>
-                    <TableHead className="w-32 text-right">Actions</TableHead>
+                    <TableCell colSpan={6} className="text-center py-4">
+                      No points of interest found for the selected category.
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <Droppable droppableId="pois" isDropDisabled={false}>
-                  {(provided) => (
-                    <TableBody ref={provided.innerRef} {...provided.droppableProps}>
-                      {sortedAndFilteredPlaces.length > 0 ? (
-                        sortedAndFilteredPlaces.map((place, index) => (
-                          <Draggable key={place.id} draggableId={place.id} index={index}>
-                            {(provided) => (
-                              <TableRow
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                className={cn(place.isNew && 'bg-accent/50')}
-                              >
-                                <TableCell
-                                  {...provided.dragHandleProps}
-                                  className="cursor-grab text-muted-foreground hover:text-foreground"
-                                >
-                                  <GripVertical className="h-5 w-5" />
-                                </TableCell>
-                                <TableCell>
-                                  <p className="font-medium">{place.name}</p>
-                                  <p className="text-xs text-muted-foreground hidden sm:block">
-                                    {place.address}
-                                  </p>
-                                </TableCell>
-                                <TableCell>
-                                  {editingRowId === place.id ? (
-                                    <Select
-                                      value={tempCategory ?? place.category}
-                                      onValueChange={(val) => setTempCategory(val as PoiCategory)}
-                                    >
-                                      <SelectTrigger className="justify-start text-left w-full">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {sortedPoiCategories.map((cat) => (
-                                          <SelectItem key={cat} value={cat} className="text-left">
-                                            {cat}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  ) : (
-                                    <span className="text-sm">{place.category}</span>
-                                  )}
-                                </TableCell>
-                                <TableCell className="hidden sm:table-cell text-muted-foreground">
-                                  {place.distance !== undefined
-                                    ? `${place.distance.toFixed(1)} ${preferences.distanceUnit}`
-                                    : 'N/A'}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Switch
-                                    checked={place.visible}
-                                    onCheckedChange={(checked) =>
-                                      handleVisibilityChange(place.id, checked)
-                                    }
-                                  />
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {editingRowId === place.id ? (
-                                    <div className="flex items-center justify-end gap-2">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-green-600"
-                                        onClick={() => handleSaveEdit(place.id)}
-                                      >
-                                        <Check className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-destructive"
-                                        onClick={handleCancelEdit}
-                                      >
-                                        <X className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center justify-end gap-2">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => handleEditClick(place)}
-                                      >
-                                        <FilePen className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-destructive"
-                                        onClick={() => handleDelete(place.id)}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </Draggable>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-4">
-                            No points of interest found for the selected category.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                      {provided.placeholder}
-                    </TableBody>
-                  )}
-                </Droppable>
-              </Table>
-            </DragDropContext>
+                )}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

@@ -33,5 +33,9 @@ export default async function UnitsPage({ params }: { params: { id: string } }) 
     );
   }
 
+  // The client component for this page doesn't directly use `lastModified`,
+  // so serialization isn't strictly necessary for the passed props.
+  // However, it's good practice to be aware of what is being passed.
+
   return <UnitsPageClient listing={listing} />;
 }

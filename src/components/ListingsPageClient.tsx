@@ -164,7 +164,9 @@ export default function ListingsPageClient({
           description: `The listing status has been changed to ${status}.`,
         });
         setProperties((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, status, lastModified: new Date() } : p))
+          prev.map((p) =>
+            p.id === id ? { ...p, status, lastModified: new Date().toISOString() } : p
+          )
         );
       } else {
         toast({
@@ -538,7 +540,7 @@ export default function ListingsPageClient({
         </TableBody>
       </Table>
 
-      {totalPages > 0 && (
+      {totalPages > 1 && (
         <div className="flex items-center justify-end mt-4">
           <Pagination>
             <PaginationContent>

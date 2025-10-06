@@ -56,6 +56,9 @@ export type Accommodation = {
   lastModified: Date;
   status: 'Published' | 'Draft' | 'Archived';
   description?: string;
+  paymentTerms?: string;
+  cancellationPolicy?: string;
+  houseRules?: string;
 };
 
 export type Booking = {

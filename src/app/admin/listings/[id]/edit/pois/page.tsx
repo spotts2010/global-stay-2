@@ -6,16 +6,8 @@ import { fetchAccommodationById, fetchPointsOfInterest } from '@/lib/firestore.s
 import PointsOfInterest from '@/components/PointsOfInterest';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
-// Helper to check if a value is a Firestore-like Timestamp
-function isTimestamp(value: unknown): value is { toDate: () => Date } {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as { toDate: () => Date }).toDate === 'function'
-  );
-}
-
 export default async function PoisPage({ params }: { params: { id: string } }) {
+  // Data is already serialized by the fetching functions
   const listingData = await fetchAccommodationById(params.id);
   const initialPlaces: Place[] = await fetchPointsOfInterest(params.id);
 
@@ -32,30 +24,19 @@ export default async function PoisPage({ params }: { params: { id: string } }) {
     );
   }
 
-  // Create a serializable version of the listing object
-  const serializableListing = {
-    ...listingData,
-    lastModified: isTimestamp(listingData.lastModified)
-      ? listingData.lastModified.toDate().toISOString()
-      : new Date().toISOString(), // Fallback
-  };
-
   return (
     <div className="space-y-6">
       <Breadcrumbs
         items={[
           { label: 'Listings', href: '/admin/listings' },
           {
-            label: serializableListing.name,
-            href: `/admin/listings/${serializableListing.id}/edit/about`,
+            label: listingData.name,
+            href: `/admin/listings/${listingData.id}/edit/about`,
           },
           { label: 'Points of Interest' },
         ]}
       />
-      <PointsOfInterest
-        listing={serializableListing as Accommodation}
-        initialPlaces={initialPlaces}
-      />
+      <PointsOfInterest listing={listingData as Accommodation} initialPlaces={initialPlaces} />
     </div>
   );
 }

@@ -4,15 +4,6 @@ import { fetchAccommodationById, fetchPointsOfInterest } from '@/lib/firestore.s
 import AccommodationDetailClient from '@/components/AccommodationDetailClient';
 import type { Accommodation } from '@/lib/data';
 
-// Helper to check if a value is a Firestore-like Timestamp and convert it
-function isTimestamp(value: unknown): value is { toDate: () => Date } {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as { toDate: () => Date }).toDate === 'function'
-  );
-}
-
 // This is now a SERVER component responsible for data fetching
 export default async function AccommodationDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -21,7 +12,7 @@ export default async function AccommodationDetailPage({ params }: { params: { id
     return <div>Error: Accommodation ID is missing.</div>;
   }
 
-  // Fetch all data on the server first
+  // Fetch all data on the server first. The data is already serialized.
   const accommodationData = await fetchAccommodationById(id);
   const poiData = await fetchPointsOfInterest(id);
 
@@ -36,17 +27,9 @@ export default async function AccommodationDetailPage({ params }: { params: { id
     );
   }
 
-  // Ensure all data passed to the client component is serializable
-  const serializableAccommodation = {
-    ...accommodationData,
-    lastModified: isTimestamp(accommodationData.lastModified)
-      ? accommodationData.lastModified.toDate().toISOString()
-      : new Date().toISOString(),
-  } as Accommodation;
-
   return (
     <AccommodationDetailClient
-      accommodation={serializableAccommodation}
+      accommodation={accommodationData as Accommodation}
       pointsOfInterest={poiData}
     />
   );

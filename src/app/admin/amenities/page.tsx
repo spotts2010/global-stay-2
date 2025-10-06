@@ -4,8 +4,8 @@ import { fetchSharedAmenities, fetchPrivateInclusions } from '@/lib/firestore.se
 import AmenitiesManagementClient from '@/components/AmenitiesPageClient';
 
 export default async function AmenitiesPage() {
-  const initialSharedAmenities = await fetchSharedAmenities();
-  const initialPrivateInclusions = await fetchPrivateInclusions();
+  const initialSharedAmenities = (await fetchSharedAmenities()) || [];
+  const initialPrivateInclusions = (await fetchPrivateInclusions()) || [];
 
   return (
     <div className="flex-1 space-y-6">

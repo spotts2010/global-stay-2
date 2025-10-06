@@ -6,35 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { LayoutList, Loader2 } from 'lucide-react';
 import ListingsPageClient from '@/components/ListingsPageClient';
 
-function isTimestamp(value: unknown): value is { toDate: () => Date } {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as { toDate: () => Date }).toDate === 'function'
-  );
-}
-
 // Define the placeholder image URL
 const PLACEHOLDER_IMAGE = 'https://picsum.photos/seed/1/64/64';
 
 export default async function AdminListingsPage() {
+  // Data is already serialized by the fetching function
   const properties: Accommodation[] = await fetchAccommodations();
 
   // Sanitize properties on the server to ensure valid image URLs
-  const serializableProperties = properties.map((p) => {
+  const sanitizedProperties = properties.map((p) => {
     // Determine the cover image. Use the first valid image, or the placeholder.
     const coverImage =
       p.images && p.images.length > 0 && p.images[0] ? p.images[0] : PLACEHOLDER_IMAGE;
-
-    return {
-      ...p,
-      // Ensure lastModified is a serializable string
-      lastModified: isTimestamp(p.lastModified)
-        ? p.lastModified.toDate().toISOString()
-        : new Date().toISOString(),
-      // Set the main `image` prop to a guaranteed valid URL for the client component.
-      image: coverImage,
-    };
+    return { ...p, image: coverImage };
   });
 
   return (
@@ -55,7 +39,7 @@ export default async function AdminListingsPage() {
           }
         >
           <ListingsPageClient
-            initialProperties={serializableProperties as unknown as Accommodation[]}
+            initialProperties={sanitizedProperties as unknown as Accommodation[]}
           />
         </Suspense>
       </CardContent>
