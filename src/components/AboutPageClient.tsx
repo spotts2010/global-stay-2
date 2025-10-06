@@ -35,7 +35,7 @@ import { Save, Loader2, Home, MapPin } from 'lucide-react';
 import React, { useEffect, useState, useTransition, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { updateAccommodationAction } from '@/app/actions';
-import { APIProvider, Map, AdvancedMarker, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, useMapsLibrary, Pin } from '@vis.gl/react-google-maps';
 import { Skeleton } from './ui/skeleton';
 
 const propertyFormSchema = z.object({
@@ -106,7 +106,13 @@ function AddressAutocomplete({
   );
 }
 
-function MapView({ markerPosition }: { markerPosition: Position | null }) {
+function MapView({
+  markerPosition,
+  onMarkerDragEnd,
+}: {
+  markerPosition: Position | null;
+  onMarkerDragEnd: (e: google.maps.MapMouseEvent) => void;
+}) {
   const mapKey = useMemo(
     () => (markerPosition ? `${markerPosition.lat}-${markerPosition.lng}` : 'initial'),
     [markerPosition]
@@ -123,7 +129,11 @@ function MapView({ markerPosition }: { markerPosition: Position | null }) {
         gestureHandling={'auto'}
         disableDefaultUI={false}
       >
-        {markerPosition && <AdvancedMarker position={markerPosition} />}
+        {markerPosition && (
+          <AdvancedMarker position={markerPosition} gmpDraggable onDragEnd={onMarkerDragEnd}>
+            <Pin background={'#FBBC04'} glyphColor={'#000'} borderColor={'#000'} />
+          </AdvancedMarker>
+        )}
       </Map>
     </div>
   );
@@ -204,6 +214,18 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
       };
       setMarkerPosition(newPosition);
       form.setValue('location', place.formatted_address || '', { shouldDirty: true });
+      form.setValue('lat', newPosition.lat, { shouldDirty: true });
+      form.setValue('lng', newPosition.lng, { shouldDirty: true });
+    }
+  };
+
+  const handleMarkerDragEnd = (e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      const newPosition = {
+        lat: e.latLng.lat(),
+        lng: e.latLng.lng(),
+      };
+      setMarkerPosition(newPosition);
       form.setValue('lat', newPosition.lat, { shouldDirty: true });
       form.setValue('lng', newPosition.lng, { shouldDirty: true });
     }
@@ -374,7 +396,10 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
 
                     <div className="space-y-2">
                       <FormLabel>Map View</FormLabel>
-                      <MapView markerPosition={markerPosition} />
+                      <MapView
+                        markerPosition={markerPosition}
+                        onMarkerDragEnd={handleMarkerDragEnd}
+                      />
                     </div>
                   </div>
                 </APIProvider>
