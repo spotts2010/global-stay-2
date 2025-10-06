@@ -130,7 +130,10 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
   );
 
   useEffect(() => {
-    setIsDirty(JSON.stringify(images) !== JSON.stringify(listing.images));
+    // Compare arrays by value, not by reference
+    const imagesString = JSON.stringify(images.sort());
+    const listingImagesString = JSON.stringify((listing.images || []).sort());
+    setIsDirty(imagesString !== listingImagesString);
   }, [images, listing.images]);
 
   function handleDragEnd(event: DragEndEvent) {
@@ -176,7 +179,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const result = await res.json();
-      if (res.ok && result.success && result.urls) {
+      if (res.ok && result.success && Array.isArray(result.urls)) {
         setImages((prev) => [...prev, ...result.urls]);
         toast({
           title: 'Images Ready',
@@ -184,7 +187,9 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
         });
         setFilesToUpload([]);
         setIsAddModalOpen(false);
-      } else throw new Error(result.error || 'Unknown error');
+      } else {
+        throw new Error(result.error || 'Unknown upload error');
+      }
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -202,7 +207,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
       const result = await updateAccommodationAction(listing.id, dataToSave);
       if (result.success) {
         toast({ title: 'Changes Saved', description: 'Photo gallery updated.' });
-        listing.images = images;
+        listing.images = [...images]; // Update original listing data to match
         setIsDirty(false);
       } else {
         toast({

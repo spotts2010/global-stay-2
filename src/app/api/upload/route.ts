@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
@@ -14,12 +15,19 @@ export async function POST(request: Request) {
     const publicPath = path.join(process.cwd(), 'public', 'uploads');
     await fs.mkdir(publicPath, { recursive: true });
 
+    const requestHeaders = headers();
+    const host = requestHeaders.get('host') || 'localhost:3000';
+    // Force HTTPS for all non-localhost environments to ensure correct URL construction
+    const protocol = host.startsWith('localhost') ? 'http' : 'https';
+
     const urls: string[] = [];
     for (const file of files) {
       const buffer = Buffer.from(await file.arrayBuffer());
-      const filename = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+      // Sanitize filename to prevent path traversal issues
+      const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
       await fs.writeFile(path.join(publicPath, filename), buffer);
-      urls.push(`/uploads/${filename}`);
+      // Construct the full, absolute URL for the uploaded file
+      urls.push(`${protocol}://${host}/uploads/${filename}`);
     }
 
     return NextResponse.json({ success: true, urls });

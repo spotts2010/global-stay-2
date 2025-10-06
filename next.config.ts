@@ -44,6 +44,23 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      // Trust images from the deployed application host
+      {
+        protocol: 'https',
+        hostname: '*.apphosting.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.hosted.app',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.firebaseapp.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
     ],
   },
 };
