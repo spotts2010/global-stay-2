@@ -81,7 +81,7 @@ export default function ListingsPageClient({
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { preferences } = useUserPreferences();
-  const [isPending, startTransition] = useTransition();
+  const [_isPendingGlobal, startTransition] = useTransition();
 
   const [properties, setProperties] = useState<EnrichedProperty[]>([]);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
@@ -94,6 +94,8 @@ export default function ListingsPageClient({
     key: (searchParams.get('sortKey') as SortKey) || 'lastModified',
     direction: (searchParams.get('sortDir') as SortDirection) || 'desc',
   });
+
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setSearchTerm(searchParams.get('q') || '');
@@ -148,7 +150,14 @@ export default function ListingsPageClient({
 
   const handleStatusChange = (id: string, status: 'Published' | 'Draft' | 'Archived') => {
     startTransition(async () => {
+      setPendingIds((prev) => new Set(prev).add(id));
       const result = await updateAccommodationStatusAction(id, status);
+      setPendingIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
+
       if (result.success) {
         toast({
           title: 'Status Updated',
@@ -192,15 +201,13 @@ export default function ListingsPageClient({
     const country = parts[parts.length - 1];
     let city = parts[0];
 
-    // Handle US address format where state and zip might be present
     if (country.toLowerCase() === 'usa' || country.toLowerCase() === 'united states') {
       if (parts.length > 2) {
-        city = parts[parts.length - 3]; // Assumes format: City, ST ZIP, USA
+        city = parts[parts.length - 3];
       }
       return `${city}, USA`;
     }
 
-    // Handle international formats
     if (parts.length > 1) {
       city = parts[parts.length - 2];
     }
@@ -232,12 +239,8 @@ export default function ListingsPageClient({
       aValue = aValue ?? '';
       bValue = bValue ?? '';
 
-      if (aValue < bValue) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
-      }
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
   }, [properties, statusFilter, searchTerm, sortConfig, preferences.currency]);
@@ -319,7 +322,7 @@ export default function ListingsPageClient({
           </DropdownMenu>
           <Button size="sm" variant="outline" className="h-8 gap-1">
             <Upload className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-rap">Import</span>
+            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Import</span>
           </Button>
           <Button asChild size="sm" className="h-8 gap-1">
             <Link href="/admin/listings/new">
@@ -361,10 +364,9 @@ export default function ListingsPageClient({
                 property.currency,
                 preferences.currency
               );
-              // The `images` array is what determines publishability.
               const canPublish = property.images && property.images.length > 0;
-              // The `image` prop is guaranteed by the server component to be a valid URL or placeholder.
               const coverImage = property.image;
+              const isPending = pendingIds.has(property.id);
 
               return (
                 <TableRow key={property.id}>
@@ -407,8 +409,9 @@ export default function ListingsPageClient({
                   <TableCell>
                     <TooltipProvider>
                       <div className="flex items-center justify-end gap-2">
+                        {/* Edit */}
                         <Tooltip>
-                          <TooltipTrigger>
+                          <TooltipTrigger asChild>
                             <Button asChild variant="ghost" size="icon" className="h-8 w-8">
                               <Link href={getEditUrl(property.id)}>
                                 <FilePen className="h-4 w-4" />
@@ -420,8 +423,9 @@ export default function ListingsPageClient({
                           </TooltipContent>
                         </Tooltip>
 
+                        {/* Duplicate */}
                         <Tooltip>
-                          <TooltipTrigger>
+                          <TooltipTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
                               <Copy className="h-4 w-4" />
                             </Button>
@@ -431,9 +435,10 @@ export default function ListingsPageClient({
                           </TooltipContent>
                         </Tooltip>
 
+                        {/* Publish / Draft / Archive */}
                         {property.status === 'Published' || property.status === 'Archived' ? (
                           <Tooltip>
-                            <TooltipTrigger>
+                            <TooltipTrigger asChild>
                               <Button
                                 variant="outline"
                                 size="icon"
@@ -454,7 +459,7 @@ export default function ListingsPageClient({
                           </Tooltip>
                         ) : (
                           <Tooltip>
-                            <TooltipTrigger disabled={!canPublish}>
+                            <TooltipTrigger asChild>
                               <Button
                                 variant="outline"
                                 size="icon"
@@ -469,22 +474,20 @@ export default function ListingsPageClient({
                                 )}
                               </Button>
                             </TooltipTrigger>
-                            {!canPublish && (
-                              <TooltipContent>
-                                <p>A cover image is required to publish.</p>
-                              </TooltipContent>
-                            )}
-                            {canPublish && (
-                              <TooltipContent>
+                            <TooltipContent>
+                              {canPublish ? (
                                 <p>Publish Listing</p>
-                              </TooltipContent>
-                            )}
+                              ) : (
+                                <p>A cover image is required to publish.</p>
+                              )}
+                            </TooltipContent>
                           </Tooltip>
                         )}
 
+                        {/* Delete / Archive */}
                         {property.status === 'Draft' ? (
                           <Tooltip>
-                            <TooltipTrigger>
+                            <TooltipTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -499,7 +502,7 @@ export default function ListingsPageClient({
                           </Tooltip>
                         ) : (
                           <Tooltip>
-                            <TooltipTrigger>
+                            <TooltipTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="icon"
