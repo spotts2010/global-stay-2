@@ -4,8 +4,8 @@ import React, { useState, useEffect, useTransition } from 'react';
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
   KeyboardSensor,
+  PointerSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -14,11 +14,10 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
   rectSortingStrategy,
+  useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +30,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { Loader2, ImageIcon, UploadCloud, Save, Trash2, GripVertical, Camera } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import type { Accommodation } from '@/lib/data';
+import { updateAccommodationAction } from '@/app/actions';
+import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,15 +48,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Loader2, ImageIcon, UploadCloud, Save, Trash2, GripVertical, Camera } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import type { Accommodation } from '@/lib/data';
-import { updateAccommodationAction } from '@/app/actions';
-import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
 
-function SortableImage({
+const SortablePhoto = ({
   id,
   index,
   onDelete,
@@ -58,19 +57,16 @@ function SortableImage({
   id: string;
   index: number;
   onDelete: (id: string) => void;
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id,
-  });
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 20 : 'auto', // Higher z-index when dragging
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="relative w-40 h-40 rounded-lg group">
+    <div ref={setNodeRef} style={style} className="relative w-40 h-40 rounded-lg group touch-none">
       <Image
         src={id}
         alt={`Property image ${index + 1}`}
@@ -78,24 +74,19 @@ function SortableImage({
         sizes="160px"
         className="object-cover rounded-lg"
       />
-
-      {/* Drag Handle - Top Right */}
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-2 right-2 cursor-grab p-1 text-white opacity-60 hover:opacity-100 rounded-md bg-black/30 z-10" // Ensure z-index is higher
+        className="absolute top-2 right-2 cursor-grab p-1 text-white opacity-60 hover:opacity-100 rounded-md bg-black/30 z-10"
         aria-label="Drag to reorder"
       >
         <GripVertical className="h-5 w-5" />
       </div>
-
       {index === 0 && (
         <Badge variant="secondary" className="absolute top-2 left-2 bg-black/60 text-white z-10">
           Cover
         </Badge>
       )}
-
-      {/* Delete Button Overlay - Bottom Right */}
       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-end p-2 rounded-lg">
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -120,7 +111,7 @@ function SortableImage({
       </div>
     </div>
   );
-}
+};
 
 export default function PhotosPageClient({ listing }: { listing: Accommodation }) {
   const { toast } = useToast();
@@ -131,10 +122,6 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
   const [isPending, startTransition] = useTransition();
   const [isDirty, setIsDirty] = useState(false);
 
-  useEffect(() => {
-    setIsDirty(JSON.stringify(images) !== JSON.stringify(listing.images));
-  }, [images, listing.images]);
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -142,13 +129,17 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
     })
   );
 
+  useEffect(() => {
+    setIsDirty(JSON.stringify(images) !== JSON.stringify(listing.images));
+  }, [images, listing.images]);
+
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      setImages((currentImages) => {
-        const oldIndex = currentImages.findIndex((img) => img === active.id);
-        const newIndex = currentImages.findIndex((img) => img === over.id);
-        return arrayMove(currentImages, oldIndex, newIndex);
+    if (active.id !== over?.id) {
+      setImages((items) => {
+        const oldIndex = items.indexOf(active.id as string);
+        const newIndex = items.indexOf(over!.id as string);
+        return arrayMove(items, oldIndex, newIndex);
       });
     }
   }
@@ -264,9 +255,8 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
             <SortableContext items={images} strategy={rectSortingStrategy}>
               <div className="flex flex-wrap gap-4">
                 {images.map((img, index) => (
-                  <SortableImage key={img} id={img} index={index} onDelete={handleDeleteImage} />
+                  <SortablePhoto key={img} id={img} index={index} onDelete={handleDeleteImage} />
                 ))}
-
                 <div
                   onClick={() => setIsAddModalOpen(true)}
                   className="w-40 h-40 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer text-muted-foreground hover:bg-accent"

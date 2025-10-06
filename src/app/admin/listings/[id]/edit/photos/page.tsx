@@ -1,68 +1,56 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
-import { Loader2 } from 'lucide-react';
+// src/app/admin/listings/[id]/edit/photos/page.tsx
+import 'server-only';
 import type { Accommodation } from '@/lib/data';
-import { fetchAccommodationById } from '@/lib/firestore';
-import { useParams } from 'next/navigation';
+import { fetchAccommodationById } from '@/lib/firestore.server';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import PhotosPageClient from '@/components/PhotosPageClient';
 
-// Dynamically import the client component that uses react-beautiful-dnd
-const PhotosPageClient = dynamic(() => import('@/components/PhotosPageClient'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-96 w-full items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-    </div>
-  ),
-});
+// Helper to check if a value is a Firestore-like Timestamp
+function isTimestamp(value: unknown): value is { toDate: () => Date } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { toDate: () => Date }).toDate === 'function'
+  );
+}
 
-export default function PhotosPage() {
-  const params = useParams();
-  const id = params.id as string;
-  const [listing, setListing] = useState<Accommodation | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadListing = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchAccommodationById(id);
-        if (data) {
-          setListing(data);
-        } else {
-          setError('Listing not found.');
-        }
-      } catch (err) {
-        setError('Failed to load listing data.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) {
-      loadListing();
-    }
-  }, [id]);
-
-  if (loading) {
+// This is now a SERVER component responsible for data fetching
+export default async function PhotosPage({ params }: { params: { id: string } }) {
+  if (!params.id) {
     return (
-      <div className="flex h-full min-h-[50vh] w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>No listing ID provided.</p>
+        </CardContent>
+      </Card>
     );
   }
 
-  if (error || !listing) {
+  const listing = await fetchAccommodationById(params.id);
+
+  if (!listing) {
     return (
-      <div className="text-center text-destructive">
-        <h1 className="font-bold text-2xl">Error</h1>
-        <p>{error || 'An unknown error occurred.'}</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Listing not found.</p>
+        </CardContent>
+      </Card>
     );
   }
 
-  // The PhotosPageClient component is now rendered dynamically on the client side only
-  return <PhotosPageClient listing={listing} />;
+  // Ensure all data passed to the client component is serializable
+  const serializableListing = {
+    ...listing,
+    lastModified: isTimestamp(listing.lastModified)
+      ? listing.lastModified.toDate().toISOString()
+      : new Date().toISOString(), // Fallback
+  };
+
+  return <PhotosPageClient listing={serializableListing as Accommodation} />;
 }

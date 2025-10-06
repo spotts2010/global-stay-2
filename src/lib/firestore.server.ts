@@ -15,7 +15,10 @@ type AmenityOrInclusion = {
 export async function fetchAccommodations(): Promise<Accommodation[]> {
   try {
     const adminDb = getAdminDb();
-    const accommodationsSnapshot = await adminDb.collection('accommodations').get();
+    const accommodationsSnapshot = await adminDb
+      .collection('accommodations')
+      .where('status', '==', 'Published')
+      .get();
     if (accommodationsSnapshot.empty) {
       return [];
     }
