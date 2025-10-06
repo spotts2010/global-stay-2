@@ -408,7 +408,7 @@ export default function ListingsPageClient({
                     <TooltipProvider>
                       <div className="flex items-center justify-end gap-2">
                         <Tooltip>
-                          <TooltipTrigger asChild>
+                          <TooltipTrigger>
                             <Button asChild variant="ghost" size="icon" className="h-8 w-8">
                               <Link href={getEditUrl(property.id)}>
                                 <FilePen className="h-4 w-4" />
@@ -421,7 +421,7 @@ export default function ListingsPageClient({
                         </Tooltip>
 
                         <Tooltip>
-                          <TooltipTrigger asChild>
+                          <TooltipTrigger>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
                               <Copy className="h-4 w-4" />
                             </Button>
@@ -433,7 +433,7 @@ export default function ListingsPageClient({
 
                         {property.status === 'Published' || property.status === 'Archived' ? (
                           <Tooltip>
-                            <TooltipTrigger asChild>
+                            <TooltipTrigger>
                               <Button
                                 variant="outline"
                                 size="icon"
@@ -484,7 +484,7 @@ export default function ListingsPageClient({
 
                         {property.status === 'Draft' ? (
                           <Tooltip>
-                            <TooltipTrigger asChild>
+                            <TooltipTrigger>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -499,7 +499,7 @@ export default function ListingsPageClient({
                           </Tooltip>
                         ) : (
                           <Tooltip>
-                            <TooltipTrigger asChild>
+                            <TooltipTrigger>
                               <Button
                                 variant="ghost"
                                 size="icon"
