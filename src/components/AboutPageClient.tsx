@@ -32,10 +32,10 @@ import { z } from 'zod';
 import type { Accommodation } from '@/lib/data';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Save, Loader2, Home, MapPin } from 'lucide-react';
-import React, { useEffect, useState, useTransition, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useTransition, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { updateAccommodationAction } from '@/app/actions';
-import { APIProvider, Map, AdvancedMarker, useMapsLibrary, Pin } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Skeleton } from './ui/skeleton';
 
 const propertyFormSchema = z.object({
@@ -72,7 +72,6 @@ function AddressAutocomplete({
     setAutocomplete(ac);
 
     return () => {
-      // Clean up listener when component unmounts
       if (ac) {
         google.maps.event.clearInstanceListeners(ac);
       }
@@ -109,15 +108,12 @@ function AddressAutocomplete({
 function MapView({
   markerPosition,
   onMarkerDragEnd,
+  mapKey,
 }: {
   markerPosition: Position | null;
   onMarkerDragEnd: (e: google.maps.MapMouseEvent) => void;
+  mapKey: number;
 }) {
-  const mapKey = useMemo(
-    () => (markerPosition ? `${markerPosition.lat}-${markerPosition.lng}` : 'initial'),
-    [markerPosition]
-  );
-
   return (
     <div style={{ height: '400px', width: '100%' }} className="rounded-lg overflow-hidden border">
       <Map
@@ -130,9 +126,11 @@ function MapView({
         disableDefaultUI={false}
       >
         {markerPosition && (
-          <AdvancedMarker position={markerPosition} gmpDraggable onDragEnd={onMarkerDragEnd}>
-            <Pin background={'#FBBC04'} glyphColor={'#000'} borderColor={'#000'} />
-          </AdvancedMarker>
+          <AdvancedMarker
+            position={markerPosition}
+            gmpDraggable
+            onDragEnd={onMarkerDragEnd}
+          ></AdvancedMarker>
         )}
       </Map>
     </div>
@@ -184,6 +182,7 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [hasMounted, setHasMounted] = useState(false);
+  const [mapKey, setMapKey] = useState(0);
 
   useEffect(() => {
     setHasMounted(true);
@@ -206,16 +205,19 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
     listing.lat && listing.lng ? { lat: listing.lat, lng: listing.lng } : null
   );
 
+  const [tempMarkerPosition, setTempMarkerPosition] = useState<Position | null>(markerPosition);
+
   const handlePlaceSelected = (place: google.maps.places.PlaceResult) => {
     if (place.geometry?.location) {
       const newPosition = {
         lat: place.geometry.location.lat(),
         lng: place.geometry.location.lng(),
       };
-      setMarkerPosition(newPosition);
+      setTempMarkerPosition(newPosition);
       form.setValue('location', place.formatted_address || '', { shouldDirty: true });
       form.setValue('lat', newPosition.lat, { shouldDirty: true });
       form.setValue('lng', newPosition.lng, { shouldDirty: true });
+      setMapKey((prevKey) => prevKey + 1); // Change key to force map re-render
     }
   };
 
@@ -225,7 +227,7 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
         lat: e.latLng.lat(),
         lng: e.latLng.lng(),
       };
-      setMarkerPosition(newPosition);
+      setTempMarkerPosition(newPosition); // Update temp position
       form.setValue('lat', newPosition.lat, { shouldDirty: true });
       form.setValue('lng', newPosition.lng, { shouldDirty: true });
     }
@@ -239,6 +241,11 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
           title: 'Changes Saved',
           description: 'The property details have been updated.',
         });
+        if (formData.lat && formData.lng) {
+          setMarkerPosition({ lat: formData.lat, lng: formData.lng });
+          setTempMarkerPosition({ lat: formData.lat, lng: formData.lng });
+          setMapKey((prevKey) => prevKey + 1); // Force map to re-center on saved location
+        }
         form.reset(formData);
       } else {
         toast({
@@ -397,8 +404,9 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
                     <div className="space-y-2">
                       <FormLabel>Map View</FormLabel>
                       <MapView
-                        markerPosition={markerPosition}
+                        markerPosition={tempMarkerPosition}
                         onMarkerDragEnd={handleMarkerDragEnd}
+                        mapKey={mapKey}
                       />
                     </div>
                   </div>
