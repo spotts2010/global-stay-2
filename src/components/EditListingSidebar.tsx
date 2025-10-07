@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   ListChecks,
-  Calendar,
+  CalendarDays,
   ImageIcon,
   Info,
   Package2,
@@ -42,7 +42,7 @@ export const menuItems = [
   },
   { label: 'Unit Setup', href: '/edit/units', icon: BedDouble },
   { label: 'User Access', href: '/edit/users', icon: Users },
-  { label: 'Publish Schedule', href: '/edit/schedule', icon: Calendar },
+  { label: 'Publish Schedule', href: '/edit/schedule', icon: CalendarDays },
 ];
 
 export function EditListingSidebar({
