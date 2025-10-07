@@ -21,8 +21,15 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["jest", "@types/google.maps", "@googlemaps/extended-component-library"]
+    "types": ["jest", "@types/google.maps"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "jest.setup.mjs"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "src/types/**/*.d.ts",
+    ".next/types/**/*.ts",
+    "jest.setup.mjs"
+  ],
   "exclude": ["node_modules"]
 }

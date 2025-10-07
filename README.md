@@ -84,7 +84,6 @@ The action buttons displayed on the notification detail page change based on the
     - Update the "Collections" page to dynamically filter and display accommodations that match the tags associated with each collection (e.g., the "Beach Villas" collection would show all listings tagged with `beach` and `villa`).
 - **Dynamic Amenity Loading**: Refactor the amenities management in the admin section to dynamically load the list of available amenities from a central Firestore collection, rather than using a hard-coded list in the component. This will make the system more scalable and easier to manage.
 - **Secure Document Hosting**: Implement a secure, encrypted hosting solution for travel documents (passports, licenses). This feature would allow users to optionally attach their documents to bookings, speeding up the check-in and booking process. Security and privacy must be the top priorities.
-- **Image File Storage Backend**: Implement a file storage solution (e.g., Firebase Storage) to allow for actual file uploads in the "Photo Gallery" management section, replacing the current URL-based system.
 - **Language Translations API**: Integration with a translation service for global language support.
 - **Global Currency Conversion Integration**: Real-time currency conversion for pricing.
 - **Dynamic Language/Currency Selector**: The Language/Currency indicator in the main header will become an actionable item. When clicked, it will open a modal allowing users to temporarily change their language and currency for the current browsing session. This modal will also provide a choice to make the change permanent by updating their default profile settings.
@@ -146,6 +145,11 @@ The action buttons displayed on the notification detail page change based on the
 
 ### Resolved Issues
 
+- **Image Upload Functionality** (Resolved: 07/10/2024): A persistent series of errors ("Failed to fetch", "req.on is not a function", "bucket does not exist") were preventing image uploads from working correctly. The root cause was identified as a non-existent Firebase Storage bucket and incorrect initialization of the Firebase Admin SDK. The issue has been fully resolved by:
+  1.  The user creating the necessary Storage Bucket in the Firebase Console.
+  2.  Updating the Firebase Admin initialization code (`src/lib/firebaseAdmin.ts`) to correctly use the `storageBucket` environment variable.
+  3.  Implementing a production-grade `storage.rules` file to secure the new bucket.
+  4.  Refactoring the upload API route (`src/app/api/listings/[id]/upload/route.ts`) to use modern `req.formData()` and to correctly handle file buffers, removing the incompatible `formidable` dependency.
 - **`use()` Hook in Client Component** (Resolved: 26/09/2024): The `/admin/listings/[id]/edit/pois` page was incorrectly using the React `use()` hook within a `useEffect` block, which is not a valid pattern and was causing data fetching to fail intermittently. The `use()` hook was removed, and the component now relies solely on standard `useEffect` for client-side data fetching, ensuring that the POIs load correctly and consistently.
 - **Incorrect POI Category Mapping** (Resolved: 26/09/2024): Natural features like beaches were being incorrectly assigned the 'Default' category. This was because the `natural_feature` place type from Google was missing from the category mapping function. The mapping has been updated to correctly assign these places to the 'Nature & Outdoors' category.
 - **Map Interaction Issues** (Resolved: 26/09/2024): The interactive maps on both the accommodation detail page and the admin "Edit Listing" page were not allowing users to pan or zoom. This was caused by the map components being initialized without a valid `mapId`. The issue was resolved by adding `mapId="DEMO_MAP_ID"` to the `<Map>` components, which is a requirement for using Advanced Markers and enables full interactivity.

@@ -6,9 +6,9 @@ import fs from 'fs';
 dotenv.config({ path: '.env.local' });
 dotenv.config({ path: '.env' });
 
-function getAdminDb() {
+function initializeAdminApp() {
   if (admin.apps.length > 0) {
-    return admin.firestore();
+    return;
   }
 
   try {
@@ -31,8 +31,15 @@ function getAdminDb() {
       serviceAccount = JSON.parse(fs.readFileSync(keyString, 'utf8'));
     }
 
+    // This is the correct bucket name, now that it has been created.
+    const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+    if (!storageBucket) {
+      throw new Error('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET environment variable is not set.');
+    }
+
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
+      storageBucket: storageBucket,
     });
   } catch (error) {
     console.error('Firebase Admin SDK initialization failed:', error);
@@ -44,8 +51,16 @@ function getAdminDb() {
     // Throw a more specific error to make debugging easier in the future.
     throw new Error(errorMessage);
   }
+}
 
+function getAdminDb() {
+  initializeAdminApp();
   return admin.firestore();
 }
 
-export { getAdminDb };
+function getAdminStorage() {
+  initializeAdminApp();
+  return admin.storage();
+}
+
+export { getAdminDb, getAdminStorage };

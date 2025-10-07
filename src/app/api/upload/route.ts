@@ -17,8 +17,9 @@ export async function POST(request: Request) {
 
     const requestHeaders = headers();
     const host = requestHeaders.get('host') || 'localhost:3000';
-    // Force HTTPS for all non-localhost environments to ensure correct URL construction
-    const protocol = host.startsWith('localhost') ? 'http' : 'https';
+    // Force HTTP for localhost environments to ensure correct URL construction
+    const protocol =
+      host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https';
 
     const urls: string[] = [];
     for (const file of files) {

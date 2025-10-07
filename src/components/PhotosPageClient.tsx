@@ -154,14 +154,14 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
     const validFiles: File[] = [];
-    const MAX_FILE_SIZE = 2 * 1024 * 1024;
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     Array.from(event.target.files).forEach((file) => {
       if (file.size > MAX_FILE_SIZE) {
         toast({
           variant: 'destructive',
           title: 'File Too Large',
-          description: `"${file.name}" is larger than 2MB.`,
+          description: `"${file.name}" is larger than 5MB.`,
         });
       } else {
         validFiles.push(file);
@@ -177,8 +177,12 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
     filesToUpload.forEach((file) => formData.append('files', file));
 
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await fetch(`/api/listings/${listing.id}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
       const result = await res.json();
+
       if (res.ok && result.success && Array.isArray(result.urls)) {
         setImages((prev) => [...prev, ...result.urls]);
         toast({
@@ -203,8 +207,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
 
   const handleSaveChanges = () => {
     startTransition(async () => {
-      const dataToSave = { images, image: images[0] || '' };
-      const result = await updateAccommodationAction(listing.id, dataToSave);
+      const result = await updateAccommodationAction(listing.id, { images });
       if (result.success) {
         toast({ title: 'Changes Saved', description: 'Photo gallery updated.' });
         listing.images = [...images]; // Update original listing data to match
@@ -280,7 +283,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
           <DialogHeader>
             <DialogTitle>Upload New Images</DialogTitle>
             <DialogDescription>
-              Recommended dimensions: 1920x1080px. Max file size: 2MB.
+              Recommended dimensions: 1920x1080px. Max file size: 5MB per image.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

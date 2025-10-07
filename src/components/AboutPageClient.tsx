@@ -35,7 +35,7 @@ import { Save, Loader2, Home, MapPin } from 'lucide-react';
 import React, { useEffect, useState, useTransition, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { updateAccommodationAction } from '@/app/actions';
-import { APIProvider, Map, AdvancedMarker, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { Map, AdvancedMarker, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Skeleton } from './ui/skeleton';
 
 const propertyFormSchema = z.object({
@@ -55,53 +55,44 @@ function AddressAutocomplete({
   onPlaceSelected,
   initialValue,
 }: {
-  onPlaceSelected: (place: google.maps.places.PlaceResult) => void;
+  onPlaceSelected: (place: google.maps.places.PlaceResult | null) => void;
   initialValue: string;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const places = useMapsLibrary('places');
-  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!places || !inputRef.current) return;
 
-    const ac = new places.Autocomplete(inputRef.current, {
+    const autocomplete = new places.Autocomplete(inputRef.current, {
       fields: ['place_id', 'name', 'formatted_address', 'geometry', 'types'],
     });
 
-    setAutocomplete(ac);
-
-    return () => {
-      if (ac) {
-        google.maps.event.clearInstanceListeners(ac);
-      }
-    };
-  }, [places]);
-
-  useEffect(() => {
-    if (!autocomplete) return;
-
     const listener = autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
-      if (place.geometry) {
-        onPlaceSelected(place);
-      }
+      onPlaceSelected(autocomplete.getPlace());
     });
 
     return () => {
-      if (listener) {
-        listener.remove();
-      }
+      // Important: Remove the listener to prevent memory leaks
+      listener.remove();
     };
-  }, [autocomplete, onPlaceSelected]);
+  }, [places, onPlaceSelected]);
 
   return (
-    <Input
-      ref={inputRef}
-      defaultValue={initialValue}
-      className="pl-10"
-      placeholder="Search for an address"
-    />
+    <div className="relative w-full">
+      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+      <Input
+        ref={inputRef}
+        defaultValue={initialValue}
+        className="pl-10"
+        placeholder="Search for an address"
+        onChange={(e) => {
+          if (!e.target.value) {
+            onPlaceSelected(null);
+          }
+        }}
+      />
+    </div>
   );
 }
 
@@ -207,7 +198,11 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
 
   const [tempMarkerPosition, setTempMarkerPosition] = useState<Position | null>(markerPosition);
 
-  const handlePlaceSelected = (place: google.maps.places.PlaceResult) => {
+  const handlePlaceSelected = (place: google.maps.places.PlaceResult | null) => {
+    if (!place) {
+      // Potentially clear form fields if the input is cleared
+      return;
+    }
     if (place.geometry?.location) {
       const newPosition = {
         lat: place.geometry.location.lat(),
@@ -374,43 +369,35 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
                   )}
                 />
 
-                <APIProvider
-                  apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-                  libraries={['places']}
-                >
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <FormLabel>Location</FormLabel>
-                      <div className="flex items-center gap-2 relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                        <FormField
-                          control={form.control}
-                          name="location"
-                          render={({ field }) => (
-                            <FormItem className="flex-grow">
-                              <FormControl>
-                                <AddressAutocomplete
-                                  onPlaceSelected={handlePlaceSelected}
-                                  initialValue={field.value}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <FormLabel>Map View</FormLabel>
-                      <MapView
-                        markerPosition={tempMarkerPosition}
-                        onMarkerDragEnd={handleMarkerDragEnd}
-                        mapKey={mapKey}
-                      />
-                    </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <FormLabel>Location</FormLabel>
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem className="flex-grow">
+                          <FormControl>
+                            <AddressAutocomplete
+                              onPlaceSelected={handlePlaceSelected}
+                              initialValue={field.value}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                </APIProvider>
+
+                  <div className="space-y-2">
+                    <FormLabel>Map View</FormLabel>
+                    <MapView
+                      markerPosition={tempMarkerPosition}
+                      onMarkerDragEnd={handleMarkerDragEnd}
+                      mapKey={mapKey}
+                    />
+                  </div>
+                </div>
               </CardContent>
 
               <CardFooter>

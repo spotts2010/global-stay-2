@@ -4,10 +4,19 @@ import type { Accommodation } from '@/lib/data';
 import { fetchAccommodationById } from '@/lib/firestore.server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PhotosPageClient from '@/components/PhotosPageClient';
+import React from 'react';
 
-// This is now a SERVER component responsible for data fetching
-export default async function PhotosPage({ params }: { params: { id: string } }) {
-  if (!params.id) {
+interface PhotosPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function PhotosPage({ params }: PhotosPageProps) {
+  const { id } = params;
+
+  // Early return if no ID
+  if (!id) {
     return (
       <Card>
         <CardHeader>
@@ -20,8 +29,13 @@ export default async function PhotosPage({ params }: { params: { id: string } })
     );
   }
 
-  // Data is already serialized by the fetching function
-  const listing = await fetchAccommodationById(params.id);
+  // Fetch the listing data
+  let listing: Accommodation | null = null;
+  try {
+    listing = await fetchAccommodationById(id);
+  } catch (error) {
+    console.error('Error fetching listing:', error);
+  }
 
   if (!listing) {
     return (
@@ -30,11 +44,12 @@ export default async function PhotosPage({ params }: { params: { id: string } })
           <CardTitle>Error</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Listing not found.</p>
+          <p>Listing not found or could not be loaded.</p>
         </CardContent>
       </Card>
     );
   }
 
-  return <PhotosPageClient listing={listing as Accommodation} />;
+  // Render the client component responsible for uploads
+  return <PhotosPageClient listing={listing} />;
 }

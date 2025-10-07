@@ -37,10 +37,22 @@ export async function updateAccommodationAction(
   const accommodationRef = db.collection('accommodations').doc(id);
 
   try {
-    await accommodationRef.update({ ...accommodationData, lastModified: new Date() });
+    const dataToUpdate: Partial<Accommodation> = { ...accommodationData };
+
+    // Ensure image is set to the first of the images array, or empty string
+    if (dataToUpdate.images) {
+      dataToUpdate.image = dataToUpdate.images[0] || '';
+    }
+
+    await accommodationRef.update({ ...dataToUpdate, lastModified: new Date() });
+
+    // Revalidate all relevant paths
     revalidatePath(`/admin/listings/${id}/edit/about`);
+    revalidatePath(`/admin/listings/${id}/edit/photos`);
     revalidatePath(`/admin/listings`);
     revalidatePath(`/accommodation/${id}`);
+    revalidatePath('/'); // Revalidate home page in case it's featured
+
     return { success: true };
   } catch (error) {
     console.error('Error updating accommodation:', error);
