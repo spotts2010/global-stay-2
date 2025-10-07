@@ -40,7 +40,7 @@ import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { updateAccommodationAction } from '@/app/actions';
 
-type BookableUnit = {
+export type BookableUnit = {
   id: string;
   unitRef: string;
   name: string;
@@ -48,6 +48,7 @@ type BookableUnit = {
   guests: number;
   price: number;
   status: 'Published' | 'Draft' | 'Archived';
+  images?: string[];
 };
 
 export default function UnitsPageClient({ listing }: { listing: Accommodation }) {
@@ -57,7 +58,7 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
   const [isBookingTypeDirty, setIsBookingTypeDirty] = useState(false);
   const [isSaving, startTransition] = useTransition();
 
-  const [bookableUnits, _setBookableUnits] = useState<BookableUnit[]>(() => {
+  const [_bookableUnits, _setBookableUnits] = useState<BookableUnit[]>(() => {
     // Create a default bookable unit if none exist, using the listing's base price.
     return [
       {
@@ -200,8 +201,8 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {bookableUnits.length > 0 ? (
-                    bookableUnits.map((unit) => (
+                  {_bookableUnits.length > 0 ? (
+                    _bookableUnits.map((unit) => (
                       <TableRow key={unit.id}>
                         <TableCell>{unit.unitRef}</TableCell>
                         <TableCell className="font-medium">{unit.name}</TableCell>

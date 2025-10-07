@@ -1,6 +1,5 @@
 // src/app/collections/page.tsx
 import 'server-only';
-import { fetchCollections } from '@/lib/firestore.server';
 import type { Collection } from '@/lib/data';
 import CuratedCollectionCard from '@/components/CuratedCollectionCard';
 import {
@@ -14,9 +13,10 @@ import {
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import placeholderImages from '@/lib/placeholder-images.json';
 
 export default async function CollectionsPage() {
-  const collections: Collection[] = await fetchCollections();
+  const collections: Collection[] = placeholderImages.collections;
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-8 pb-16">

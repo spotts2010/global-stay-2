@@ -4,6 +4,7 @@ dotenv.config({ path: '.env' }); // Load .env variables
 import { getAdminDb } from './firebaseAdmin';
 import { collections as curatedCollectionsData } from './data';
 import type { Amenity, Currency, BedType, PropertyType } from './data';
+import placeholderImages from './placeholder-images.json';
 
 // --- Property Types Data ---
 const propertyTypesData: Omit<PropertyType, 'id'>[] = [
@@ -28,28 +29,7 @@ const bedTypesData: Omit<BedType, 'id'>[] = [
 // --- Site Settings: Hero Images ---
 const heroImagesData = {
   id: 'homePage',
-  heroImages: [
-    {
-      url: 'https://images.unsplash.com/photo-1460627390041-532a28402358',
-      alt: 'A tropical bungalow over clear water',
-      hint: 'tropical resort',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9',
-      alt: 'A beautiful hotel pool with sun loungers at dusk',
-      hint: 'hotel pool evening',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4',
-      alt: 'A luxurious hotel room with a made-up bed and stylish decor',
-      hint: 'luxury hotel room',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1542314831-068cd1dbb563',
-      alt: 'Exterior of a grand, luxurious hotel with a swimming pool',
-      hint: 'luxury hotel exterior',
-    },
-  ],
+  heroImages: placeholderImages.heroImages,
 };
 
 // --- Mock Accommodations Data ---

@@ -20,19 +20,29 @@ export async function POST(
   try {
     const formData = await req.formData();
     const files = formData.getAll('files') as File[];
+    const unitId = formData.get('unitId') as string | null;
 
     if (!files || files.length === 0) {
       return NextResponse.json({ success: false, error: 'No files to upload.' }, { status: 400 });
     }
 
     const storage = getAdminStorage();
-    const bucket = storage.bucket(); // This will now default to the correct bucket
+    const bucket = storage.bucket();
     const urls: string[] = [];
 
     for (const file of files) {
       const buffer = Buffer.from(await file.arrayBuffer());
       const originalFilename = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-      const destination = `listings/${listingId}/${Date.now()}-${originalFilename}`;
+
+      // Construct path based on whether it's a site, listing, or unit image
+      let basePath = `listings/${listingId}`;
+      if (listingId === 'site') {
+        basePath = 'site';
+      } else if (unitId) {
+        basePath = `listings/${listingId}/units/${unitId}`;
+      }
+
+      const destination = `${basePath}/${Date.now()}-${originalFilename}`;
 
       const fileUpload = bucket.file(destination);
       await fileUpload.save(buffer, {

@@ -41,14 +41,14 @@ export default function SiteSettingsClient({ initialImages }: { initialImages: H
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const validFiles: File[] = [];
-      const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
       for (const file of Array.from(event.target.files)) {
         if (file.size > MAX_FILE_SIZE) {
           toast({
             variant: 'destructive',
             title: 'File Too Large',
-            description: `"${file.name}" is larger than 2MB and was not added.`,
+            description: `"${file.name}" is larger than 5MB and was not added.`,
           });
         } else {
           validFiles.push(file);
@@ -68,7 +68,8 @@ export default function SiteSettingsClient({ initialImages }: { initialImages: H
     });
 
     try {
-      const response = await fetch('/api/upload', {
+      // Use the robust Firebase Storage upload route
+      const response = await fetch('/api/listings/site/upload', {
         method: 'POST',
         body: formData,
       });
@@ -151,7 +152,7 @@ export default function SiteSettingsClient({ initialImages }: { initialImages: H
                 <DialogHeader>
                   <DialogTitle>Upload New Images</DialogTitle>
                   <DialogDescription>
-                    Recommended dimensions: 1920x1080px. Max file size: 2MB.
+                    Recommended dimensions: 1920x1080px. Max file size: 5MB.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">

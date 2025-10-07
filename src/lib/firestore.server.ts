@@ -4,6 +4,7 @@ import 'server-only'; // Ensures this file is never included in a client bundle
 import { getAdminDb } from './firebaseAdmin';
 import type { Accommodation, BedType, Place, Collection, PropertyType } from './data';
 import { serializeFirestoreData } from './serialize';
+import placeholderImages from './placeholder-images.json';
 
 type AmenityOrInclusion = {
   id: string;
@@ -135,19 +136,7 @@ export async function fetchPrivateInclusions(): Promise<AmenityOrInclusion[]> {
 }
 
 export async function fetchCollections(): Promise<Collection[]> {
-  try {
-    const adminDb = getAdminDb();
-    const collectionsSnapshot = await adminDb.collection('collections').get();
-    if (collectionsSnapshot.empty) {
-      return [];
-    }
-    return collectionsSnapshot.docs.map(
-      (doc) => serializeFirestoreData({ id: doc.id, ...doc.data() }) as Collection
-    );
-  } catch (error) {
-    console.error('Error fetching collections with Admin SDK:', error);
-    return [];
-  }
+  return placeholderImages.collections;
 }
 
 export async function fetchPropertyTypes(): Promise<PropertyType[]> {

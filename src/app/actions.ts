@@ -8,6 +8,7 @@ import {
 } from '@/ai/flows/accommodation-recommendations';
 import { getAdminDb } from '@/lib/firebaseAdmin';
 import type { Place, Accommodation, HeroImage } from './lib/data';
+import type { BookableUnit } from '@/components/UnitsPageClient';
 
 interface ActionResult extends Partial<AccommodationRecommendationsOutput> {
   error?: string;
@@ -320,4 +321,27 @@ export async function deletePropertyTypeAction(
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to delete property type: ${errorMessage}` };
   }
+}
+
+// --- Unit Actions ---
+
+export async function updateUnitAction(
+  listingId: string,
+  unitId: string,
+  unitData: Partial<BookableUnit> // Use a more specific type
+): Promise<{ success: boolean; error?: string }> {
+  if (!listingId || !unitId) {
+    return { success: false, error: 'Listing or Unit ID is missing.' };
+  }
+
+  // This is a placeholder. In a real app, this would save to a subcollection
+  // e.g., /accommodations/{listingId}/units/{unitId}
+  console.log('Simulating update for unit:', { listingId, unitId, unitData });
+
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  // For now, always return success
+  revalidatePath(`/admin/listings/${listingId}/edit/units/${unitId}/photos`);
+  return { success: true };
 }

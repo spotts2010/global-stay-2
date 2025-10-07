@@ -24,8 +24,9 @@ This is a Next.js project for "Global Stay 2.0", an accommodation booking platfo
 - **Notification Center**: A detailed notification system with filtering, searching, and different notification types (e.g., system alerts, offers, booking updates). A dedicated page exists to view the details of a single notification.
 - **Bookings Management**: A placeholder page for users to view their upcoming and past stays.
 - **Functional "About Property" Form**: The form for editing the core details of a listing (name, type, location, etc.) is now fully functional and saves data directly to the Firestore database.
-- **Functional Photo Gallery Management**: The "Photo Gallery" section within "Edit Listing" now allows for uploading, reordering (via drag-and-drop), and deleting images, with changes saved to the Firestore database.
+- **Functional Photo Gallery Management**: The "Photo Gallery" section within "Edit Listing" now allows for uploading, reordering (via drag-and-drop), and deleting images, with changes saved to the Firestore database. This functionality extends to the Site Settings hero image library and individual Unit photo galleries, all using a robust, production-safe API route.
 - **Intelligent POI Categorization**: When adding a new Point of Interest (POI) via Google Places search, the system automatically assigns a logical category (e.g., 'Dining', 'Transport') based on the type of place selected. This provides a smarter default than just 'Unassigned', which the host can still override.
+- **Centralized Image Data**: Placeholder, hero, and collection images are now managed via a single `placeholder-images.json` file, ensuring consistency and simplifying updates.
 
 ## Notification System Logic
 
@@ -145,11 +146,12 @@ The action buttons displayed on the notification detail page change based on the
 
 ### Resolved Issues
 
-- **Image Upload Functionality** (Resolved: 07/10/2024): A persistent series of errors ("Failed to fetch", "req.on is not a function", "bucket does not exist") were preventing image uploads from working correctly. The root cause was identified as a non-existent Firebase Storage bucket and incorrect initialization of the Firebase Admin SDK. The issue has been fully resolved by:
+- **Image Upload Functionality** (Resolved: 07/10/2024): A persistent series of errors ("Failed to fetch", "req.on is not a function", "bucket does not exist") were preventing image uploads from working correctly across the admin panel (Property Gallery, Unit Gallery, Site Settings). The root cause was a combination of a non-existent Firebase Storage bucket and incorrect initialization of the Firebase Admin SDK. The issue has been fully resolved by:
   1.  The user creating the necessary Storage Bucket in the Firebase Console.
   2.  Updating the Firebase Admin initialization code (`src/lib/firebaseAdmin.ts`) to correctly use the `storageBucket` environment variable.
   3.  Implementing a production-grade `storage.rules` file to secure the new bucket.
-  4.  Refactoring the upload API route (`src/app/api/listings/[id]/upload/route.ts`) to use modern `req.formData()` and to correctly handle file buffers, removing the incompatible `formidable` dependency.
+  4.  Refactoring the upload API route (`src/app/api/listings/[id]/upload/route.ts`) to use modern `req.formData()` and to correctly handle file buffers, removing the incompatible `formidable` dependency. This route now handles uploads for properties, individual units, and site-wide images.
+- **`lint-staged` Pre-commit Hook Conflict** (Resolved: 07/10/2024): A conflict was occurring during commits where `lint-staged` would modify files that also had unstaged changes, causing `git` to abort. This was resolved by adding `"git add"` to the `lint-staged` script in `package.json`, which automatically stages the changes made by the linter and formatter.
 - **`use()` Hook in Client Component** (Resolved: 26/09/2024): The `/admin/listings/[id]/edit/pois` page was incorrectly using the React `use()` hook within a `useEffect` block, which is not a valid pattern and was causing data fetching to fail intermittently. The `use()` hook was removed, and the component now relies solely on standard `useEffect` for client-side data fetching, ensuring that the POIs load correctly and consistently.
 - **Incorrect POI Category Mapping** (Resolved: 26/09/2024): Natural features like beaches were being incorrectly assigned the 'Default' category. This was because the `natural_feature` place type from Google was missing from the category mapping function. The mapping has been updated to correctly assign these places to the 'Nature & Outdoors' category.
 - **Map Interaction Issues** (Resolved: 26/09/2024): The interactive maps on both the accommodation detail page and the admin "Edit Listing" page were not allowing users to pan or zoom. This was caused by the map components being initialized without a valid `mapId`. The issue was resolved by adding `mapId="DEMO_MAP_ID"` to the `<Map>` components, which is a requirement for using Advanced Markers and enables full interactivity.

@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { ArrowRight, Sparkles, Building, Loader2 } from 'lucide-react';
 import { Suspense, useMemo, useState, useEffect } from 'react';
 
-import { collections, type Collection } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import AccommodationSearchForm from '@/components/AccommodationSearchForm';
 import CuratedCollectionCard from '@/components/CuratedCollectionCard';
 import AccommodationCard from '@/components/AccommodationCard';
 import AIRecommendations from '@/components/AIRecommendations';
-import type { Accommodation, HeroImage } from '@/lib/data';
+import type { Accommodation, HeroImage, Collection } from '@/lib/data';
+import placeholderImages from '@/lib/placeholder-images.json';
 import {
   Carousel,
   CarouselContent,
@@ -22,7 +22,6 @@ import { Card, CardContent } from '@/components/ui/card';
 
 type HomeContentProps = {
   initialAccommodations: Accommodation[];
-  heroImages: HeroImage[];
 };
 
 const defaultHeroImage: HeroImage = {
@@ -31,11 +30,13 @@ const defaultHeroImage: HeroImage = {
   hint: 'tropical resort',
 };
 
-export default function HomeContent({ initialAccommodations, heroImages }: HomeContentProps) {
+export default function HomeContent({ initialAccommodations }: HomeContentProps) {
   const [accommodations, _setAccommodations] = useState<Accommodation[]>(initialAccommodations);
   const [loading, _setLoading] = useState(false);
   const [selectedHeroImage, setSelectedHeroImage] = useState<HeroImage | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
+  const heroImages = placeholderImages.heroImages;
+  const collections: Collection[] = placeholderImages.collections;
 
   useEffect(() => {
     setHasMounted(true);
