@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { PanelLeft, Package2, ArrowLeft } from 'lucide-react';
+import { PanelLeft, Package2, ArrowLeft } from '@/lib/icons';
 import React, { useState, useEffect, use } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
