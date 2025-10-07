@@ -31,7 +31,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Accommodation } from '@/lib/data';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Save, Loader2, Home, MapPin } from '@/lib/icons';
+import { Save, Loader2, MapPin, SquarePen } from '@/lib/icons';
 import React, { useEffect, useState, useTransition, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { updateAccommodationAction } from '@/app/actions';
@@ -84,7 +84,7 @@ function AddressAutocomplete({
       <Input
         ref={inputRef}
         defaultValue={initialValue}
-        className="pl-10"
+        className="pl-10 bg-white"
         placeholder="Search for an address"
         onChange={(e) => {
           if (!e.target.value) {
@@ -270,7 +270,7 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Home className="h-5 w-5 text-primary" />
+                  <SquarePen className="h-6 w-6 text-primary" />
                   About the Property
                 </CardTitle>
                 <CardDescription>Update the core details of your listing here.</CardDescription>
@@ -286,7 +286,7 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
                         <FormItem>
                           <FormLabel>Listing Name</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} className="bg-white" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
