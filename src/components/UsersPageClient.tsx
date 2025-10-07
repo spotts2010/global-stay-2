@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Save, Loader2, Users } from 'lucide-react';
+import { Save, Loader2, Users } from '@/lib/icons';
 import React, { useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Accommodation } from '@/lib/data';
