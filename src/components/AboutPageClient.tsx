@@ -31,7 +31,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Accommodation } from '@/lib/data';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Save, Loader2, Home, MapPin } from 'lucide-react';
+import { Save, Loader2, Home, MapPin } from '@/lib/icons';
 import React, { useEffect, useState, useTransition, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { updateAccommodationAction } from '@/app/actions';
