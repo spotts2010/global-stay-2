@@ -428,7 +428,7 @@ export default function AmenitiesManagementClient({
               placeholder="Filter by name or category..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 w-full"
+              className="pl-8 w-full bg-white"
             />
           </div>
           <div className="w-full md:w-auto">
