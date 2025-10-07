@@ -30,7 +30,7 @@ import {
   Check,
   X,
   MapPin,
-} from 'lucide-react';
+} from '@/lib/icons';
 import type { Accommodation, Place, PoiCategory } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { updatePointsOfInterestAction } from '@/app/actions';
