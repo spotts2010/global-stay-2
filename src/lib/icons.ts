@@ -1,6 +1,6 @@
 // Filepath: src/lib/icons.ts
 // Centralized React Icons for the project
-import { FaPaypal, FaGoogle, FaApple, FaFacebook, FaDatabase } from 'react-icons/fa';
+import { FaPaypal, FaGoogle, FaApple, FaFacebook, FaDatabase, FaArchive } from 'react-icons/fa';
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapse } from 'react-icons/tb';
 
 // Material Design Icons
@@ -23,7 +23,6 @@ export { MdFitnessCenter as Dumbbell } from 'react-icons/md';
 export { MdHotel as Hotel } from 'react-icons/md';
 export { MdPerson as User } from 'react-icons/md';
 export { MdSettings as Settings } from 'react-icons/md';
-export { MdOutlineDashboard as Dashboard } from 'react-icons/md';
 export { MdLogout as LogOut } from 'react-icons/md';
 export { MdWork as Briefcase } from 'react-icons/md';
 export { MdArrowBack as ArrowLeft } from 'react-icons/md';
@@ -80,13 +79,12 @@ export { MdApartment as Building } from 'react-icons/md';
 export { MdInventory2 as Box } from 'react-icons/md';
 export { MdInfoOutline as Info } from 'react-icons/md';
 export { MdEditSquare as SquarePen } from 'react-icons/md';
-export { MdArchive as Archive } from 'react-icons/md';
 export { MdRotateLeft as RotateCcw } from 'react-icons/md';
 export { MdFilterList as ListFilter } from 'react-icons/md';
 export { MdAutoAwesome as Sparkles } from 'react-icons/md';
 export { MdSmartToy as Bot } from 'react-icons/md';
 export { MdPool as Waves } from 'react-icons/md';
-export { MdGridView as Grid3x3, MdCalendarViewMonth as CalendarIcon } from 'react-icons/md';
+export { MdGridView as Grid3x3 } from 'react-icons/md';
 export { MdChevronRight as PanelRight } from 'react-icons/md';
 export { MdWatchLater as Hourglass } from 'react-icons/md';
 export { MdPersonRemove as UserX } from 'react-icons/md';
@@ -121,6 +119,8 @@ export { MdRedo as Redo } from 'react-icons/md';
 export { MdTitle as Heading1 } from 'react-icons/md';
 export { MdTitle as Heading2 } from 'react-icons/md';
 export { MdTitle as Heading3 } from 'react-icons/md';
+export { MdCalendarViewMonth as CalendarIcon } from 'react-icons/md';
+export { MdOutlineDashboard as Dashboard } from 'react-icons/md';
 
 // Ant Design Icons (for loaders)
 export { AiOutlineLoading3Quarters as Loader2 } from 'react-icons/ai';
@@ -131,6 +131,7 @@ export {
   FaApple,
   FaFacebook,
   FaDatabase as Database,
+  FaArchive,
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarRightCollapse,
 };

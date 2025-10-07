@@ -31,7 +31,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Loader2, ImageIcon, UploadCloud, Save, Trash2, GripVertical, Camera } from 'lucide-react';
+import { Loader2, ImageIcon, UploadCloud, Save, Trash2, GripVertical, Camera } from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
 import type { Accommodation } from '@/lib/data';
 import { updateAccommodationAction } from '@/app/actions';

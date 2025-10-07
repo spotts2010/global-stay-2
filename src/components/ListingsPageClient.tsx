@@ -24,7 +24,7 @@ import {
   Check,
   ArrowUp,
   ArrowDown,
-  Archive,
+  FaArchive,
   RotateCcw,
   Loader2,
   Search,
@@ -518,7 +518,7 @@ export default function ListingsPageClient({
                                 {isPending ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
-                                  <Archive className="h-4 w-4" />
+                                  <FaArchive className="h-4 w-4" />
                                 )}
                               </Button>
                             </TooltipTrigger>
