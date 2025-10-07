@@ -10,6 +10,7 @@ import CuratedCollectionCard from '@/components/CuratedCollectionCard';
 import AccommodationCard from '@/components/AccommodationCard';
 import AIRecommendations from '@/components/AIRecommendations';
 import type { Accommodation, HeroImage, Collection } from '@/lib/data';
+import { fetchAccommodations } from '@/lib/firestore'; // Use client-side fetch
 import placeholderImages from '@/lib/placeholder-images.json';
 import {
   Carousel,
@@ -20,19 +21,15 @@ import {
 } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
 
-type HomeContentProps = {
-  initialAccommodations: Accommodation[];
-};
-
 const defaultHeroImage: HeroImage = {
   url: 'https://images.unsplash.com/photo-1460627390041-532a28402358',
   alt: 'A tropical bungalow over clear water',
   hint: 'tropical resort',
 };
 
-export default function HomeContent({ initialAccommodations }: HomeContentProps) {
-  const [accommodations, _setAccommodations] = useState<Accommodation[]>(initialAccommodations);
-  const [loading, _setLoading] = useState(false);
+export default function HomeContent() {
+  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedHeroImage, setSelectedHeroImage] = useState<HeroImage | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
   const heroImages = placeholderImages.heroImages;
@@ -40,6 +37,13 @@ export default function HomeContent({ initialAccommodations }: HomeContentProps)
 
   useEffect(() => {
     setHasMounted(true);
+    const loadData = async () => {
+      setLoading(true);
+      const fetchedAccommodations = await fetchAccommodations();
+      setAccommodations(fetchedAccommodations);
+      setLoading(false);
+    };
+    loadData();
   }, []);
 
   useEffect(() => {

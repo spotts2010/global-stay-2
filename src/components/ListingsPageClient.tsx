@@ -28,7 +28,7 @@ import {
   RotateCcw,
   Loader2,
   Search,
-} from 'lucide-react';
+} from '@/lib/icons';
 import {
   DropdownMenu,
   DropdownMenuContent,
