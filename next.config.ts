@@ -2,12 +2,6 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  experimental: {
-    // This is required for the development environment to work correctly.
-    allowedDevOrigins: [
-      'https://6000-firebase-studio-1753950960099.cluster-m7dwy2bmizezqukxkuxd55k5ka.cloudworkstations.dev',
-    ],
-  },
   // Suppresses the warning about multiple lockfiles, which can cause instability.
   turbopack: {
     root: process.cwd(),
