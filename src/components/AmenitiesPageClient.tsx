@@ -25,7 +25,7 @@ import {
   ArrowUp,
   ArrowDown,
   ChevronsUpDown,
-} from 'lucide-react';
+} from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
