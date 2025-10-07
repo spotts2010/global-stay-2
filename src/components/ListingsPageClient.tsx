@@ -203,19 +203,11 @@ export default function ListingsPageClient({
     const parts = fullLocation.split(',').map((p) => p.trim());
     if (parts.length < 2) return fullLocation;
 
+    // Assumes Country is always the last part.
     const country = parts[parts.length - 1];
-    let city = parts[0];
+    // Assumes City is the second to last part (or first if only two parts).
+    const city = parts.length > 2 ? parts[parts.length - 2] : parts[0];
 
-    if (country.toLowerCase() === 'usa' || country.toLowerCase() === 'united states') {
-      if (parts.length > 2) {
-        city = parts[parts.length - 3];
-      }
-      return `${city}, USA`;
-    }
-
-    if (parts.length > 1) {
-      city = parts[parts.length - 2];
-    }
     return `${city}, ${country}`;
   };
 
