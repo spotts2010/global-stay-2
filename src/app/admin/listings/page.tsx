@@ -1,11 +1,12 @@
-'use client';
-
-import React, { Suspense } from 'react';
+// src/app/admin/listings/page.tsx
+import 'server-only';
+import { Suspense } from 'react';
+import { fetchAccommodations } from '@/lib/firestore.server';
 import type { Accommodation } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import ListingsPageClient from '@/components/ListingsPageClient';
-import { MdOutlineList } from 'react-icons/md';
 import { BiLoaderAlt } from 'react-icons/bi';
+import { MdOutlineList } from 'react-icons/md';
 
 const LoadingSpinner = () => (
   <div className="flex h-64 items-center justify-center">
@@ -13,13 +14,10 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// This is a placeholder for the actual data fetching that happens on the server.
-// The props will be passed down from a Server Component parent.
-type AdminListingsPageProps = {
-  initialProperties: Accommodation[];
-};
+// This is now a Server Component that fetches data
+export default async function AdminListingsPage() {
+  const accommodations: Accommodation[] = await fetchAccommodations();
 
-export default function AdminListingsPage({ initialProperties }: AdminListingsPageProps) {
   return (
     <Card>
       <CardHeader>
@@ -31,7 +29,7 @@ export default function AdminListingsPage({ initialProperties }: AdminListingsPa
       </CardHeader>
       <CardContent>
         <Suspense fallback={<LoadingSpinner />}>
-          <ListingsPageClient initialProperties={initialProperties} />
+          <ListingsPageClient initialProperties={accommodations} />
         </Suspense>
       </CardContent>
     </Card>

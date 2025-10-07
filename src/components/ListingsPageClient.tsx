@@ -136,12 +136,15 @@ export default function ListingsPageClient({
   ]);
 
   useEffect(() => {
-    const enriched = initialProperties.map((p) => ({
-      ...p,
-      host: 'Sam Potts', // Placeholder
-      units: p.type === 'Hotel' ? 4 : 1, // Example logic
-    }));
-    setProperties(enriched);
+    // Ensure initialProperties is not undefined before mapping
+    if (initialProperties) {
+      const enriched = initialProperties.map((p) => ({
+        ...p,
+        host: 'Sam Potts', // Placeholder
+        units: p.type === 'Hotel' ? 4 : 1, // Example logic
+      }));
+      setProperties(enriched);
+    }
   }, [initialProperties]);
 
   useEffect(() => {
