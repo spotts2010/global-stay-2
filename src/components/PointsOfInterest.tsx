@@ -295,7 +295,7 @@ function PlacesAutocomplete({
       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
       <Input
         ref={inputRef}
-        className="pl-10"
+        className="pl-10 bg-white"
         placeholder="Search for a place on Google Maps..."
         onChange={() => onPlaceSelected(null)} // Clear selection if user types
       />
