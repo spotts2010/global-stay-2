@@ -436,7 +436,7 @@ export default function AmenitiesManagementClient({
               Category
             </Label>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger id="category-filter" className="w-full md:w-[200px]">
+              <SelectTrigger id="category-filter" className="w-full md:w-[200px] bg-white">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
