@@ -9,7 +9,7 @@ import {
 import { getAdminDb } from '@/lib/firebaseAdmin';
 import type { Place, Accommodation, HeroImage } from './lib/data';
 import type { BookableUnit } from '@/components/UnitsPageClient';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, UpdateData } from 'firebase-admin/firestore';
 
 interface ActionResult extends Partial<AccommodationRecommendationsOutput> {
   error?: string;
@@ -356,7 +356,7 @@ export async function updateLegalPageAction(
   const docRef = db.collection('legal_pages').doc(pageId);
 
   try {
-    const updateData: { [key: string]: unknown } = {
+    const updateData: UpdateData = {
       content: data.content,
       version: FieldValue.increment(1),
       lastModified: FieldValue.serverTimestamp(),
