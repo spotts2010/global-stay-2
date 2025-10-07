@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Users,
-  LayoutGrid,
+  Dashboard,
   Cog,
   Package2,
-  LayoutList,
+  ListingsIcon,
   ChevronDown,
   ChevronRight,
   CalendarDays,
@@ -33,9 +33,9 @@ type NavItem = {
 };
 
 export const menuItems: NavItem[] = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutGrid },
+  { href: '/admin/dashboard', label: 'Dashboard', icon: Dashboard },
   { href: '/admin/bookings/calendar', label: 'Bookings', icon: CalendarDays },
-  { href: '/admin/listings', label: 'Listings', icon: LayoutList },
+  { href: '/admin/listings', label: 'Listings', icon: ListingsIcon },
   { href: '/admin/users', label: 'Users', icon: Users },
   {
     label: 'System Admin',

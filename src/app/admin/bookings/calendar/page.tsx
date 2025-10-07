@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar } from '@/lib/icons';
+import { CalendarDays } from '@/lib/icons';
 
 export default function BookingsCalendarPage() {
   return (
@@ -7,7 +7,7 @@ export default function BookingsCalendarPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
+            <CalendarDays className="h-5 w-5 text-primary" />
             Bookings Calendar
           </CardTitle>
           <CardDescription>

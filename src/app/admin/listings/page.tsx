@@ -6,7 +6,7 @@ import type { Accommodation } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import ListingsPageClient from '@/components/ListingsPageClient';
 import { BiLoaderAlt } from 'react-icons/bi';
-import { MdOutlineList } from 'react-icons/md';
+import { ListingsIcon } from '@/lib/icons';
 
 const LoadingSpinner = () => (
   <div className="flex h-64 items-center justify-center">
@@ -22,7 +22,7 @@ export default async function AdminListingsPage() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <MdOutlineList className="h-6 w-6 text-primary" />
+          <ListingsIcon className="h-6 w-6 text-primary" />
           Manage Listings
         </CardTitle>
         <CardDescription>View, edit, or change status of accommodation listings.</CardDescription>

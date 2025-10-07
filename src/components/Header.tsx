@@ -6,7 +6,7 @@ import {
   Hotel,
   User,
   Settings,
-  LayoutGrid,
+  Dashboard,
   LogOut,
   Briefcase,
   ArrowLeft,
@@ -317,7 +317,7 @@ const Header = () => {
                   <DropdownMenuLabel>Creator & Admin</DropdownMenuLabel>
                   <DropdownMenuItem asChild>
                     <Link href="/admin/dashboard">
-                      <LayoutGrid className="mr-2 h-4 w-4" />
+                      <Dashboard className="mr-2 h-4 w-4" />
                       <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
