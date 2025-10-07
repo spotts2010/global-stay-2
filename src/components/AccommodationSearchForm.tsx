@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { MapPin, Calendar, Users, Search } from '@/lib/icons';
+import { MapPin, CalendarDays, Users, Search } from '@/lib/icons';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
@@ -103,7 +103,7 @@ export default function AccommodationSearchForm() {
           className="relative flex-shrink-0 flex items-center gap-2 px-4 h-14 w-full md:w-52"
           ref={pickerRef}
         >
-          <Calendar className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+          <CalendarDays className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}

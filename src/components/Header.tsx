@@ -12,8 +12,8 @@ import {
   ArrowLeft,
   MailWarning,
   Ticket,
-  Building,
   Home,
+  ListingsIcon,
 } from '@/lib/icons';
 import { Button } from './ui/button';
 import { useFavorites } from '@/context/FavoritesContext';
@@ -323,7 +323,7 @@ const Header = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/admin/listings">
-                      <Building className="mr-2 h-4 w-4" />
+                      <ListingsIcon className="mr-2 h-4 w-4" />
                       <span>Manage Listings</span>
                     </Link>
                   </DropdownMenuItem>
