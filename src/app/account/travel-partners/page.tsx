@@ -21,7 +21,7 @@ import {
   Trash2,
   UserCheck,
   UserX,
-} from 'lucide-react';
+} from '@/lib/icons';
 import {
   Accordion,
   AccordionContent,
@@ -80,7 +80,7 @@ export default function TravelPartnersPage() {
   return (
     <Card>
       <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div className="space-y-1.5">
           <CardTitle className="font-headline text-2xl flex items-center gap-2">
             <Users className="h-6 w-6 text-primary" />
             My Travel Partners

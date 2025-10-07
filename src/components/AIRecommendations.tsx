@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Bot, Loader2 } from 'lucide-react';
+import { Bot, Loader2 } from '@/lib/icons';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Label } from './ui/label';

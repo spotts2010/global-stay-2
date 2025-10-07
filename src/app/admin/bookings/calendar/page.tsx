@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar } from 'lucide-react';
+import { Calendar } from '@/lib/icons';
 
 export default function BookingsCalendarPage() {
   return (

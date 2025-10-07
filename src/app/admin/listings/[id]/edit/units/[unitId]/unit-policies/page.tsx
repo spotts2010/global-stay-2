@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useTransition } from 'react';
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, Save } from '@/lib/icons';
 
 export default function UnitPoliciesPage() {
   const [isPending, startTransition] = useTransition();

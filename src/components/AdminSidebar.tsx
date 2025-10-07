@@ -4,11 +4,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Users,
-  PanelLeft,
   LayoutGrid,
   Cog,
   Package2,
-  PanelRight,
   LayoutList,
   ChevronDown,
   ChevronRight,
@@ -18,7 +16,10 @@ import {
   Database,
   MapPin,
   Home,
-} from 'lucide-react';
+  FileText,
+  TbLayoutSidebarLeftCollapse,
+  TbLayoutSidebarRightCollapse,
+} from '@/lib/icons';
 import React, { useState, useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -46,6 +47,7 @@ export const menuItems: NavItem[] = [
       { href: '/admin/poi-categories', label: 'POI Categories', icon: MapPin },
       { href: '/admin/database', label: 'Database Maintenance', icon: Database },
       { href: '/admin/settings/site', label: 'Site Settings', icon: Cog },
+      { href: '/admin/settings/legal', label: 'Legal Pages', icon: FileText },
     ],
   },
 ];
@@ -209,7 +211,11 @@ function AdminSidebar({
           onClick={toggleSidebar}
           className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all"
         >
-          {isCollapsed ? <PanelRight className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
+          {isCollapsed ? (
+            <TbLayoutSidebarRightCollapse className="h-5 w-5" />
+          ) : (
+            <TbLayoutSidebarLeftCollapse className="h-5 w-5" />
+          )}
           {!isCollapsed && <span className="text-sm">Collapse</span>}
         </div>
       </div>

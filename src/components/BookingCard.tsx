@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import type { EnrichedBooking } from '@/lib/data';
-import { CalendarDays, Eye, Users } from 'lucide-react';
+import { CalendarDays, Eye, Users } from '@/lib/icons';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { convertCurrency, formatCurrency } from '@/lib/currency';
 

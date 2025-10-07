@@ -1,4 +1,4 @@
-import { Hotel } from 'lucide-react';
+import { Hotel } from '@/lib/icons';
 
 const Footer = () => {
   return (

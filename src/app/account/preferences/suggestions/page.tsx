@@ -23,7 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { FilePen, PlusCircle, Trash2, Wand, MapPin, Users } from 'lucide-react';
+import { FilePen, PlusCircle, Trash2, Wand, MapPin, Users } from '@/lib/icons';
 import { Badge } from '@/components/ui/badge';
 
 type Suggestion = {
@@ -72,7 +72,7 @@ export default function SuggestionsPage() {
   return (
     <Card>
       <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div className="space-y-1.5">
           <CardTitle className="font-headline text-2xl flex items-center gap-2">
             <Wand className="h-6 w-6 text-primary" />
             Smart Suggestions

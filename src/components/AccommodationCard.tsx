@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, MapPin, Star } from 'lucide-react';
+import { Heart, MapPin, Star } from '@/lib/icons';
 import type { Accommodation } from '@/lib/data';
 import {
   Card,

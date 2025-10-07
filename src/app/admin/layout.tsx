@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PanelLeft, Package2 } from 'lucide-react';
+import { PanelLeft, Package2 } from '@/lib/icons';
 import React, { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Collection } from '@/lib/data';
-import { ArrowRight } from 'lucide-react';
+import { ChevronRight } from '@/lib/icons';
 
 type CuratedCollectionCardProps = {
   collection: Collection;
@@ -26,7 +26,7 @@ const CuratedCollectionCard = ({ collection }: CuratedCollectionCardProps) => {
         <p className="mt-1 text-sm text-white/90">{collection.description}</p>
         <div className="mt-4 flex items-center text-sm font-semibold opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           Explore
-          <ArrowRight className="ml-2 h-4 w-4" />
+          <ChevronRight className="ml-2 h-4 w-4" />
         </div>
       </div>
     </Link>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import AccommodationCard from '@/components/AccommodationCard';
 import { useFavorites } from '@/context/FavoritesContext';
-import { Heart } from 'lucide-react';
+import { Heart } from '@/lib/icons';
 import { fetchAccommodationById } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -33,8 +33,10 @@ export default function FavoritesPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl">Your Saved Places</CardTitle>
-        <CardDescription>A collection of places you've saved for future trips.</CardDescription>
+        <div className="space-y-1.5">
+          <CardTitle className="font-headline text-2xl">Your Saved Places</CardTitle>
+          <CardDescription>A collection of places you've saved for future trips.</CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchPastBookings } from '@/lib/firestore';
 import type { EnrichedBooking } from '@/lib/data';
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from '@/lib/icons';
 import { BookingCard } from '@/components/BookingCard';
 
 export default function PastStaysPage() {
@@ -28,8 +28,10 @@ export default function PastStaysPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl">Past Stays</CardTitle>
-        <CardDescription>A record of your previous adventures.</CardDescription>
+        <div className="space-y-1.5">
+          <CardTitle className="font-headline text-2xl">Past Stays</CardTitle>
+          <CardDescription>A record of your previous adventures.</CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (

@@ -1,6 +1,6 @@
 // This is a new file, renamed from /src/app/admin/users/page.tsx
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Users } from 'lucide-react';
+import { Users } from '@/lib/icons';
 
 export default function UsersPage() {
   return (

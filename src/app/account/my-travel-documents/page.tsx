@@ -20,14 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  ClipboardList,
-  IdCard,
-  BookOpenText,
-  Signature,
-  Upload,
-  Link as LinkIcon,
-} from 'lucide-react';
+import { ClipboardList, IdCard, BookOpenText, FileText, Upload, LinkIcon } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 type DocumentType = 'license' | 'passport' | 'insurance';
@@ -67,7 +60,7 @@ export default function TravelDocumentsPage() {
     {
       type: 'insurance' as DocumentType,
       title: 'Travel Insurance',
-      icon: Signature,
+      icon: FileText,
       fields: [
         { id: 'policyNumber', label: 'Policy Number' },
         { id: 'provider', label: 'Insurance Provider' },
@@ -81,13 +74,15 @@ export default function TravelDocumentsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl flex items-center gap-2">
-          <ClipboardList className="h-6 w-6 text-primary" />
-          My Travel Documents
-        </CardTitle>
-        <CardDescription>
-          Securely store and manage your travel documents for quicker bookings.
-        </CardDescription>
+        <div className="space-y-1.5">
+          <CardTitle className="font-headline text-2xl flex items-center gap-2">
+            <ClipboardList className="h-6 w-6 text-primary" />
+            My Travel Documents
+          </CardTitle>
+          <CardDescription>
+            Securely store and manage your travel documents for quicker bookings.
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         <Accordion type="single" collapsible className="w-full space-y-4">

@@ -2,7 +2,7 @@
 import 'server-only'; // Ensures this file is never included in a client bundle
 
 import { getAdminDb } from './firebaseAdmin';
-import type { Accommodation, BedType, Place, Collection, PropertyType } from './data';
+import type { Accommodation, BedType, Place, Collection, PropertyType, LegalPage } from './data';
 import { serializeFirestoreData } from './serialize';
 import placeholderImages from './placeholder-images.json';
 
@@ -152,5 +152,34 @@ export async function fetchPropertyTypes(): Promise<PropertyType[]> {
   } catch (error) {
     console.error('Error fetching property types with Admin SDK:', error);
     return [];
+  }
+}
+
+export async function fetchLegalPage(
+  id: 'terms-and-conditions' | 'privacy-policy'
+): Promise<LegalPage | null> {
+  if (!id) return null;
+  try {
+    const adminDb = getAdminDb();
+    const docRef = adminDb.collection('legal_pages').doc(id);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      // Create a default if it doesn't exist
+      const defaultContent: LegalPage = {
+        id,
+        content: `<p>This is the default ${id.replace(/-/g, ' ')}. Please edit this content.</p>`,
+        version: 1,
+        lastModified: new Date(),
+        versionNote: 'Initial document creation.',
+      };
+      await docRef.set(defaultContent);
+      return serializeFirestoreData(defaultContent) as LegalPage;
+    }
+
+    return serializeFirestoreData({ id: docSnap.id, ...docSnap.data() }) as LegalPage;
+  } catch (error) {
+    console.error(`Error fetching legal page ${id}:`, error);
+    return null;
   }
 }

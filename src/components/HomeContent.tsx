@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Sparkles, Building, Loader2 } from 'lucide-react';
+import { ChevronRight, Sparkles, Building, Loader2 } from '@/lib/icons';
 import { Suspense, useMemo, useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -126,7 +126,7 @@ export default function HomeContent({ initialAccommodations }: HomeContentProps)
             aria-label="View all collections"
           >
             <Link href="/collections">
-              View All <ArrowRight className="ml-2 h-4 w-4" />
+              View All <ChevronRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>

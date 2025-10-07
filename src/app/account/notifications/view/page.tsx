@@ -2,13 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -40,17 +34,13 @@ import {
   Mail,
   MailOpen,
   Trash2,
-} from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from '@/lib/icons';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import {
-  useNotifications,
-  type Notification,
-  type NotificationType,
-} from '@/context/NotificationsContext';
+import { useNotifications, type NotificationType } from '@/context/NotificationsContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const NotificationIcon = ({ type }: { type: NotificationType }) => {
@@ -95,8 +85,7 @@ export default function ViewNotificationsPage() {
       if (!searchTerm) return true;
       const searchLower = searchTerm.toLowerCase();
       return (
-        n.title.toLowerCase().includes(searchLower) ||
-        n.summary.toLowerCase().includes(searchLower)
+        n.title.toLowerCase().includes(searchLower) || n.summary.toLowerCase().includes(searchLower)
       );
     })
     .sort((a, b) => {
@@ -114,26 +103,37 @@ export default function ViewNotificationsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl flex items-center gap-2">
-          <MailWarning className="h-6 w-6" />
-          My Notifications
-        </CardTitle>
-        <CardDescription>
-          Notifications are archived after 90 days unless flagged as important.
-        </CardDescription>
+        <div className="space-y-1.5">
+          <CardTitle className="font-headline text-2xl flex items-center gap-2">
+            <MailWarning className="h-6 w-6" />
+            My Notifications
+          </CardTitle>
+          <CardDescription>
+            Notifications are archived after 90 days unless flagged as important.
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
           <Tabs value={filter} onValueChange={setFilter} className="w-full md:w-auto">
             <TabsList>
               <TabsTrigger value="all">
-                All <Badge variant="secondary" className="ml-2">{counts.all}</Badge>
+                All{' '}
+                <Badge variant="secondary" className="ml-2">
+                  {counts.all}
+                </Badge>
               </TabsTrigger>
               <TabsTrigger value="unread">
-                Unread <Badge variant="destructive" className="ml-2">{counts.unread}</Badge>
+                Unread{' '}
+                <Badge variant="destructive" className="ml-2">
+                  {counts.unread}
+                </Badge>
               </TabsTrigger>
               <TabsTrigger value="read">
-                Read <Badge variant="secondary" className="ml-2">{counts.read}</Badge>
+                Read{' '}
+                <Badge variant="secondary" className="ml-2">
+                  {counts.read}
+                </Badge>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -254,7 +254,10 @@ export default function ViewNotificationsPage() {
                           <AlertDialog>
                             <Tooltip>
                               <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <AlertDialogTrigger asChild disabled={notification.type === 'system'}>
+                                <AlertDialogTrigger
+                                  asChild
+                                  disabled={notification.type === 'system'}
+                                >
                                   <Button variant="ghost" size="icon" className="h-8 w-8">
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                   </Button>
@@ -272,6 +275,7 @@ export default function ViewNotificationsPage() {
                                   notification.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
+
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction

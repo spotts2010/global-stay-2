@@ -1,6 +1,6 @@
 // This is a new file, renamed from /src/app/admin/database/page.tsx
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Database } from 'lucide-react';
+import { Database } from '@/lib/icons';
 
 export default function DatabaseMaintenancePage() {
   return (

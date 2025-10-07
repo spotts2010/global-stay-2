@@ -14,7 +14,7 @@ import {
   Ticket,
   Building,
   Home,
-} from 'lucide-react';
+} from '@/lib/icons';
 import { Button } from './ui/button';
 import { useFavorites } from '@/context/FavoritesContext';
 import { Badge } from './ui/badge';

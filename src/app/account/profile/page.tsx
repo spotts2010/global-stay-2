@@ -30,7 +30,7 @@ import {
   Wallet,
   Languages,
   Milestone,
-} from 'lucide-react';
+} from '@/lib/icons';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Select,
@@ -144,13 +144,15 @@ export default function ProfilePage() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl flex items-center gap-2">
-              <User className="h-6 w-6 text-primary" />
-              My Profile
-            </CardTitle>
-            <CardDescription>
-              View and manage your personal information and preferences.
-            </CardDescription>
+            <div className="space-y-1.5">
+              <CardTitle className="font-headline text-2xl flex items-center gap-2">
+                <User className="h-6 w-6 text-primary" />
+                My Profile
+              </CardTitle>
+              <CardDescription>
+                View and manage your personal information and preferences.
+              </CardDescription>
+            </div>
           </CardHeader>
           <CardContent className="space-y-8">
             {/* User Info Section */}

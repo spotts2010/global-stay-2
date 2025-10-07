@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Save, Loader2, Search, Accessibility } from 'lucide-react';
+import { Save, Loader2, Search, Accessibility } from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
 import { FormLabel } from '@/components/ui/form';
 import { Badge } from '@/components/ui/badge';

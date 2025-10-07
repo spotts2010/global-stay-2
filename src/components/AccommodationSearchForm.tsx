@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { MapPin, Calendar, Users, Search } from 'lucide-react';
+import { MapPin, Calendar, Users, Search } from '@/lib/icons';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';

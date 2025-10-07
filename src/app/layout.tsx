@@ -4,18 +4,19 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Quicksand } from 'next/font/google';
 import ClientProviders from '@/components/ClientProviders';
+import { Quicksand } from 'next/font/google';
+
+const quicksand = Quicksand({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-quicksand',
+});
 
 export const metadata: Metadata = {
   title: 'Global Stay 2.0',
   description: 'Find your next stay, anywhere in the world.',
 };
-
-const quicksand = Quicksand({
-  subsets: ['latin'],
-  variable: '--font-quicksand',
-});
 
 export default function RootLayout({
   children,
@@ -23,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${quicksand.variable}`}>
+    <html lang="en" className={`${quicksand.variable}`} suppressHydrationWarning>
       <head />
       <body className={cn('font-body antialiased bg-background text-foreground')}>
         <ClientProviders>

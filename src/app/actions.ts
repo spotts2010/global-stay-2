@@ -9,6 +9,7 @@ import {
 import { getAdminDb } from '@/lib/firebaseAdmin';
 import type { Place, Accommodation, HeroImage } from './lib/data';
 import type { BookableUnit } from '@/components/UnitsPageClient';
+import { FieldValue } from 'firebase-admin/firestore';
 
 interface ActionResult extends Partial<AccommodationRecommendationsOutput> {
   error?: string;
@@ -344,4 +345,37 @@ export async function updateUnitAction(
   // For now, always return success
   revalidatePath(`/admin/listings/${listingId}/edit/units/${unitId}/photos`);
   return { success: true };
+}
+
+// --- Legal Page Actions ---
+export async function updateLegalPageAction(
+  pageId: 'terms-and-conditions' | 'privacy-policy',
+  data: { content: string; versionNote?: string }
+): Promise<{ success: boolean; error?: string }> {
+  const db = getAdminDb();
+  const docRef = db.collection('legal_pages').doc(pageId);
+
+  try {
+    const updateData: { [key: string]: unknown } = {
+      content: data.content,
+      version: FieldValue.increment(1),
+      lastModified: FieldValue.serverTimestamp(),
+    };
+    if (data.versionNote) {
+      updateData.versionNote = data.versionNote;
+    }
+
+    await docRef.update(updateData);
+
+    // Revalidate paths to update cached data
+    revalidatePath('/admin/settings/legal');
+    revalidatePath('/account/privacy/terms');
+    revalidatePath('/account/privacy/policy');
+
+    return { success: true };
+  } catch (error) {
+    console.error(`Error updating legal page ${pageId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update page: ${errorMessage}` };
+  }
 }

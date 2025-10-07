@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Languages } from 'lucide-react';
+import { Languages } from '@/lib/icons';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 
 const settingsSchema = z.object({
@@ -70,11 +70,13 @@ export default function CurrencyLanguagePage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl flex items-center gap-2">
-          <Languages className="h-6 w-6 text-primary" />
-          Currency & Language
-        </CardTitle>
-        <CardDescription>Manage your currency and language preferences here.</CardDescription>
+        <div className="space-y-1.5">
+          <CardTitle className="font-headline text-2xl flex items-center gap-2">
+            <Languages className="h-6 w-6 text-primary" />
+            Currency & Language
+          </CardTitle>
+          <CardDescription>Manage your currency and language preferences here.</CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         <Form {...form}>

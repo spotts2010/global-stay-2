@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Bell, PlusCircle, FilePen, Trash2 } from 'lucide-react';
+import { Bell, PlusCircle, FilePen, Trash2 } from '@/lib/icons';
 
 const alerts = [
   {
@@ -54,7 +54,7 @@ export default function MyAlertsPage() {
   return (
     <Card>
       <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div className="space-y-1.5">
           <CardTitle className="font-headline text-2xl flex items-center gap-2">
             <Bell className="h-6 w-6 text-primary" />
             My Alerts

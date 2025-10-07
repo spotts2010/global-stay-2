@@ -7,14 +7,14 @@ import {
   Bed,
   ListChecks,
   ImageIcon,
-  PanelLeft,
-  PanelRight,
   ShieldQuestion,
   SquarePen,
   Users,
   DollarSign,
   Accessibility,
-} from 'lucide-react';
+  TbLayoutSidebarLeftCollapse,
+  TbLayoutSidebarRightCollapse,
+} from '@/lib/icons';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import React from 'react';
@@ -113,7 +113,11 @@ export function EditUnitSidebar({
           onClick={toggleSidebar}
           className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all"
         >
-          {isCollapsed ? <PanelRight className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
+          {isCollapsed ? (
+            <TbLayoutSidebarRightCollapse className="h-5 w-5" />
+          ) : (
+            <TbLayoutSidebarLeftCollapse className="h-5 w-5" />
+          )}
           {!isCollapsed && <span className="text-sm">Collapse</span>}
         </div>
       </div>

@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ListChecks } from 'lucide-react';
+import { ListChecks } from '@/lib/icons';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -73,13 +73,15 @@ export default function ManageNotificationsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl flex items-center gap-2">
-          <ListChecks className="h-6 w-6 text-primary" />
-          Manage Notifications
-        </CardTitle>
-        <CardDescription>
-          Choose what you want to be notified about and how you receive notifications.
-        </CardDescription>
+        <div className="space-y-1.5">
+          <CardTitle className="font-headline text-2xl flex items-center gap-2">
+            <ListChecks className="h-6 w-6 text-primary" />
+            Manage Notifications
+          </CardTitle>
+          <CardDescription>
+            Choose what you want to be notified about and how you receive notifications.
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="border rounded-lg bg-card">

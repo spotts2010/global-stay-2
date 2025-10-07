@@ -34,6 +34,14 @@ export type PropertyType = {
   name: string;
 };
 
+export type LegalPage = {
+  id: 'terms-and-conditions' | 'privacy-policy';
+  content: string;
+  version: number;
+  lastModified: Date;
+  versionNote?: string;
+};
+
 export type Accommodation = {
   id: string;
   slug: string;

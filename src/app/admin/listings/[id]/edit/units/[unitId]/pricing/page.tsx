@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DollarSign, BedDouble, UserPlus, CalendarClock } from 'lucide-react';
+import { DollarSign, BedDouble, UserPlus, CalendarClock } from '@/lib/icons';
 import React from 'react';
 
 export default function PricingPage() {

@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Flag, Trash2, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Flag, Trash2, CheckCircle, ArrowLeft } from '@/lib/icons';
 import { Separator } from '@/components/ui/separator';
 
 export default function ViewNotificationDetailPage() {

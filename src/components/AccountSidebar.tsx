@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   User,
-  ShieldCheck,
+  Shield,
   Users,
   CreditCard,
   Gift,
@@ -25,14 +25,15 @@ import {
   ListChecks,
   ChevronDown,
   ChevronRight,
-  PanelLeft,
-  PanelRight,
   Package2,
   Database,
   ClipboardList,
   Mail,
   Plane,
-} from 'lucide-react';
+  TbLayoutSidebarLeftCollapse,
+  TbLayoutSidebarRightCollapse,
+  Forum,
+} from '@/lib/icons';
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -51,7 +52,7 @@ export const menuItems: NavItem[] = [
     icon: User,
     children: [
       { href: '/account/profile', label: 'Personal Details', icon: User },
-      { href: '/account/settings', label: 'Security Settings', icon: ShieldCheck },
+      { href: '/account/settings', label: 'Security Settings', icon: Shield },
       {
         href: '/account/travel-partners',
         label: 'Travel Partners',
@@ -117,7 +118,7 @@ export const menuItems: NavItem[] = [
     children: [
       { href: '/account/support/faq', label: 'FAQs & Resources', icon: HelpCircle },
       { href: '/account/support/tickets', label: 'My Support Tickets', icon: FileText },
-      { href: '/account/support/disputes', label: 'Dispute Resolution', icon: ShieldCheck },
+      { href: '/account/support/disputes', label: 'Dispute Resolution', icon: Forum },
     ],
   },
   {
@@ -125,9 +126,8 @@ export const menuItems: NavItem[] = [
     icon: GlobeLock,
     children: [
       { href: '/account/privacy/data', label: 'Data Management', icon: Database },
-      { href: '/account/privacy/statement', label: 'Privacy Statement', icon: FileText },
+      { href: '/account/privacy/policy', label: 'Privacy Policy', icon: FileText },
       { href: '/account/privacy/terms', label: 'Terms & Conditions', icon: FileText },
-      { href: '/account/privacy/legal', label: 'Legal', icon: FileText },
     ],
   },
 ];
@@ -294,7 +294,11 @@ export default function AccountSidebar({
           onClick={toggleSidebar}
           className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all"
         >
-          {isCollapsed ? <PanelRight className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
+          {isCollapsed ? (
+            <TbLayoutSidebarRightCollapse className="h-5 w-5" />
+          ) : (
+            <TbLayoutSidebarLeftCollapse className="h-5 w-5" />
+          )}
           {!isCollapsed && <span className="text-sm">Collapse</span>}
         </div>
       </div>

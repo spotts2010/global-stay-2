@@ -1,17 +1,17 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// src/app/account/privacy/terms/page.tsx
+'use server';
+import { fetchLegalPage } from '@/lib/firestore.server';
+import { LegalPage } from '@/lib/data';
+import LegalPageClient from '@/components/LegalPagesClient';
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const pageData = (await fetchLegalPage('terms-and-conditions')) as LegalPage | null;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl">Terms & Conditions</CardTitle>
-        <CardDescription>Read our terms and conditions here.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
-          <p>Terms and conditions will be available here soon.</p>
-        </div>
-      </CardContent>
-    </Card>
+    <LegalPageClient
+      pageType="terms-and-conditions"
+      title="Terms & Conditions"
+      initialPageData={pageData}
+    />
   );
 }

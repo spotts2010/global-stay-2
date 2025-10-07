@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Loader2, Users, CalendarDays, Eye, Grid3x3, CalendarIcon } from 'lucide-react';
+import { Loader2, Users, CalendarDays, Eye, Grid3x3, CalendarIcon } from '@/lib/icons';
 import {
   Dialog,
   DialogContent,
@@ -168,8 +168,10 @@ export default function UpcomingStaysPage() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Upcoming Stays</CardTitle>
-          <CardDescription>View your upcoming bookings here.</CardDescription>
+          <div className="space-y-1.5">
+            <CardTitle className="font-headline text-2xl">Upcoming Stays</CardTitle>
+            <CardDescription>View your upcoming bookings here.</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="calendar">
