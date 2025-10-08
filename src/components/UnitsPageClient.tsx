@@ -60,33 +60,37 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
   const [isSaving, startTransition] = useTransition();
   const [hasMounted, setHasMounted] = useState(false);
 
+  const [initialUnits, setInitialUnits] = useState<BookableUnit[]>(() => [
+    {
+      id: `unit1`, // Simplified ID
+      unitRef: 'PR-01',
+      name: 'Private Room',
+      type: 'Room',
+      guests: 2,
+      price: listing.price,
+      status: 'Published',
+    },
+    {
+      id: `unit2`, // Simplified ID
+      unitRef: 'DB-01',
+      name: 'Dorm Bed',
+      type: 'Bed',
+      guests: 1,
+      price: listing.price / 4,
+      status: 'Published',
+    },
+  ]);
+
+  const [bookableUnits, setBookableUnits] = useState<BookableUnit[]>(initialUnits);
+  const [isUnitsDirty, setIsUnitsDirty] = useState(false);
+
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
-  const [bookableUnits, setBookableUnits] = useState<BookableUnit[]>(() => {
-    // Create a default bookable unit if none exist, using the listing's base price.
-    return [
-      {
-        id: `unit1`, // Simplified ID
-        unitRef: 'PR-01',
-        name: 'Private Room',
-        type: 'Room',
-        guests: 2,
-        price: listing.price,
-        status: 'Published',
-      },
-      {
-        id: `unit2`, // Simplified ID
-        unitRef: 'DB-01',
-        name: 'Dorm Bed',
-        type: 'Bed',
-        guests: 1,
-        price: listing.price / 4,
-        status: 'Published',
-      },
-    ];
-  });
+  useEffect(() => {
+    setIsUnitsDirty(JSON.stringify(bookableUnits) !== JSON.stringify(initialUnits));
+  }, [bookableUnits, initialUnits]);
 
   const getEditUrl = (unitId: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -124,7 +128,21 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
     setBookableUnits((prevUnits) => prevUnits.filter((unit) => unit.id !== unitId));
     toast({
       title: 'Unit Removed',
-      description: 'The unit has been removed. Changes will be saved when you click "Save All".',
+      description: 'The unit has been removed. Click "Save All" to make this change permanent.',
+    });
+  };
+
+  const handleSaveAll = () => {
+    startTransition(async () => {
+      // In a real app, you would have an action to save all units.
+      // For now, we simulate the save and update the state.
+      console.log('Simulating save for all units:', bookableUnits);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setInitialUnits(bookableUnits); // Set the current state as the new "saved" state
+      toast({
+        title: 'Changes Saved',
+        description: 'All unit configurations have been updated.',
+      });
     });
   };
 
@@ -193,12 +211,22 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
                       Manage rooms, dorms, or beds. Each listing must have at least one unit.
                     </p>
                   </div>
-                  <Button asChild type="button" className="mt-2 md:mt-0">
-                    <Link href={getEditUrl('new')}>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add Unit
-                    </Link>
-                  </Button>
+                  <div className="flex items-center gap-2 mt-2 md:mt-0">
+                    <Button asChild type="button" variant="outline">
+                      <Link href={getEditUrl('new')}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Unit
+                      </Link>
+                    </Button>
+                    <Button onClick={handleSaveAll} disabled={!isUnitsDirty || isSaving}>
+                      {isSaving ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Save className="mr-2 h-4 w-4" />
+                      )}
+                      Save All
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="border rounded-lg bg-card">
@@ -284,7 +312,7 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                       <AlertDialogDescription>
                                         This action cannot be undone. This will permanently delete
                                         the "{unit.name}" unit.
