@@ -21,7 +21,6 @@ import {
 import { Switch } from '@/components/ui/switch';
 import {
   Loader2,
-  Info,
   Save,
   Trash2,
   ArrowUp,
@@ -30,6 +29,7 @@ import {
   Check,
   X,
   MapPin,
+  HiOutlineLocationMarker,
 } from '@/lib/icons';
 import type { Accommodation, Place, PoiCategory } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
@@ -491,7 +491,7 @@ export default function PointsOfInterest({
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
             <div className="mb-4 sm:mb-0 space-y-1.5">
               <CardTitle className="flex items-center gap-2">
-                <Info className="h-5 w-5 text-primary" />
+                <HiOutlineLocationMarker className="h-5 w-5 text-primary" />
                 Places & Points of Interest
               </CardTitle>
               <CardDescription>

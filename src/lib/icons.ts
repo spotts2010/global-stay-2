@@ -2,6 +2,7 @@
 // Centralized React Icons for the project
 import { FaPaypal, FaGoogle, FaApple, FaFacebook, FaDatabase, FaArchive } from 'react-icons/fa';
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapse } from 'react-icons/tb';
+import { HiOutlineLocationMarker } from 'react-icons/hi';
 
 // Material Design Icons
 export { MdKeyboardArrowDown as ChevronDown } from 'react-icons/md';
@@ -77,7 +78,6 @@ export { MdEventNote as CalendarClock } from 'react-icons/md';
 export { MdAccessible as Accessibility } from 'react-icons/md';
 export { MdApartment as Building } from 'react-icons/md';
 export { MdInventory2 as Box } from 'react-icons/md';
-export { MdInfoOutline as Info } from 'react-icons/md';
 export { MdEditSquare as SquarePen } from 'react-icons/md';
 export { MdRotateLeft as RotateCcw } from 'react-icons/md';
 export { MdFilterList as ListFilter } from 'react-icons/md';
@@ -134,5 +134,6 @@ export {
   FaArchive,
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarRightCollapse,
+  HiOutlineLocationMarker,
 };
 export { MdForum as Forum } from 'react-icons/md';

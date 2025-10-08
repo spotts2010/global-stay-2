@@ -7,7 +7,6 @@ import {
   ListChecks,
   CalendarDays,
   ImageIcon,
-  Info,
   Package2,
   ShieldQuestion,
   Users,
@@ -16,6 +15,7 @@ import {
   BedDouble,
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarRightCollapse,
+  HiOutlineLocationMarker,
 } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -36,7 +36,7 @@ export const menuItems = [
       { label: 'About the Property', href: '/edit/about', icon: SquarePen },
       { label: 'Photo Gallery', href: '/edit/photos', icon: ImageIcon },
       { label: 'Shared Amenities', href: '/edit/amenities', icon: ListChecks },
-      { label: 'Points of Interest', href: '/edit/pois', icon: Info },
+      { label: 'Points of Interest', href: '/edit/pois', icon: HiOutlineLocationMarker },
       { label: 'Property Policies', href: '/edit/property-policies', icon: ShieldQuestion },
     ],
   },
