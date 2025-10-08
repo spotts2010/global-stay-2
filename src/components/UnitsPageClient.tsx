@@ -57,7 +57,8 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
   const { toast } = useToast();
   const [bookingType, setBookingType] = useState(listing.bookingType || 'room');
   const [isBookingTypeDirty, setIsBookingTypeDirty] = useState(false);
-  const [isSaving, startTransition] = useTransition();
+  const [isSavingBookingType, startBookingTypeTransition] = useTransition();
+  const [isSavingUnits, startUnitsTransition] = useTransition();
   const [hasMounted, setHasMounted] = useState(false);
 
   const [initialUnits, setInitialUnits] = useState<BookableUnit[]>(
@@ -105,7 +106,7 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
   };
 
   const handleSaveBookingType = () => {
-    startTransition(async () => {
+    startBookingTypeTransition(async () => {
       const result = await updateAccommodationAction(listing.id, {
         bookingType: bookingType as 'room' | 'bed' | 'hybrid',
       });
@@ -135,7 +136,7 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
   };
 
   const handleSaveAll = () => {
-    startTransition(async () => {
+    startUnitsTransition(async () => {
       const result = await updateUnitsAction(listing.id, bookableUnits);
       if (result.success) {
         setInitialUnits(bookableUnits); // Set the current state as the new "saved" state
@@ -191,10 +192,10 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
                   </Select>
                   <Button
                     onClick={handleSaveBookingType}
-                    disabled={!isBookingTypeDirty || isSaving}
+                    disabled={!isBookingTypeDirty || isSavingBookingType}
                     className="w-28"
                   >
-                    {isSaving ? (
+                    {isSavingBookingType ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <Save className="mr-2 h-4 w-4" />
@@ -225,8 +226,8 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
                         Add Unit
                       </Link>
                     </Button>
-                    <Button onClick={handleSaveAll} disabled={!isUnitsDirty || isSaving}>
-                      {isSaving ? (
+                    <Button onClick={handleSaveAll} disabled={!isUnitsDirty || isSavingUnits}>
+                      {isSavingUnits ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
                         <Save className="mr-2 h-4 w-4" />
