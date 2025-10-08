@@ -1,8 +1,8 @@
 'use client';
 
-import { Star, MapPin, Hotel, MdOutlinePrivacyTip, Banknote, Ban, Loader2 } from '@/lib/icons';
+import { Star, MapPin, Hotel, MdOutlinePrivacyTip, Banknote, Ban } from '@/lib/icons';
 import { APIProvider, Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -12,7 +12,6 @@ import PhotoGallery from '@/components/PhotoGallery';
 import ReviewCard from '@/components/ReviewCard';
 import { Separator } from '@/components/ui/separator';
 import type { Accommodation, Place } from '@/lib/data';
-import { fetchAccommodationById, fetchPointsOfInterest } from '@/lib/firestore';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -73,11 +72,6 @@ const PointsOfInterestDisplay = ({
 }) => {
   const [sort, setSort] = useState<SortOption>('distance');
   const [showAll, setShowAll] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   const sortedPlaces = useMemo(() => {
     const visiblePlaces = places.filter((p) => p.visible);
@@ -112,19 +106,18 @@ const PointsOfInterestDisplay = ({
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
         <h2 className="font-headline text-2xl font-bold">Points of Interest</h2>
-        {hasMounted && (
-          <Select value={sort} onValueChange={(value) => setSort(value as SortOption)}>
-            <SelectTrigger className="w-full sm:w-[200px] bg-card">
-              <SelectValue placeholder="View by..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="distance">Distance (nearest)</SelectItem>
-              <SelectItem value="category">Category</SelectItem>
-              <SelectItem value="a-z">A-Z</SelectItem>
-              <SelectItem value="z-a">Z-A</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
+
+        <Select value={sort} onValueChange={(value) => setSort(value as SortOption)}>
+          <SelectTrigger className="w-full sm:w-[200px] bg-card">
+            <SelectValue placeholder="View by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="distance">Distance (nearest)</SelectItem>
+            <SelectItem value="category">Category</SelectItem>
+            <SelectItem value="a-z">A-Z</SelectItem>
+            <SelectItem value="z-a">Z-A</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -214,32 +207,13 @@ type AccommodationDetailClientProps = {
 };
 
 export default function AccommodationDetailClient({
-  accommodation: initialAccommodation,
-  pointsOfInterest: initialPois,
+  accommodation,
+  pointsOfInterest,
   allAmenities,
 }: AccommodationDetailClientProps) {
-  const [accommodation, setAccommodation] = useState(initialAccommodation);
-  const [pointsOfInterest, setPointsOfInterest] = useState(initialPois);
-  const [loading, setLoading] = useState(true);
-
   const searchParams = useSearchParams();
   const { preferences } = useUserPreferences();
   const mapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      const [accomData, poiData] = await Promise.all([
-        fetchAccommodationById(initialAccommodation.id),
-        fetchPointsOfInterest(initialAccommodation.id),
-      ]);
-
-      if (accomData) setAccommodation(accomData);
-      setPointsOfInterest(poiData);
-      setLoading(false);
-    };
-    loadData();
-  }, [initialAccommodation.id]);
 
   const amenityMap = useMemo(() => {
     return new Map(allAmenities.map((amenity) => [amenity.id, amenity.label]));
@@ -290,14 +264,6 @@ export default function AccommodationDetailClient({
       : accommodation.image
         ? [accommodation.image]
         : [];
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-6 pb-16">
