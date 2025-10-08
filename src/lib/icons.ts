@@ -1,6 +1,7 @@
 // Filepath: src/lib/icons.ts
 // Centralized React Icons for the project
-import { FaPaypal, FaGoogle, FaApple, FaFacebook, FaDatabase, FaArchive } from 'react-icons/fa';
+import { FaPaypal, FaGoogle, FaApple, FaFacebook, FaArchive } from 'react-icons/fa';
+import { BsDatabaseFillLock } from 'react-icons/bs';
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapse } from 'react-icons/tb';
 import { HiOutlineLocationMarker } from 'react-icons/hi';
 import { MdOutlineDoorFront } from 'react-icons/md';
@@ -38,7 +39,7 @@ export { MdAssignment as ClipboardList } from 'react-icons/md';
 export { MdBadge as IdCard } from 'react-icons/md';
 export { MdMenuBook as BookOpenText } from 'react-icons/md';
 export { MdUpload as Upload } from 'react-icons/md';
-export { MdDownload as Download } from 'react-icons/md';
+export { MdFileDownload as Download } from 'react-icons/md';
 export { MdLink as LinkIcon } from 'react-icons/md';
 export { MdFlag as Flag } from 'react-icons/md';
 export { MdDelete as Trash2 } from 'react-icons/md';
@@ -123,6 +124,12 @@ export { MdTitle as Heading3 } from 'react-icons/md';
 export { MdCalendarViewMonth as CalendarIcon } from 'react-icons/md';
 export { MdOutlineDashboard as Dashboard } from 'react-icons/md';
 export { MdSecurity as Shield } from 'react-icons/md';
+export { MdReportProblem as ShieldAlert } from 'react-icons/md';
+export { MdStorage as Server } from 'react-icons/md';
+export { MdTimeline as Activity } from 'react-icons/md';
+export { MdBarChart as BarChart } from 'react-icons/md';
+export { MdAreaChart as AreaChart } from 'react-icons/md';
+export { MdTrendingUp as TrendingUp } from 'react-icons/md';
 
 // Ant Design Icons (for loaders)
 import {
@@ -139,7 +146,7 @@ export {
   FaGoogle,
   FaApple,
   FaFacebook,
-  FaDatabase as Database,
+  BsDatabaseFillLock as Database,
   FaArchive,
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarRightCollapse,

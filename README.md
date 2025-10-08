@@ -77,6 +77,16 @@ The action buttons displayed on the notification detail page change based on the
 
 ## In Progress / Future Features
 
+- **Customizable User Dashboards**:
+  - **Purpose**: To provide a personalized and efficient overview for each user type (Guest, Host, Admin).
+  - **Implementation**:
+    - **Widget-Based System**: The core of the dashboard will be a flexible grid that allows users to add, remove, and rearrange widgets.
+    - **Personalization**: Each user will have the freedom to customize their dashboard to suit their specific needs and priorities.
+    - **Multiple Views**: Widgets will offer different display types for reports and data, such as bar graphs, line charts, tables, and lists, depending on the available data.
+    - **Role-Based Defaults**:
+      - **Guests**: Default dashboard will focus on upcoming trips, saved places, and personalized recommendations.
+      - **Hosts**: Default dashboard will show booking calendars, revenue summaries, and listing performance metrics.
+      - **Admins**: Default dashboard will provide a high-level overview of system health, user activity, pending requests, and financial reports.
 - **Dynamic Collections via Tagging**:
   - **Purpose**: To automatically associate listings with one or more curated collections based on tags.
   - **Implementation**:
