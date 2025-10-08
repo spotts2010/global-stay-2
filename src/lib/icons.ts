@@ -105,7 +105,6 @@ export { MdUnfoldMore as ChevronsUpDown } from 'react-icons/md';
 export { MdOutlineFormatListBulleted as ListingsIcon } from 'react-icons/md';
 export { MdOutlineSettings as Cog } from 'react-icons/md';
 export { MdSearch as Search } from 'react-icons/md';
-export { MdShield as Shield } from 'react-icons/md';
 export { MdCreditCard as CreditCard } from 'react-icons/md';
 export { MdCommit as GitCommit } from 'react-icons/md';
 export { MdFormatBold as Bold } from 'react-icons/md';
@@ -121,6 +120,7 @@ export { MdTitle as Heading2 } from 'react-icons/md';
 export { MdTitle as Heading3 } from 'react-icons/md';
 export { MdCalendarViewMonth as CalendarIcon } from 'react-icons/md';
 export { MdOutlineDashboard as Dashboard } from 'react-icons/md';
+export { MdSecurity as Shield } from 'react-icons/md';
 
 // Ant Design Icons (for loaders)
 export { AiOutlineLoading3Quarters as Loader2 } from 'react-icons/ai';

@@ -7,7 +7,7 @@ import {
   Bed,
   ListChecks,
   ImageIcon,
-  ShieldQuestion,
+  Shield,
   SquarePen,
   Users,
   DollarSign,
@@ -26,7 +26,7 @@ const menuItems = [
   { label: 'Inclusions', href: '/inclusions', icon: ListChecks },
   { label: 'Photos', href: '/photos', icon: ImageIcon },
   { label: 'Accessibility & Features', href: '/accessibility-features', icon: Accessibility },
-  { label: 'Unit Policies', href: '/unit-policies', icon: ShieldQuestion },
+  { label: 'Unit Policies', href: '/unit-policies', icon: Shield },
 ];
 
 export function EditUnitSidebar({
