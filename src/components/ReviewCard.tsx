@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Star } from '@/lib/icons';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 type Review = {

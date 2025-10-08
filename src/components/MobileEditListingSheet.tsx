@@ -27,9 +27,11 @@ export default function MobileEditListingSheet({ params }: { params: { id: strin
 
   useEffect(() => {
     async function getListingName() {
-      const listing = await fetchAccommodationById(listingId);
-      if (listing) {
-        setListingName(listing.name);
+      if (listingId) {
+        const listing = await fetchAccommodationById(listingId);
+        if (listing) {
+          setListingName(listing.name);
+        }
       }
     }
     getListingName();

@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { LucideIcon } from 'lucide-react';
+import type { ElementType } from 'react';
 
 interface StatCardProps {
   title: string;
   value: string;
   change: string;
-  icon: LucideIcon;
+  icon: ElementType;
 }
 
 export default function StatCard({ title, value, change, icon: Icon }: StatCardProps) {

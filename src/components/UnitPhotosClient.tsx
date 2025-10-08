@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -18,9 +18,11 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useParams } from 'next/navigation';
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,11 +32,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Loader2, ImageIcon, UploadCloud, Save, Trash2, GripVertical, Camera } from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
-import type { Accommodation } from '@/lib/data';
-import { updateAccommodationAction } from '@/app/actions';
+import { updateUnitAction } from '@/app/actions';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -48,6 +48,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import type { Accommodation } from '@/lib/data';
+import type { BookableUnit } from './UnitsPageClient';
 
 const SortablePhoto = ({
   id,
@@ -69,7 +71,7 @@ const SortablePhoto = ({
     <div ref={setNodeRef} style={style} className="relative w-40 h-40 rounded-lg group touch-none">
       <Image
         src={id}
-        alt={`Property image ${index + 1}`}
+        alt={`Unit image ${index + 1}`}
         fill
         sizes="160px"
         className="object-cover rounded-lg"
@@ -113,9 +115,20 @@ const SortablePhoto = ({
   );
 };
 
-export default function PhotosPageClient({ listing }: { listing: Accommodation }) {
+export default function UnitPhotosClient({
+  listing: _listing,
+  unit,
+}: {
+  listing: Accommodation;
+  unit?: BookableUnit;
+}) {
   const { toast } = useToast();
-  const [images, setImages] = useState<string[]>(listing?.images || []);
+  const params = useParams();
+  const listingId = params.id as string;
+  const unitId = params.unitId as string;
+
+  const initialImages = useMemo(() => unit?.images || [], [unit]);
+  const [images, setImages] = useState<string[]>(initialImages);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -130,11 +143,9 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
   );
 
   useEffect(() => {
-    // Compare arrays by value, not by reference. Do NOT sort, as order is important.
-    const imagesString = JSON.stringify(images);
-    const listingImagesString = JSON.stringify(listing.images || []);
-    setIsDirty(imagesString !== listingImagesString);
-  }, [images, listing.images]);
+    // Correctly check for changes in order by comparing stringified arrays without sorting.
+    setIsDirty(JSON.stringify(images) !== JSON.stringify(initialImages));
+  }, [images, initialImages]);
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -175,9 +186,11 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
     setIsUploading(true);
     const formData = new FormData();
     filesToUpload.forEach((file) => formData.append('files', file));
+    // Append unitId to be used by the API route for the path
+    formData.append('unitId', unitId);
 
     try {
-      const res = await fetch(`/api/listings/${listing.id}/upload`, {
+      const res = await fetch(`/api/listings/${listingId}/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -187,7 +200,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
         setImages((prev) => [...prev, ...result.urls]);
         toast({
           title: 'Images Ready',
-          description: `Added ${result.urls.length} new image(s). Click Save Changes.`,
+          description: `Added ${result.urls.length} new image(s). Click Save Changes to confirm.`,
         });
         setFilesToUpload([]);
         setIsAddModalOpen(false);
@@ -207,11 +220,16 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
 
   const handleSaveChanges = () => {
     startTransition(async () => {
-      const result = await updateAccommodationAction(listing.id, { images });
+      // The updateUnitAction now saves the images array to the unit document
+      const result = await updateUnitAction(listingId, unitId, { images });
       if (result.success) {
-        toast({ title: 'Changes Saved', description: 'Photo gallery updated.' });
-        // After saving, update the original listing data to match the new state
-        listing.images = [...images];
+        toast({
+          title: 'Changes Saved',
+          description: "The unit's photo gallery has been updated.",
+        });
+        if (unit) {
+          unit.images = [...images];
+        }
         setIsDirty(false);
       } else {
         toast({
@@ -223,25 +241,31 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
     });
   };
 
+  if (!unit) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Unit Not Found</CardTitle>
+          <CardDescription>
+            This unit doesn't exist. Please create it before adding photos.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: 'Listings', href: '/admin/listings' },
-          { label: listing.name, href: `/admin/listings/${listing.id}/edit/about` },
-          { label: 'Photos' },
-        ]}
-      />
-
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-            <div className="mb-4 sm:mb-0 space-y-1.5">
+            <div className="space-y-1.5 mb-4 sm:mb-0">
               <CardTitle className="flex items-center gap-2">
-                <ImageIcon className="h-5 w-5 text-primary" /> Property Photo Gallery
+                <ImageIcon className="h-5 w-5 text-primary" />
+                Unit Photo Gallery
               </CardTitle>
               <CardDescription>
-                Drag and drop to reorder images. First image is the cover photo.
+                Drag and drop to reorder images. The first image is the cover photo for this unit.
               </CardDescription>
             </div>
             <Button onClick={handleSaveChanges} disabled={isPending || !isDirty}>
@@ -254,7 +278,6 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
             </Button>
           </div>
         </CardHeader>
-
         <CardContent>
           <DndContext
             sensors={sensors}
@@ -266,6 +289,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
                 {images.map((img, index) => (
                   <SortablePhoto key={img} id={img} index={index} onDelete={handleDeleteImage} />
                 ))}
+
                 <div
                   onClick={() => setIsAddModalOpen(true)}
                   className="w-40 h-40 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer text-muted-foreground hover:bg-accent"
@@ -282,23 +306,23 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload New Images</DialogTitle>
+            <DialogTitle>Upload New Images for Unit</DialogTitle>
             <DialogDescription>
               Recommended dimensions: 1920x1080px. Max file size: 5MB per image.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="picture">Pictures</Label>
+              <Label htmlFor="unit-pictures">Pictures</Label>
               <div className="flex h-10 w-full rounded-md border border-input bg-white text-sm">
                 <Label
-                  htmlFor="picture"
+                  htmlFor="unit-pictures"
                   className="flex h-full items-center whitespace-nowrap rounded-l-md border-r bg-primary px-3 text-primary-foreground hover:bg-primary/90 cursor-pointer"
                 >
                   Choose Files
                 </Label>
                 <Input
-                  id="picture"
+                  id="unit-pictures"
                   type="file"
                   onChange={handleFileChange}
                   multiple

@@ -1,6 +1,6 @@
 // src/app/admin/listings/[id]/edit/units/page.tsx
 import 'server-only';
-import { fetchAccommodationById } from '@/lib/firestore.server';
+import { fetchAccommodationById, fetchUnitsForAccommodation } from '@/lib/firestore.server';
 import UnitsPageClient from '@/components/UnitsPageClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -33,9 +33,8 @@ export default async function UnitsPage({ params }: { params: { id: string } }) 
     );
   }
 
-  // The client component for this page doesn't directly use `lastModified`,
-  // so serialization isn't strictly necessary for the passed props.
-  // However, it's good practice to be aware of what is being passed.
+  // Fetch the units from the subcollection
+  const units = await fetchUnitsForAccommodation(params.id);
 
-  return <UnitsPageClient listing={listing} />;
+  return <UnitsPageClient listing={listing} initialUnits={units} />;
 }

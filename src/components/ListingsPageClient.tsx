@@ -68,7 +68,6 @@ type SortDirection = 'asc' | 'desc';
 
 type EnrichedProperty = Accommodation & {
   host: string;
-  units: number;
 };
 
 export default function ListingsPageClient({
@@ -141,7 +140,6 @@ export default function ListingsPageClient({
       const enriched = initialProperties.map((p) => ({
         ...p,
         host: 'Sam Potts', // Placeholder
-        units: p.type === 'Hotel' ? 4 : 1, // Example logic
       }));
       setProperties(enriched);
     }
@@ -345,7 +343,7 @@ export default function ListingsPageClient({
               <SortableHeader sortKey="host">Host</SortableHeader>
             </TableHead>
             <TableHead className="hidden md:table-cell">
-              <SortableHeader sortKey="price">Price</SortableHeader>
+              <SortableHeader sortKey="price">Lowest Price</SortableHeader>
             </TableHead>
             <TableHead>
               <SortableHeader sortKey="status">Status</SortableHeader>
@@ -379,7 +377,7 @@ export default function ListingsPageClient({
                   </TableCell>
                   <TableCell className="font-medium">{property.name}</TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <Badge variant="secondary">{property.units}</Badge>
+                    <Badge variant="secondary">{property.unitsCount || 0}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-muted-foreground">
                     {getShortLocation(property.location)}

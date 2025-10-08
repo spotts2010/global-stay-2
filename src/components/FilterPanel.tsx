@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from './ui/button';
-import { Star } from 'lucide-react';
+import { Star } from '@/lib/icons';
 
 type FilterPanelProps = {
   onFilterChange: (filters: { priceRange: number[]; propertyType: string; rating: number }) => void;

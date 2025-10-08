@@ -5,7 +5,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { fetchAccommodations } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
 import AccommodationCard from '@/components/AccommodationCard';
-import { MapPin, Calendar, Users, Loader2 } from 'lucide-react';
+import { MapPin, CalendarDays as Calendar, Users, Loader2 } from '@/lib/icons';
 import Link from 'next/link';
 import {
   Breadcrumb,

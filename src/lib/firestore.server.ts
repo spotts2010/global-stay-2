@@ -5,6 +5,7 @@ import { getAdminDb } from './firebaseAdmin';
 import type { Accommodation, BedType, Place, Collection, PropertyType, LegalPage } from './data';
 import { serializeFirestoreData } from './serialize';
 import placeholderImages from './placeholder-images.json';
+import type { BookableUnit } from '@/components/UnitsPageClient';
 
 type AmenityOrInclusion = {
   id: string;
@@ -17,17 +18,41 @@ type AmenityOrInclusion = {
 export async function fetchAccommodations(): Promise<Accommodation[]> {
   try {
     const adminDb = getAdminDb();
-    const accommodationsSnapshot = await adminDb
-      .collection('accommodations')
-      .where('status', '==', 'Published')
-      .get();
+    const accommodationsSnapshot = await adminDb.collection('accommodations').get();
     if (accommodationsSnapshot.empty) {
       return [];
     }
-    // Serialize data to ensure it's client-safe
-    return accommodationsSnapshot.docs.map(
-      (doc) => serializeFirestoreData({ id: doc.id, ...doc.data() }) as Accommodation
+
+    const accommodations = await Promise.all(
+      accommodationsSnapshot.docs.map(async (doc) => {
+        const accommodationData = doc.data();
+        const unitsSnapshot = await doc.ref.collection('units').get();
+        const units = unitsSnapshot.docs.map((unitDoc) => unitDoc.data() as BookableUnit);
+
+        // Find the lowest price among all units
+        let lowestPrice = accommodationData.price;
+        if (units.length > 0) {
+          const prices = units
+            .map((u) => u.price)
+            .filter((p): p is number => typeof p === 'number');
+          if (prices.length > 0) {
+            lowestPrice = Math.min(...prices);
+          }
+        }
+
+        const accommodation = {
+          id: doc.id,
+          ...accommodationData,
+          price: lowestPrice, // Overwrite with the lowest unit price
+          unitsCount: unitsSnapshot.size,
+        };
+
+        const { units: _units, ...rest } = accommodation;
+        return serializeFirestoreData(rest) as Accommodation;
+      })
     );
+
+    return accommodations;
   } catch (error) {
     console.error('Error fetching accommodations with Admin SDK:', error);
     return []; // Return empty array on server-side errors
@@ -40,13 +65,76 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
     const adminDb = getAdminDb();
     const docRef = adminDb.collection('accommodations').doc(id);
     const docSnap = await docRef.get();
+
     if (!docSnap.exists) {
       return null;
     }
-    // Serialize data to ensure it's client-safe
-    return serializeFirestoreData({ id: docSnap.id, ...docSnap.data() }) as Accommodation;
+
+    const accommodationData = docSnap.data();
+    const unitsSnapshot = await docRef.collection('units').get();
+    const units = unitsSnapshot.docs.map((unitDoc) => unitDoc.data() as BookableUnit);
+
+    let lowestPrice = accommodationData?.price;
+    if (units.length > 0) {
+      const prices = units.map((u) => u.price).filter((p): p is number => typeof p === 'number');
+      if (prices.length > 0) {
+        lowestPrice = Math.min(...prices);
+      }
+    }
+
+    const accommodation = {
+      id: docSnap.id,
+      ...accommodationData,
+      price: lowestPrice,
+      unitsCount: unitsSnapshot.size,
+    };
+
+    const { units: _units, ...rest } = accommodation;
+    return serializeFirestoreData(rest) as Accommodation;
   } catch (error) {
     console.error(`Error fetching accommodation by id ${id} with Admin SDK:`, error);
+    return null;
+  }
+}
+
+export async function fetchUnitsForAccommodation(accommodationId: string): Promise<BookableUnit[]> {
+  if (!accommodationId) return [];
+  try {
+    const adminDb = getAdminDb();
+    const unitsSnapshot = await adminDb.collection(`accommodations/${accommodationId}/units`).get();
+    if (unitsSnapshot.empty) {
+      return [];
+    }
+    return unitsSnapshot.docs.map(
+      (doc) => serializeFirestoreData({ id: doc.id, ...doc.data() }) as BookableUnit
+    );
+  } catch (error) {
+    console.error(`Error fetching units for accommodation ${accommodationId}:`, error);
+    return [];
+  }
+}
+
+export async function fetchUnitById(
+  accommodationId: string,
+  unitId: string
+): Promise<BookableUnit | null> {
+  if (!accommodationId || !unitId) return null;
+  try {
+    const adminDb = getAdminDb();
+    const unitRef = adminDb
+      .collection('accommodations')
+      .doc(accommodationId)
+      .collection('units')
+      .doc(unitId);
+    const unitSnap = await unitRef.get();
+
+    if (!unitSnap.exists) {
+      return null;
+    }
+
+    return serializeFirestoreData({ id: unitSnap.id, ...unitSnap.data() }) as BookableUnit;
+  } catch (error) {
+    console.error(`Error fetching unit ${unitId} for accommodation ${accommodationId}:`, error);
     return null;
   }
 }

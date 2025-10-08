@@ -70,6 +70,7 @@ export type Accommodation = {
   cancellationPolicy?: string;
   houseRules?: string;
   units?: BookableUnit[];
+  unitsCount?: number;
 };
 
 export type Booking = {
@@ -106,3 +107,6 @@ export type HeroImage = {
   alt: string;
   hint: string;
 };
+
+// Re-exporting for use in client-side firestore.ts
+export type { BookableUnit };

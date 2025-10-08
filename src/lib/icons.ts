@@ -21,9 +21,7 @@ export { MdStar as Star } from 'react-icons/md';
 export { MdWifi as Wifi } from 'react-icons/md';
 export { MdDirectionsCar as Car } from 'react-icons/md';
 export { MdRestaurant as Utensils } from 'react-icons/md';
-export { MdEmojiEvents as Award } from 'react-icons/md';
 export { MdFitnessCenter as Dumbbell } from 'react-icons/md';
-export { MdHotel as Hotel } from 'react-icons/md';
 export { MdPerson as User } from 'react-icons/md';
 export { MdSettings as Settings } from 'react-icons/md';
 export { MdLogout as LogOut } from 'react-icons/md';
@@ -130,6 +128,8 @@ export { MdTimeline as Activity } from 'react-icons/md';
 export { MdBarChart as BarChart } from 'react-icons/md';
 export { MdAreaChart as AreaChart } from 'react-icons/md';
 export { MdTrendingUp as TrendingUp } from 'react-icons/md';
+export { MdOutlineHotel as Hotel } from 'react-icons/md';
+export { MdOutlineEmojiEvents as Award } from 'react-icons/md';
 
 // Ant Design Icons (for loaders)
 import {

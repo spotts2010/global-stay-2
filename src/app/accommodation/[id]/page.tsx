@@ -1,6 +1,10 @@
 // src/app/accommodation/[id]/page.tsx
 import 'server-only';
-import { fetchAccommodationById, fetchPointsOfInterest } from '@/lib/firestore.server';
+import {
+  fetchAccommodationById,
+  fetchPointsOfInterest,
+  fetchSharedAmenities,
+} from '@/lib/firestore.server';
 import AccommodationDetailClient from '@/components/AccommodationDetailClient';
 import type { Accommodation } from '@/lib/data';
 
@@ -12,9 +16,10 @@ export default async function AccommodationDetailPage({ params }: { params: { id
     return <div>Error: Accommodation ID is missing.</div>;
   }
 
-  // Fetch all data on the server first. The data is already serialized.
+  // Fetch all data on the server first.
   const accommodationData = await fetchAccommodationById(id);
   const poiData = await fetchPointsOfInterest(id);
+  const allAmenities = await fetchSharedAmenities();
 
   if (!accommodationData) {
     return (
@@ -31,6 +36,7 @@ export default async function AccommodationDetailPage({ params }: { params: { id
     <AccommodationDetailClient
       accommodation={accommodationData as Accommodation}
       pointsOfInterest={poiData}
+      allAmenities={allAmenities}
     />
   );
 }

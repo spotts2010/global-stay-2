@@ -7,7 +7,7 @@ import {
   getDoc as getDocClient,
 } from 'firebase/firestore';
 import { db } from './firebase-config'; // CLIENT SDK for client-side actions
-import type { Accommodation, EnrichedBooking, Booking, Place } from './data';
+import type { Accommodation, EnrichedBooking, Booking, Place, BookableUnit } from './data';
 import { isBefore } from 'date-fns';
 
 // This file should now ONLY contain client-side or shared Firestore logic.
@@ -40,6 +40,22 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
   } catch (error) {
     console.error(`Error fetching accommodation by id ${id}:`, error);
     return null;
+  }
+}
+
+export async function fetchUnitsForAccommodation(accommodationId: string): Promise<BookableUnit[]> {
+  if (!accommodationId) return [];
+  try {
+    const unitsSnapshot = await getDocsClient(
+      collection(db, `accommodations/${accommodationId}/units`)
+    );
+    if (unitsSnapshot.empty) {
+      return [];
+    }
+    return unitsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as BookableUnit);
+  } catch (error) {
+    console.error(`Error fetching units for accommodation ${accommodationId}:`, error);
+    return [];
   }
 }
 

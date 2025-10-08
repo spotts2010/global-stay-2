@@ -1,7 +1,7 @@
 'use client';
 
-import { Star, MapPin, Award, MdOutlinePrivacyTip, Banknote, Ban } from 'lucide-react';
-import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { Star, MapPin, Hotel, MdOutlinePrivacyTip, Banknote, Ban } from '@/lib/icons';
+import { APIProvider, Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -54,18 +54,12 @@ const FeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const StarRating = ({ rating }: { rating: number }) => (
-  <div className="flex items-center gap-0.5">
-    {[...Array(5)].map((_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${
-          i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'
-        }`}
-      />
-    ))}
-  </div>
-);
+const getPropertyTypeLabel = (starRating: number | undefined, type: string) => {
+  if (starRating && starRating > 0) {
+    return `${starRating}-star ${type}`;
+  }
+  return type;
+};
 
 type SortOption = 'distance' | 'category' | 'a-z' | 'z-a';
 
@@ -215,14 +209,20 @@ const PoliciesSection = ({ accommodation }: { accommodation: Accommodation }) =>
 type AccommodationDetailClientProps = {
   accommodation: Accommodation;
   pointsOfInterest: Place[];
+  allAmenities: { id: string; label: string; category: string }[];
 };
 
 export default function AccommodationDetailClient({
   accommodation,
   pointsOfInterest,
+  allAmenities,
 }: AccommodationDetailClientProps) {
   const searchParams = useSearchParams();
   const { preferences } = useUserPreferences();
+
+  const amenityMap = useMemo(() => {
+    return new Map(allAmenities.map((amenity) => [amenity.id, amenity.label]));
+  }, [allAmenities]);
 
   // TODO: Replace with dynamic reviews from Firestore
   const reviews = [
@@ -286,10 +286,7 @@ export default function AccommodationDetailClient({
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <PhotoGallery
-        images={allImages}
-        imageHints={[accommodation.imageHint, 'living room', 'bedroom', 'bathroom', 'exterior']}
-      />
+      <PhotoGallery images={allImages} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12 mt-8">
         <div className="lg:col-span-2">
@@ -303,19 +300,14 @@ export default function AccommodationDetailClient({
               </div>
               <div className="flex flex-wrap items-center gap-x-4">
                 <div className="flex items-center gap-1">
+                  <Hotel className="h-4 w-4" />
+                  <span>{getPropertyTypeLabel(accommodation.starRating, accommodation.type)}</span>
+                </div>
+                <div className="flex items-center gap-1">
                   <Star className="h-4 w-4" />
                   <span>
                     {accommodation.rating} ({accommodation.reviewsCount} reviews)
                   </span>
-                </div>
-                {accommodation.starRating && accommodation.starRating > 0 && (
-                  <div className="flex items-center gap-1">
-                    <StarRating rating={accommodation.starRating} />
-                  </div>
-                )}
-                <div className="flex items-center gap-1">
-                  <Award className="h-4 w-4" />
-                  <span>{accommodation.type}</span>
                 </div>
               </div>
             </div>
@@ -337,16 +329,19 @@ export default function AccommodationDetailClient({
           <div>
             <div className="flex items-baseline justify-between">
               <h2 className="font-headline text-2xl font-bold mb-4">Amenities</h2>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <FeeIcon className="h-4 w-4" />
-                <span>Additional fees may apply</span>
-              </div>
+              {accommodation.chargeableAmenities &&
+                accommodation.chargeableAmenities.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <FeeIcon className="h-4 w-4" />
+                    <span>Additional fees may apply</span>
+                  </div>
+                )}
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {accommodation.amenities.map((amenity) => (
-                <div key={amenity} className="flex items-center gap-3">
-                  <span className="capitalize">{amenity}</span>
-                  {accommodation.chargeableAmenities?.includes(amenity) && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              {(accommodation.amenities || []).map((amenityTag) => (
+                <div key={amenityTag} className="flex items-center gap-3">
+                  <span>{amenityMap.get(amenityTag) || amenityTag}</span>
+                  {accommodation.chargeableAmenities?.includes(amenityTag) && (
                     <FeeIcon className="h-5 w-5" />
                   )}
                 </div>
@@ -361,14 +356,14 @@ export default function AccommodationDetailClient({
             <h2 className="font-headline text-2xl font-bold mb-4">Location</h2>
             <div className="aspect-video rounded-lg overflow-hidden border">
               <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
-                <Map
+                <GoogleMap
                   mapId="DEMO_MAP_ID"
                   defaultCenter={position}
                   defaultZoom={15}
                   gestureHandling="greedy"
                 >
                   <AdvancedMarker position={position} />
-                </Map>
+                </GoogleMap>
               </APIProvider>
             </div>
             <p className="text-muted-foreground mt-2">{accommodation.location}</p>

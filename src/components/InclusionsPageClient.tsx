@@ -13,8 +13,7 @@ import {
   AiFillDollarCircle,
 } from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
-import { Accommodation } from '@/lib/data';
-import { updateListingSharedAmenitiesAction } from '@/app/actions';
+import { updateUnitInclusionsAction } from '@/app/actions';
 import { Input } from './ui/input';
 import {
   Select,
@@ -26,66 +25,72 @@ import {
 import { Badge } from './ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import type { BookableUnit } from './UnitsPageClient';
 
-type AmenityItem = {
+type InclusionItem = {
   id: string; // systemTag
   label: string;
   category: string;
 };
 
-export default function AmenitiesPageClient({
-  listing,
-  allSharedAmenities,
+export default function InclusionsPageClient({
+  listingId,
+  unit,
+  allPrivateInclusions,
 }: {
-  listing: Accommodation;
-  allSharedAmenities: AmenityItem[];
+  listingId: string;
+  unit?: BookableUnit;
+  allPrivateInclusions: InclusionItem[];
 }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(listing.amenities || []);
-  const [chargeableAmenities, setChargeableAmenities] = useState<string[]>(
-    listing.chargeableAmenities || []
+  const [selectedInclusions, setSelectedInclusions] = useState<string[]>(unit?.inclusions || []);
+  const [chargeableInclusions, setChargeableInclusions] = useState<string[]>(
+    unit?.chargeableInclusions || []
   );
 
-  const amenityCategories = [
+  const inclusionCategories = [
     'All',
-    ...Array.from(new Set(allSharedAmenities.map((a) => a.category))).sort(),
+    ...Array.from(new Set(allPrivateInclusions.map((a) => a.category))).sort(),
   ];
   const [categoryFilter, setCategoryFilter] = useState('All');
 
-  const filteredAmenities = allSharedAmenities.filter(
-    (amenity) =>
-      (categoryFilter === 'All' || amenity.category === categoryFilter) &&
-      amenity.label.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredInclusions = allPrivateInclusions.filter(
+    (inclusion) =>
+      (categoryFilter === 'All' || inclusion.category === categoryFilter) &&
+      inclusion.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { All: selectedAmenities.length };
-    allSharedAmenities.forEach((amenity) => {
-      if (selectedAmenities.includes(amenity.id)) {
-        counts[amenity.category] = (counts[amenity.category] || 0) + 1;
+    const counts: Record<string, number> = { All: selectedInclusions.length };
+    allPrivateInclusions.forEach((inclusion) => {
+      if (selectedInclusions.includes(inclusion.id)) {
+        counts[inclusion.category] = (counts[inclusion.category] || 0) + 1;
       }
     });
     return counts;
-  }, [selectedAmenities, allSharedAmenities]);
+  }, [selectedInclusions, allPrivateInclusions]);
 
   const handleSave = () => {
+    if (!unit) return;
     startTransition(async () => {
-      const result = await updateListingSharedAmenitiesAction(
-        listing.id,
-        selectedAmenities,
-        chargeableAmenities
+      const result = await updateUnitInclusionsAction(
+        listingId,
+        unit.id,
+        selectedInclusions,
+        chargeableInclusions
       );
       if (result.success) {
         toast({
           title: 'Changes Saved',
-          description: 'The shared amenities have been updated.',
+          description: 'The unit inclusions have been updated.',
         });
-        // Update local state to match saved state
-        listing.amenities = selectedAmenities;
-        listing.chargeableAmenities = chargeableAmenities;
+        if (unit) {
+          unit.inclusions = selectedInclusions;
+          unit.chargeableInclusions = chargeableInclusions;
+        }
       } else {
         toast({
           variant: 'destructive',
@@ -96,26 +101,38 @@ export default function AmenitiesPageClient({
     });
   };
 
-  const handleToggleAmenity = (amenityId: string, checked: boolean) => {
-    setSelectedAmenities((prev) =>
-      checked ? [...prev, amenityId] : prev.filter((id) => id !== amenityId)
+  const handleToggleInclusion = (inclusionId: string, checked: boolean) => {
+    setSelectedInclusions((prev) =>
+      checked ? [...prev, inclusionId] : prev.filter((id) => id !== inclusionId)
     );
-    // If an amenity is deselected, also remove it from chargeable
     if (!checked) {
-      setChargeableAmenities((prev) => prev.filter((id) => id !== amenityId));
+      setChargeableInclusions((prev) => prev.filter((id) => id !== inclusionId));
     }
   };
 
-  const handleToggleChargeable = (e: React.MouseEvent, amenityId: string) => {
+  const handleToggleChargeable = (e: React.MouseEvent, inclusionId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    const isSelected = selectedAmenities.includes(amenityId);
+    const isSelected = selectedInclusions.includes(inclusionId);
     if (!isSelected) return;
 
-    setChargeableAmenities((prev) =>
-      prev.includes(amenityId) ? prev.filter((id) => id !== amenityId) : [...prev, amenityId]
+    setChargeableInclusions((prev) =>
+      prev.includes(inclusionId) ? prev.filter((id) => id !== inclusionId) : [...prev, inclusionId]
     );
   };
+
+  if (!unit) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Unit Not Found</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>The specified unit could not be found for this listing.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -124,11 +141,10 @@ export default function AmenitiesPageClient({
           <div className="space-y-1.5 mb-4 sm:mb-0">
             <CardTitle className="flex items-center gap-2">
               <ListChecks className="h-5 w-5 text-primary" />
-              Shared Amenities
+              Private Inclusions
             </CardTitle>
             <CardDescription>
-              Select all amenities that are available property-wide (e.g., shared pool, gym,
-              laundry).
+              Select all features available inside this specific unit and specify if fees apply.
             </CardDescription>
             <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
               <AiFillDollarCircle className="h-5 w-5 text-primary" />
@@ -164,7 +180,7 @@ export default function AmenitiesPageClient({
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
-                {amenityCategories.map((cat) => (
+                {inclusionCategories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     <div className="flex items-center justify-between w-full">
                       <span>{cat}</span>
@@ -180,38 +196,38 @@ export default function AmenitiesPageClient({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-          {filteredAmenities.map((amenity) => {
-            const isSelected = selectedAmenities.includes(amenity.id);
-            const isChargeable = chargeableAmenities.includes(amenity.id);
+          {filteredInclusions.map((inclusion) => {
+            const isSelected = selectedInclusions.includes(inclusion.id);
+            const isChargeable = chargeableInclusions.includes(inclusion.id);
             return (
               <div
-                key={amenity.id}
+                key={inclusion.id}
                 className={cn(
                   'flex items-start gap-3 p-2 rounded-md border transition-colors',
                   isSelected ? 'bg-accent border-primary/50' : 'bg-transparent border-border'
                 )}
               >
                 <Checkbox
-                  id={amenity.id}
+                  id={inclusion.id}
                   checked={isSelected}
-                  onCheckedChange={(checked) => handleToggleAmenity(amenity.id, !!checked)}
+                  onCheckedChange={(checked) => handleToggleInclusion(inclusion.id, !!checked)}
                   className="mt-1"
                 />
                 <div className="flex-1">
                   <label
-                    htmlFor={amenity.id}
+                    htmlFor={inclusion.id}
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                   >
-                    {amenity.label}
+                    {inclusion.label}
                   </label>
-                  <p className="text-xs text-muted-foreground">{amenity.category}</p>
+                  <p className="text-xs text-muted-foreground">{inclusion.category}</p>
                 </div>
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        onClick={(e) => handleToggleChargeable(e, amenity.id)}
+                        onClick={(e) => handleToggleChargeable(e, inclusion.id)}
                         disabled={!isSelected}
                         className={cn(
                           'h-5 w-5 mt-0.5',

@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import React from 'react';
 
-const menuItems = [
+export const menuItems = [
   { label: 'Basic Info', href: '/basic-info', icon: SquarePen },
   { label: 'Occupancy & Layout', href: '/occupancy-layout', icon: Users },
   { label: 'Pricing', href: '/pricing', icon: DollarSign },

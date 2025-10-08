@@ -1,7 +1,7 @@
 // src/app/admin/amenities/page.tsx
 import 'server-only';
 import { fetchSharedAmenities, fetchPrivateInclusions } from '@/lib/firestore.server';
-import AmenitiesManagementClient from '@/components/AmenitiesPageClient';
+import AmenitiesManagementClient from '@/components/AmenitiesManagementClient';
 
 export default async function AmenitiesPage() {
   const initialSharedAmenities = (await fetchSharedAmenities()) || [];

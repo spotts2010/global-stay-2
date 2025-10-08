@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Trash2, PlusCircle, Loader2, Home, FilePen, Check, X } from 'lucide-react';
+import { Trash2, PlusCircle, Loader2, Home, FilePen, Check, X } from '@/lib/icons';
 import React, { useState, useTransition } from 'react';
 import type { PropertyType } from '@/lib/data';
 import { useForm } from 'react-hook-form';

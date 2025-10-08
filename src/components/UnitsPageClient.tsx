@@ -19,16 +19,32 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Bed, Box, Building, FilePen, PlusCircle, Trash2, Users, Loader2, Save } from '@/lib/icons';
+import {
+  Bed,
+  Box,
+  Building,
+  FilePen,
+  PlusCircle,
+  Trash2,
+  Users,
+  Loader2,
+  Save,
+  Copy,
+  FaArchive,
+  RotateCcw,
+  Check,
+  ArrowUp,
+  ArrowDown,
+} from '@/lib/icons';
 import type { Accommodation } from '@/lib/data';
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useTransition, useEffect, useMemo } from 'react';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { updateAccommodationAction, updateUnitsAction } from '@/app/actions';
+import { updateAccommodationAction, updateUnitsAction, duplicateUnitAction } from '@/app/actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,51 +56,72 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { formatCurrency } from '@/lib/currency';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 export type BookableUnit = {
   id: string;
   unitRef: string;
   name: string;
   type: 'Room' | 'Bed';
-  guests: number;
-  price: number;
+  minOccupancy?: number;
+  maxOccupancy?: number;
+  price?: number;
   status: 'Published' | 'Draft' | 'Archived';
   images?: string[];
+  inclusions?: string[];
+  chargeableInclusions?: string[];
+  bedConfigs?: {
+    id?: string;
+    type: string;
+    sleeps: number;
+    count: number;
+  }[];
+  privateBathrooms?: number;
+  sharedBathrooms?: number;
+  description?: string;
+  minStay?: number;
+  maxStay?: number;
+  includedOccupancy?: number;
+  extraGuestFee?: number;
+  accessibilityFeatures?: string[];
+  chargeableAccessibilityFeatures?: string[];
+  checkInTime?: string;
+  checkOutTime?: string;
+  paymentTerms?: string;
+  cancellationPolicy?: string;
+  houseRules?: string;
 };
 
-export default function UnitsPageClient({ listing }: { listing: Accommodation }) {
+type SortKey = 'unitRef' | 'name' | 'type' | 'maxOccupancy' | 'price' | 'status';
+type SortDirection = 'asc' | 'desc';
+
+export default function UnitsPageClient({
+  listing,
+  initialUnits,
+}: {
+  listing: Accommodation;
+  initialUnits: BookableUnit[];
+}) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { preferences } = useUserPreferences();
   const [bookingType, setBookingType] = useState(listing.bookingType || 'room');
   const [isBookingTypeDirty, setIsBookingTypeDirty] = useState(false);
   const [isSavingBookingType, startBookingTypeTransition] = useTransition();
   const [isSavingUnits, startUnitsTransition] = useTransition();
+  const [isDuplicating, startDuplicationTransition] = useTransition();
   const [hasMounted, setHasMounted] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
+    key: 'unitRef',
+    direction: 'asc',
+  });
 
-  const [initialUnits, setInitialUnits] = useState<BookableUnit[]>(
-    listing.units || [
-      {
-        id: `unit1`, // Simplified ID
-        unitRef: 'PR-01',
-        name: 'Private Room',
-        type: 'Room',
-        guests: 2,
-        price: listing.price,
-        status: 'Published',
-      },
-      {
-        id: `unit2`, // Simplified ID
-        unitRef: 'DB-01',
-        name: 'Dorm Bed',
-        type: 'Bed',
-        guests: 1,
-        price: listing.price / 4,
-        status: 'Published',
-      },
-    ]
+  const [bookableUnits, setBookableUnits] = useState<BookableUnit[]>(
+    initialUnits.map((u) => ({ ...u, status: u.status || 'Draft' }))
   );
-
-  const [bookableUnits, setBookableUnits] = useState<BookableUnit[]>(initialUnits);
   const [isUnitsDirty, setIsUnitsDirty] = useState(false);
 
   useEffect(() => {
@@ -127,6 +164,26 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
     });
   };
 
+  const handleDuplicateUnit = (unitToDuplicateId: string) => {
+    startDuplicationTransition(async () => {
+      const result = await duplicateUnitAction(listing.id, unitToDuplicateId);
+      if (result.success && result.newUnitId) {
+        toast({
+          title: 'Unit Duplicated',
+          description: 'Redirecting to the new unit to complete details.',
+        });
+        // Redirect to the new unit's edit page
+        router.push(getEditUrl(result.newUnitId));
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Duplication Failed',
+          description: result.error || 'Could not duplicate the unit.',
+        });
+      }
+    });
+  };
+
   const handleDeleteUnit = (unitId: string) => {
     setBookableUnits((prevUnits) => prevUnits.filter((unit) => unit.id !== unitId));
     toast({
@@ -135,15 +192,23 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
     });
   };
 
+  const handleStatusChange = (unitId: string, newStatus: 'Published' | 'Draft' | 'Archived') => {
+    setBookableUnits((prevUnits) =>
+      prevUnits.map((unit) => (unit.id === unitId ? { ...unit, status: newStatus } : unit))
+    );
+  };
+
   const handleSaveAll = () => {
     startUnitsTransition(async () => {
       const result = await updateUnitsAction(listing.id, bookableUnits);
       if (result.success) {
-        setInitialUnits(bookableUnits); // Set the current state as the new "saved" state
+        setIsUnitsDirty(false);
         toast({
           title: 'Changes Saved',
           description: 'All unit configurations have been updated.',
         });
+        // Update initialUnits to reflect the new state after saving
+        initialUnits.splice(0, initialUnits.length, ...bookableUnits);
       } else {
         toast({
           variant: 'destructive',
@@ -153,6 +218,64 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
       }
     });
   };
+
+  const calculateMaxOccupancy = (unit: BookableUnit): number => {
+    if (!unit.bedConfigs || unit.bedConfigs.length === 0) {
+      return unit.maxOccupancy || 0;
+    }
+    return unit.bedConfigs.reduce((total, config) => total + config.sleeps * config.count, 0);
+  };
+
+  const requestSort = (key: SortKey) => {
+    let direction: SortDirection = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key: SortKey) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === 'asc' ? (
+      <ArrowUp className="ml-2 h-3 w-3" />
+    ) : (
+      <ArrowDown className="ml-2 h-3 w-3" />
+    );
+  };
+
+  const sortedUnits = useMemo(() => {
+    const sortableItems = [...bookableUnits];
+    sortableItems.sort((a, b) => {
+      const key = sortConfig.key;
+      const aValue = key === 'maxOccupancy' ? calculateMaxOccupancy(a) : a[key];
+      const bValue = key === 'maxOccupancy' ? calculateMaxOccupancy(b) : b[key];
+
+      if (aValue === undefined || aValue === null) return 1;
+      if (bValue === undefined || bValue === null) return -1;
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+    return sortableItems;
+  }, [bookableUnits, sortConfig]);
+
+  const SortableHeader = ({
+    sortKey,
+    children,
+  }: {
+    sortKey: SortKey;
+    children: React.ReactNode;
+  }) => (
+    <Button variant="ghost" onClick={() => requestSort(sortKey)} className="pl-0 h-auto font-bold">
+      {children}
+      {getSortIcon(sortKey)}
+    </Button>
+  );
 
   return (
     <div className="space-y-6">
@@ -226,7 +349,10 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
                         Add Unit
                       </Link>
                     </Button>
-                    <Button onClick={handleSaveAll} disabled={!isUnitsDirty || isSavingUnits}>
+                    <Button
+                      onClick={handleSaveAll}
+                      disabled={!isUnitsDirty || isSavingUnits || isDuplicating}
+                    >
                       {isSavingUnits ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
@@ -241,103 +367,211 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="font-bold">Unit Ref</TableHead>
-                        <TableHead className="font-bold">Unit Name</TableHead>
+                        <TableHead>
+                          <SortableHeader sortKey="unitRef">Unit Ref</SortableHeader>
+                        </TableHead>
+                        <TableHead>
+                          <SortableHeader sortKey="name">Unit Name</SortableHeader>
+                        </TableHead>
                         {bookingType === 'hybrid' && (
-                          <TableHead className="font-bold">Unit Type</TableHead>
+                          <TableHead>
+                            <SortableHeader sortKey="type">Unit Type</SortableHeader>
+                          </TableHead>
                         )}
-                        <TableHead className="font-bold">Guests</TableHead>
-                        <TableHead className="font-bold">Price/Night</TableHead>
-                        <TableHead className="font-bold">Status</TableHead>
+                        <TableHead>
+                          <SortableHeader sortKey="maxOccupancy">Guests</SortableHeader>
+                        </TableHead>
+                        <TableHead>
+                          <SortableHeader sortKey="price">Price</SortableHeader>
+                        </TableHead>
+                        <TableHead>
+                          <SortableHeader sortKey="status">Status</SortableHeader>
+                        </TableHead>
                         <TableHead className="text-right font-bold">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {bookableUnits.length > 0 ? (
-                        bookableUnits.map((unit) => (
-                          <TableRow key={unit.id}>
-                            <TableCell>{unit.unitRef}</TableCell>
-                            <TableCell className="font-medium">{unit.name}</TableCell>
-                            {bookingType === 'hybrid' && (
+                      {sortedUnits.length > 0 ? (
+                        sortedUnits.map((unit) => {
+                          const canPublish = unit.unitRef && unit.unitRef.trim() !== '';
+                          const isDuplicatingThis = isDuplicating && unit.id === unit.id; // Example logic
+                          return (
+                            <TableRow key={unit.id}>
+                              <TableCell>{unit.unitRef || '—'}</TableCell>
+                              <TableCell className="font-medium">{unit.name}</TableCell>
+                              {bookingType === 'hybrid' && (
+                                <TableCell>
+                                  <Select defaultValue={unit.type.toLowerCase()}>
+                                    <SelectTrigger className="h-8 text-xs w-28">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="room">
+                                        <div className="flex items-center gap-2">
+                                          <Building className="h-4 w-4" /> Room
+                                        </div>
+                                      </SelectItem>
+                                      <SelectItem value="bed">
+                                        <div className="flex items-center gap-2">
+                                          <Bed className="h-4 w-4" /> Bed
+                                        </div>
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                              )}
                               <TableCell>
-                                <Select defaultValue={unit.type.toLowerCase()}>
-                                  <SelectTrigger className="h-8 text-xs w-28">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="room">
-                                      <div className="flex items-center gap-2">
-                                        <Building className="h-4 w-4" /> Room
-                                      </div>
-                                    </SelectItem>
-                                    <SelectItem value="bed">
-                                      <div className="flex items-center gap-2">
-                                        <Bed className="h-4 w-4" /> Bed
-                                      </div>
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-4 w-4 text-muted-foreground" />
+                                  {calculateMaxOccupancy(unit) || 'N/A'}
+                                </div>
                               </TableCell>
-                            )}
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Users className="h-4 w-4 text-muted-foreground" />
-                                {unit.guests}
-                              </div>
-                            </TableCell>
-                            <TableCell>${unit.price.toFixed(2)}</TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={
-                                  unit.status === 'Published'
-                                    ? 'default'
-                                    : unit.status === 'Archived'
-                                      ? 'destructive'
-                                      : 'outline'
-                                }
-                              >
-                                {unit.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-                                  <Link href={getEditUrl(unit.id)}>
-                                    <FilePen className="h-4 w-4" />
-                                    <span className="sr-only">Edit</span>
-                                  </Link>
-                                </Button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 text-destructive"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                      <span className="sr-only">Delete</span>
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        This action cannot be undone. This will permanently delete
-                                        the "{unit.name}" unit.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction onClick={() => handleDeleteUnit(unit.id)}>
-                                        Continue
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
+                              <TableCell>
+                                {formatCurrency(unit.price || 0, preferences.currency)}
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant={
+                                    unit.status === 'Published'
+                                      ? 'default'
+                                      : unit.status === 'Archived'
+                                        ? 'destructive'
+                                        : 'outline'
+                                  }
+                                >
+                                  {unit.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <TooltipProvider>
+                                  <div className="flex items-center justify-end gap-2">
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          asChild
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                        >
+                                          <Link href={getEditUrl(unit.id)}>
+                                            <FilePen className="h-4 w-4" />
+                                          </Link>
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Edit Unit</TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          onClick={() => handleDuplicateUnit(unit.id)}
+                                          disabled={isDuplicating}
+                                        >
+                                          {isDuplicatingThis ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                          ) : (
+                                            <Copy className="h-4 w-4" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Duplicate Unit</TooltipContent>
+                                    </Tooltip>
+
+                                    {unit.status === 'Draft' ? (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-8 w-8 text-green-600"
+                                            onClick={() => handleStatusChange(unit.id, 'Published')}
+                                            disabled={!canPublish}
+                                          >
+                                            <Check className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          {canPublish
+                                            ? 'Publish Unit'
+                                            : 'A unique Unit Ref is required to publish.'}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    ) : (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-8 w-8 text-amber-600"
+                                            onClick={() => handleStatusChange(unit.id, 'Draft')}
+                                          >
+                                            <RotateCcw className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Return to Draft</TooltipContent>
+                                      </Tooltip>
+                                    )}
+
+                                    {unit.status === 'Draft' ? (
+                                      <AlertDialog>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <AlertDialogTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-destructive"
+                                              >
+                                                <Trash2 className="h-4 w-4" />
+                                              </Button>
+                                            </AlertDialogTrigger>
+                                          </TooltipTrigger>
+                                          <TooltipContent>Delete Unit</TooltipContent>
+                                        </Tooltip>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>
+                                              Are you absolutely sure?
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              This action cannot be undone. This will permanently
+                                              delete the "{unit.name}" unit.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() => handleDeleteUnit(unit.id)}
+                                            >
+                                              Continue
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    ) : (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-destructive"
+                                            onClick={() => handleStatusChange(unit.id, 'Archived')}
+                                          >
+                                            <FaArchive className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Archive Unit</TooltipContent>
+                                      </Tooltip>
+                                    )}
+                                  </div>
+                                </TooltipProvider>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
                       ) : (
                         <TableRow>
                           <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">

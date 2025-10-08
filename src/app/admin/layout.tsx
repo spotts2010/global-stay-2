@@ -127,16 +127,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setHasMounted(true);
   }, []);
 
-  // Check for the "Edit Listing" section and its sub-pages (e.g., rooms)
   const isEditListingSection = pathname.includes('/admin/listings/') && pathname.includes('/edit');
 
   if (isEditListingSection) {
     return <>{children}</>;
   }
 
-  // This is the key change: we avoid rendering the interactive sidebar on the server.
-  // We show a skeleton during server render and initial client render, then the
-  // real sidebar once `hasMounted` is true. This prevents hydration mismatch.
   const SidebarComponent = hasMounted ? (
     <AdminSidebar isCollapsed={isCollapsed} toggleSidebar={() => setIsCollapsed(!isCollapsed)} />
   ) : (

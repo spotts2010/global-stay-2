@@ -1,3 +1,4 @@
+// src/app/actions.ts
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -7,7 +8,7 @@ import {
   type AccommodationRecommendationsOutput,
 } from '@/ai/flows/accommodation-recommendations';
 import { getAdminDb } from '@/lib/firebaseAdmin';
-import type { Place, Accommodation, HeroImage } from './lib/data';
+import type { Place, Accommodation, HeroImage, Currency } from './lib/data';
 import type { BookableUnit } from '@/components/UnitsPageClient';
 import { FieldValue, UpdateData } from 'firebase-admin/firestore';
 
@@ -223,7 +224,6 @@ export async function updateHeroImagesAction(
 
 // --- Amenity & Inclusion Actions ---
 type Item = {
-  id: string;
   label: string;
   systemTag: string;
   category: string;
@@ -241,7 +241,11 @@ async function updateMasterList(
     const snapshot = await collectionRef.get();
     snapshot.docs.forEach((doc) => batch.delete(doc.ref));
     items.forEach((item) => {
-      const docRef = collectionRef.doc(item.systemTag); // Use systemTag as ID
+      if (!item.systemTag) {
+        console.warn('Skipping item with empty systemTag:', item);
+        return;
+      }
+      const docRef = collectionRef.doc(item.systemTag);
       batch.set(docRef, {
         label: item.label,
         category: item.category,
@@ -251,6 +255,7 @@ async function updateMasterList(
     revalidatePath('/admin/amenities');
     return { success: true };
   } catch (error) {
+    console.error(`Error updating ${collectionName} with Admin SDK:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update ${collectionName}: ${errorMessage}` };
   }
@@ -266,6 +271,62 @@ export async function updatePrivateInclusionsAction(
   items: Item[]
 ): Promise<{ success: boolean; error?: string }> {
   return updateMasterList('privateInclusions', items);
+}
+
+// --- Listing-specific Amenity Actions ---
+export async function updateListingSharedAmenitiesAction(
+  listingId: string,
+  amenityIds: string[],
+  chargeableAmenityIds: string[]
+): Promise<{ success: boolean; error?: string }> {
+  if (!listingId) {
+    return { success: false, error: 'Listing ID is missing.' };
+  }
+  const db = getAdminDb();
+  const listingRef = db.collection('accommodations').doc(listingId);
+
+  try {
+    await listingRef.update({
+      amenities: amenityIds,
+      chargeableAmenities: chargeableAmenityIds,
+      lastModified: new Date(),
+    });
+    revalidatePath(`/admin/listings/${listingId}/edit/amenities`);
+    revalidatePath(`/accommodation/${listingId}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Error updating shared amenities for listing ${listingId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update amenities: ${errorMessage}` };
+  }
+}
+
+// --- Unit-specific Inclusion Actions ---
+export async function updateUnitInclusionsAction(
+  listingId: string,
+  unitId: string,
+  inclusionIds: string[],
+  chargeableInclusionIds: string[]
+): Promise<{ success: boolean; error?: string }> {
+  if (!listingId || !unitId) {
+    return { success: false, error: 'Listing ID or Unit ID is missing.' };
+  }
+  const db = getAdminDb();
+  const unitRef = db.collection('accommodations').doc(listingId).collection('units').doc(unitId);
+
+  try {
+    await unitRef.update({
+      inclusions: inclusionIds,
+      chargeableInclusions: chargeableInclusionIds,
+    });
+    revalidatePath(`/admin/listings/${listingId}/edit/units/${unitId}/inclusions`);
+    revalidatePath(`/accommodation/${listingId}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Error updating inclusions for unit ${unitId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update inclusions: ${errorMessage}` };
+  }
 }
 
 // --- Property Type Actions ---
@@ -362,28 +423,87 @@ export async function updateUnitsAction(
   }
 }
 
+export async function duplicateUnitAction(
+  listingId: string,
+  sourceUnitId: string
+): Promise<{ success: boolean; error?: string; newUnitId?: string }> {
+  if (!listingId || !sourceUnitId) {
+    return { success: false, error: 'Listing or Source Unit ID is missing.' };
+  }
+  const db = getAdminDb();
+  const unitsCollection = db.collection('accommodations').doc(listingId).collection('units');
+  const sourceUnitRef = unitsCollection.doc(sourceUnitId);
+
+  try {
+    const sourceUnitSnap = await sourceUnitRef.get();
+    if (!sourceUnitSnap.exists) {
+      return { success: false, error: 'Source unit not found.' };
+    }
+
+    const sourceData = sourceUnitSnap.data() as BookableUnit;
+
+    const newUnitRef = unitsCollection.doc();
+    const newUnitData = {
+      ...sourceData,
+      name: '', // Blank name, to be filled in by user
+      unitRef: '', // Blank ref, to be filled in by user
+      status: 'Draft' as const,
+    };
+
+    await newUnitRef.set(newUnitData);
+
+    revalidatePath(`/admin/listings/${listingId}/edit/units`);
+
+    return { success: true, newUnitId: newUnitRef.id };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'An unknown server error occurred.';
+    return { success: false, error: `Failed to duplicate unit: ${errorMessage}` };
+  }
+}
+
 export async function updateUnitAction(
   listingId: string,
   unitId: string,
-  unitData: Partial<BookableUnit>
-): Promise<{ success: boolean; error?: string }> {
+  unitData: Partial<Omit<BookableUnit, 'id'>> & { currency?: Currency }
+): Promise<{ success: boolean; error?: string; newUnitId?: string }> {
   if (!listingId || !unitId) {
     return { success: false, error: 'Listing or Unit ID is missing.' };
   }
   const db = getAdminDb();
-  const unitRef = db.collection('accommodations').doc(listingId).collection('units').doc(unitId);
+  const listingRef = db.collection('accommodations').doc(listingId);
+  const unitsCollection = listingRef.collection('units');
 
   try {
-    await unitRef.set(unitData, { merge: true });
+    if (unitData.currency) {
+      await listingRef.update({ currency: unitData.currency });
+    }
 
-    // Revalidate relevant paths
+    const { currency: _currency, ...unitSpecificData } = unitData;
+    let finalUnitId = unitId;
+    let unitRef;
+
+    if (unitId === 'new') {
+      unitRef = unitsCollection.doc();
+      finalUnitId = unitRef.id;
+      const dataToSet = { status: 'Draft', ...unitSpecificData };
+      await unitRef.set(dataToSet);
+    } else if (Object.keys(unitSpecificData).length > 0) {
+      unitRef = unitsCollection.doc(unitId);
+      await unitRef.update(unitSpecificData as UpdateData);
+    }
+
+    revalidatePath('/admin/listings');
     revalidatePath(`/admin/listings/${listingId}/edit/units`);
-    revalidatePath(`/admin/listings/${listingId}/edit/units/${unitId}`);
+    revalidatePath(`/admin/listings/${listingId}/edit/units/${finalUnitId}`);
+    revalidatePath(`/admin/listings/${listingId}/edit/units/${finalUnitId}/basic-info`);
+    revalidatePath(`/admin/listings/${listingId}/edit/units/${finalUnitId}/pricing`);
+    revalidatePath(`/accommodation/${listingId}`);
 
-    return { success: true };
+    return { success: true, newUnitId: unitId === 'new' ? finalUnitId : undefined };
   } catch (error) {
-    console.error(`Error updating unit ${unitId}:`, error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    const errorMessage =
+      error instanceof Error ? error.message : 'An unknown server error occurred.';
     return { success: false, error: `Failed to update unit: ${errorMessage}` };
   }
 }
