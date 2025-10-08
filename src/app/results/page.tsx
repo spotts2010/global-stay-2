@@ -42,14 +42,20 @@ function ResultsPageContent() {
   useEffect(() => {
     const loadAccommodations = async () => {
       setLoading(true);
-      // NOTE: This should be a more efficient query, e.g. using a server-side search function
       const allAccommodations = await fetchAccommodations();
 
       const filtered = allAccommodations.filter((accommodation) => {
         if (location && location.trim()) {
           const searchTerms = location.toLowerCase().split(/[\s,]+/);
-          const locationParts = accommodation.location.toLowerCase().split(/[\s,]+/);
-          // Check if all search terms are present in the location parts
+
+          // Check against both the formatted 'location' string and the structured 'state' field
+          const locationString = [
+            accommodation.location.toLowerCase(),
+            accommodation.state?.toLowerCase() || '',
+          ].join(' ');
+
+          const locationParts = locationString.split(/[\s,]+/);
+
           const allTermsMatch = searchTerms.every((term) =>
             locationParts.some((part) => part.includes(term))
           );
