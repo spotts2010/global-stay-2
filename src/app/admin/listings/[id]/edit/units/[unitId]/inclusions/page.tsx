@@ -311,16 +311,15 @@ export default function InclusionsPage() {
           <CardHeader>
             <CardTitle>Custom Inclusions</CardTitle>
             <CardDescription>
-              If an inclusion is not in the master list, add it here (one per line). Custom
-              inclusions require admin approval before they appear on the live site.
+              If an inclusion is not in the master list, add it here. Custom inclusions require
+              admin approval before they appear on the live site.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Textarea
-              placeholder="e.g., Japanese Tatami Mats&#x0a;Smart Mirror"
-            />
+            <Textarea placeholder="e.g., Japanese Tatami Mats, Smart Mirror" />
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex-col items-start gap-4">
+            <Button variant="outline">Submit for Approval</Button>
             <p className="text-xs text-muted-foreground">
               These will be reviewed before being added to the main inclusions list.
             </p>
