@@ -29,6 +29,17 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { updateAccommodationAction } from '@/app/actions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export type BookableUnit = {
   id: string;
@@ -53,7 +64,7 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
     setHasMounted(true);
   }, []);
 
-  const [_bookableUnits, _setBookableUnits] = useState<BookableUnit[]>(() => {
+  const [bookableUnits, setBookableUnits] = useState<BookableUnit[]>(() => {
     // Create a default bookable unit if none exist, using the listing's base price.
     return [
       {
@@ -106,6 +117,14 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
           description: result.error || 'An unknown error occurred.',
         });
       }
+    });
+  };
+
+  const handleDeleteUnit = (unitId: string) => {
+    setBookableUnits((prevUnits) => prevUnits.filter((unit) => unit.id !== unitId));
+    toast({
+      title: 'Unit Removed',
+      description: 'The unit has been removed. Changes will be saved when you click "Save All".',
     });
   };
 
@@ -198,8 +217,8 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {_bookableUnits.length > 0 ? (
-                        _bookableUnits.map((unit) => (
+                      {bookableUnits.length > 0 ? (
+                        bookableUnits.map((unit) => (
                           <TableRow key={unit.id}>
                             <TableCell>{unit.unitRef}</TableCell>
                             <TableCell className="font-medium">{unit.name}</TableCell>
@@ -252,15 +271,33 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
                                     <span className="sr-only">Edit</span>
                                   </Link>
                                 </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                  <span className="sr-only">Delete</span>
-                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                      <span className="sr-only">Delete</span>
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete
+                                        the "{unit.name}" unit.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteUnit(unit.id)}>
+                                        Continue
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </div>
                             </TableCell>
                           </TableRow>
