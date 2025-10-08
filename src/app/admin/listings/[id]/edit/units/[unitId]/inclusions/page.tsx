@@ -256,7 +256,7 @@ export default function InclusionsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 flex flex-col sm:flex-row items-center gap-4">
+            <div className="my-6 flex flex-col sm:flex-row items-center gap-4">
               <div className="relative w-full sm:max-w-xs">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
