@@ -1,8 +1,21 @@
 'use client';
 
-import { Star, MapPin, Hotel, MdOutlinePrivacyTip, Banknote, Ban } from '@/lib/icons';
+import {
+  Star,
+  MapPin,
+  Hotel,
+  MdOutlinePrivacyTip,
+  Banknote,
+  Ban,
+  Wifi,
+  Waves,
+  Dumbbell,
+  Car,
+  Utensils,
+  Accessibility,
+} from '@/lib/icons';
 import { APIProvider, Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -205,6 +218,18 @@ const PoliciesSection = ({ accommodation }: { accommodation: Accommodation }) =>
   );
 };
 
+const AmenityIcon = ({ amenity }: { amenity: string }) => {
+  const icons: Record<string, React.ElementType> = {
+    wifi: Wifi,
+    parking: Car,
+    kitchen: Utensils,
+    pool: Waves,
+    gym: Dumbbell,
+  };
+  const Icon = icons[amenity] || Hotel;
+  return <Icon className="h-5 w-5 text-muted-foreground" />;
+};
+
 // --- Main Page Component ---
 type AccommodationDetailClientProps = {
   accommodation: Accommodation;
@@ -219,10 +244,16 @@ export default function AccommodationDetailClient({
 }: AccommodationDetailClientProps) {
   const searchParams = useSearchParams();
   const { preferences } = useUserPreferences();
+  const mapRef = useRef<HTMLDivElement>(null);
 
   const amenityMap = useMemo(() => {
     return new Map(allAmenities.map((amenity) => [amenity.id, amenity.label]));
   }, [allAmenities]);
+
+  const handleShowOnMap = (e: React.MouseEvent) => {
+    e.preventDefault();
+    mapRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // TODO: Replace with dynamic reviews from Firestore
   const reviews = [
@@ -294,9 +325,16 @@ export default function AccommodationDetailClient({
           <div className="pb-4 border-b">
             <h1 className="font-headline text-4xl md:text-5xl font-bold">{accommodation.name}</h1>
             <div className="flex flex-col items-start mt-2 gap-y-2 text-muted-foreground">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 <span>{accommodation.location}</span>
+                <a
+                  href="#map-section"
+                  onClick={handleShowOnMap}
+                  className="ml-2 text-sm text-primary hover:underline"
+                >
+                  (Show on Map)
+                </a>
               </div>
               <div className="flex flex-wrap items-center gap-x-4">
                 <div className="flex items-center gap-1">
@@ -340,6 +378,7 @@ export default function AccommodationDetailClient({
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
               {(accommodation.amenities || []).map((amenityTag) => (
                 <div key={amenityTag} className="flex items-center gap-3">
+                  <AmenityIcon amenity={amenityTag} />
                   <span>{amenityMap.get(amenityTag) || amenityTag}</span>
                   {accommodation.chargeableAmenities?.includes(amenityTag) && (
                     <FeeIcon className="h-5 w-5" />
@@ -351,8 +390,25 @@ export default function AccommodationDetailClient({
 
           <Separator className="my-6" />
 
-          {/* Location & Map Section */}
+          {/* Accessibility Section */}
           <div>
+            <h2 className="font-headline text-2xl font-bold mb-4">Accessibility</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div className="flex items-center gap-3">
+                <Accessibility className="h-5 w-5 text-muted-foreground" />
+                <span>Wheelchair accessible</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Accessibility className="h-5 w-5 text-muted-foreground" />
+                <span>Elevator access</span>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Location & Map Section */}
+          <div ref={mapRef} id="map-section">
             <h2 className="font-headline text-2xl font-bold mb-4">Location</h2>
             <div className="aspect-video rounded-lg overflow-hidden border">
               <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
@@ -366,7 +422,7 @@ export default function AccommodationDetailClient({
                 </GoogleMap>
               </APIProvider>
             </div>
-            <p className="text-muted-foreground mt-2">{accommodation.location}</p>
+            <p className="text-sm text-muted-foreground mt-2">{accommodation.location}</p>
           </div>
 
           <Separator className="my-6" />
