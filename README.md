@@ -110,6 +110,14 @@ The action buttons displayed on the notification detail page change based on the
   - **Invite a Partner**: Checks for an existing user. If the user exists, an email and system notification are sent for approval. If the user does not exist, an invitation email is sent to sign up and then approve the partner request.
   - **Pending Invitations**: This section will show the Name, Email, and Sent Date of pending requests, with options to 'Resend Request', 'Edit Details' (e.g., correct a typo in the email), or 'Remove' the request entirely.
   - **Denied Requests**: A mechanism to notify the requester if a partner invitation is denied, with a potential 'Denied Requests' section to manage and possibly resend these requests.
+- **Data Deletion Workflow**:
+  - **Purpose**: To handle user requests for account and data deletion in compliance with privacy regulations.
+  - **Implementation**:
+    - A user initiates a deletion request from the "Data Management" page.
+    - This action creates a "Deletion Request" ticket in a new admin queue (e.g., `/admin/privacy/requests`).
+    - An admin reviews the request. They can either approve it or contact the user for more information.
+    - Upon approval, a script is triggered to perform a "soft delete" by anonymizing the user's personal data (e.g., replacing name with "Deleted User", clearing address fields) while retaining essential, non-identifiable data for reporting (e.g., transaction records). Full deletion might occur after a set period (e.g., 30 days) to allow for a grace period or reversal.
+    - The user is notified via email once the deletion process is complete.
 - **Payment Method Expiry Notifications**: Send notifications regarding a payment method that is expiring soon. Notifications to be sent automatically at 30 days, 7 days, and 1 day before expiry. A final email will be sent the day after expiry if the method has not been updated or removed.
 - **Alternative Payment Methods**: Integrate with Crypto (e.g., Bitcoin) and other alternative payment systems. Note: Financial data will not be stored directly; integration will use secure tokens (e.g., from Stripe) or hosted fields.
 - **Dynamic "Explore the Area" Map**: The map on the homepage currently displays a random destination from a predefined list of popular global cities to inspire visitors. In the future, once a sufficient volume of booking data is available, this will be updated to dynamically feature popular destinations based on real user bookings within Global Stay 2.0.

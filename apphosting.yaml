@@ -8,21 +8,21 @@ runConfig:
   env:
     # --- Firebase public config (safe for frontend use) ---
     - key: NEXT_PUBLIC_FIREBASE_API_KEY
-      value: "AIzaSyCHZq1aVpyfRQcnPvtBrp8HM3ggFRBxe2Q"
+      value: 'AIzaSyCHZq1aVpyfRQcnPvtBrp8HM3ggFRBxe2Q'
     - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-      value: "global-stay-20.firebaseapp.com"
+      value: 'global-stay-20.firebaseapp.com'
     - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-      value: "global-stay-20"
+      value: 'global-stay-20'
     - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-      value: "global-stay-20.firebasestorage.app"
+      value: 'global-stay-20.firebasestorage.app'
     - key: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-      value: "450626789210"
+      value: '450626789210'
     - key: NEXT_PUBLIC_FIREBASE_APP_ID
-      value: "1:450626789210:web:948bdc7bbf3b1af0935d63"
+      value: '1:450626789210:web:948bdc7bbf3b1af0935d63'
     - key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-      value: "AIzaSyCHZq1aVpyfRQcnPvtBrp8HM3ggFRBxe2Q"
+      value: 'AIzaSyCHZq1aVpyfRQcnPvtBrp8HM3ggFRBxe2Q'
     - key: NEXT_PUBLIC_GOOGLE_MAP_ID
-      value: "6737a7af708eb1b639cc5d01e"
+      value: '6737a7af708eb1b639cc5d01e'
 
     # --- Server-only secrets (do NOT expose to browser) ---
     - key: GENERATIVE_AI_API_KEY

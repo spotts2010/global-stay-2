@@ -2,13 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type NotificationType =
-  | 'payment'
-  | 'holiday'
-  | 'partner'
-  | 'offer'
-  | 'alert'
-  | 'system';
+export type NotificationType = 'payment' | 'holiday' | 'partner' | 'offer' | 'alert' | 'system';
 
 export type Notification = {
   id: string;
