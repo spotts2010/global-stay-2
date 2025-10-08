@@ -25,7 +25,7 @@ const menuItems = [
   { label: 'Pricing', href: '/pricing', icon: DollarSign },
   { label: 'Inclusions', href: '/inclusions', icon: ListChecks },
   { label: 'Photos', href: '/photos', icon: ImageIcon },
-  { label: 'Accessibility & Features', href: '/accessibility-features', icon: Accessibility },
+  { label: 'Accessibility', href: '/accessibility-features', icon: Accessibility },
   { label: 'Unit Policies', href: '/unit-policies', icon: Shield },
 ];
 

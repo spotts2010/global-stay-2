@@ -96,7 +96,7 @@ const FeatureItem = ({ feature }: { feature: AccessibilityFeature }) => {
   );
 };
 
-export default function AccessibilityFeaturesPage() {
+export default function AccessibilityPage() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [activeCategory, setActiveCategory] = useState<AccessibilityCategory>('All');
@@ -141,99 +141,102 @@ export default function AccessibilityFeaturesPage() {
   });
 
   return (
-    <FormProvider {...formMethods}>
-      <form onSubmit={formMethods.handleSubmit(handleSave)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1.5 mb-4 sm:mb-0">
-                <CardTitle className="flex items-center gap-2">
-                  <Accessibility className="h-6 w-6 text-primary" />
-                  Accessibility & Features
-                </CardTitle>
-                <CardDescription>
-                  Select all accessibility features available for this unit.
-                </CardDescription>
+    <div className="space-y-6">
+      <FormProvider {...formMethods}>
+        <form onSubmit={formMethods.handleSubmit(handleSave)}>
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-1.5 mb-4 sm:mb-0">
+                  <CardTitle className="flex items-center gap-2">
+                    <Accessibility className="h-6 w-6 text-primary" />
+                    Accessibility
+                  </CardTitle>
+                  <CardDescription>
+                    Select all accessibility features available for this unit.
+                  </CardDescription>
+                </div>
+                <Button type="submit" disabled={isPending || !formMethods.formState.isDirty}>
+                  {isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Save Changes
+                </Button>
               </div>
-              <Button type="submit" disabled={isPending || !formMethods.formState.isDirty}>
-                {isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Save Changes
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4 flex flex-col sm:flex-row items-center gap-4">
-              <div className="relative w-full sm:max-w-xs">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Filter by keyword..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+                <div className="relative w-full sm:max-w-xs">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Filter by keyword..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="flex w-full sm:w-auto items-center gap-2">
+                  <Label
+                    htmlFor="feature-category-filter"
+                    className="text-sm font-medium sr-only sm:not-sr-only"
+                  >
+                    Category:
+                  </Label>
+                  <Select
+                    value={activeCategory}
+                    onValueChange={(value) => setActiveCategory(value as AccessibilityCategory)}
+                  >
+                    <SelectTrigger id="feature-category-filter" className="w-full sm:w-[280px]">
+                      <SelectValue placeholder="Filter by category..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {featureCategories.map((category) => {
+                        const selectedInCategory = accessibilityFeaturesData.filter(
+                          (a) =>
+                            selectedFeatures.includes(a.id) &&
+                            (category === 'All' || a.category === category)
+                        );
+                        return (
+                          <SelectItem key={category} value={category}>
+                            <div className="flex items-center justify-between w-full">
+                              <span>{category}</span>
+                              <Badge variant="secondary" className="ml-4 px-1.5 py-0">
+                                {selectedInCategory.length}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="flex w-full sm:w-auto items-center gap-2">
-                <Label
-                  htmlFor="feature-category-filter"
-                  className="text-sm font-medium sr-only sm:not-sr-only"
-                >
-                  Category:
-                </Label>
-                <Select
-                  value={activeCategory}
-                  onValueChange={(value) => setActiveCategory(value as AccessibilityCategory)}
-                >
-                  <SelectTrigger id="feature-category-filter" className="w-full sm:w-[280px]">
-                    <SelectValue placeholder="Filter by category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {featureCategories.map((category) => {
-                      const selectedInCategory = accessibilityFeaturesData.filter(
-                        (a) =>
-                          selectedFeatures.includes(a.id) &&
-                          (category === 'All' || a.category === category)
-                      );
-                      return (
-                        <SelectItem key={category} value={category}>
-                          <div className="flex items-center justify-between w-full">
-                            <span>{category}</span>
-                            <Badge variant="secondary" className="ml-4 px-1.5 py-0">
-                              {selectedInCategory.length}
-                            </Badge>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <FeatureGrid features={filteredFeatures} />
-          </CardContent>
-        </Card>
+              <FeatureGrid features={filteredFeatures} />
+            </CardContent>
+          </Card>
+        </form>
+      </FormProvider>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Custom Accessibility & Features</CardTitle>
-            <CardDescription>
-              If a feature is not in the list, add it here (one per line).
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea placeholder="e.g., Braille signage for room numbers" />
-          </CardContent>
-          <CardFooter>
-            <p className="text-xs text-muted-foreground">
-              Custom features will be reviewed before appearing on the live site.
-            </p>
-          </CardFooter>
-        </Card>
-      </form>
-    </FormProvider>
+      <Card>
+        <CardHeader>
+          <CardTitle>Custom Accessibility</CardTitle>
+          <CardDescription>
+            If a feature is not in the list, add it here. Custom features require admin approval.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Textarea placeholder="e.g., Braille signage for room numbers, Hoist available on request" />
+        </CardContent>
+        <CardFooter className="flex-col items-start gap-4">
+          <Button variant="outline">Submit for Approval</Button>
+          <p className="text-xs text-muted-foreground">
+            These will be reviewed before appearing on the live site.
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
