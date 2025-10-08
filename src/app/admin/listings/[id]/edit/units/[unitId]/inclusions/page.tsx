@@ -12,7 +12,14 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Save, Loader2, Search, ListChecks } from '@/lib/icons';
+import {
+  Save,
+  Loader2,
+  Search,
+  ListChecks,
+  AiOutlineDollarCircle,
+  AiFillDollarCircle,
+} from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
 import { FormLabel } from '@/components/ui/form';
 import { Badge } from '@/components/ui/badge';
@@ -89,53 +96,6 @@ type FormValues = {
   chargeableInclusions: string[];
 };
 
-// --- Custom SVG Icons ---
-const DisabledFeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <circle cx="12" cy="12" r="10" stroke="#B3B3B3" strokeWidth="1.5" />
-    <path
-      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c-1.1 0-2 .9-2 2s-.9 2-2 2H8"
-      stroke="#B3B3B3"
-      strokeWidth="1.5"
-    />
-    <path d="M12 18V6" stroke="#B3B3B3" strokeWidth="1.5" />
-  </svg>
-);
-
-const InactiveFeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <circle cx="12" cy="12" r="10" stroke="black" strokeWidth="1.5" />
-    <path
-      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c-1.1 0-2 .9-2 2s-.9 2-2 2H8"
-      stroke="black"
-      strokeWidth="1.5"
-    />
-    <path d="M12 18V6" stroke="black" strokeWidth="1.5" />
-  </svg>
-);
-
-const ActiveFeeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <circle cx="12" cy="12" r="10" fill="#2682CE" stroke="#2682CE" strokeWidth="1.5" />
-    <path
-      d="M16 8h-6c-1.1 0-2 .9-2 2s.9 2 2 2h4c-1.1 0-2 .9-2 2s-.9 2-2 2H8"
-      stroke="#fff"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-    <path
-      d="M12 18V6"
-      stroke="#fff"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-  </svg>
-);
-
 const InclusionItem = ({ inclusion }: { inclusion: Inclusion }) => {
   const { watch, setValue, getValues } = useFormContext<FormValues>();
   const isIncluded = watch('inclusions')?.includes(inclusion.id);
@@ -198,11 +158,11 @@ const InclusionItem = ({ inclusion }: { inclusion: Inclusion }) => {
               aria-label="Toggle chargeable"
             >
               {!isIncluded ? (
-                <DisabledFeeIcon className="h-5 w-5" />
+                <AiOutlineDollarCircle className="h-5 w-5 text-muted-foreground/50" />
               ) : isChargeable ? (
-                <ActiveFeeIcon className="h-5 w-5" />
+                <AiFillDollarCircle className="h-5 w-5 text-primary" />
               ) : (
-                <InactiveFeeIcon className="h-5 w-5" />
+                <AiOutlineDollarCircle className="h-5 w-5 text-foreground" />
               )}
             </button>
           </TooltipTrigger>
@@ -289,9 +249,7 @@ export default function InclusionsPage() {
               </Button>
             </div>
             <div className="!mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="h-5 w-5 inline-block">
-                <ActiveFeeIcon className="h-5 w-5" />
-              </span>
+              <AiFillDollarCircle className="h-5 w-5 text-primary" />
               <span>
                 = When enabled, this icon indicates that additional fees may be applicable.
               </span>

@@ -124,9 +124,16 @@ export { MdOutlineDashboard as Dashboard } from 'react-icons/md';
 export { MdSecurity as Shield } from 'react-icons/md';
 
 // Ant Design Icons (for loaders)
-export { AiOutlineLoading3Quarters as Loader2 } from 'react-icons/ai';
+import {
+  AiOutlineLoading3Quarters,
+  AiOutlineDollarCircle,
+  AiFillDollarCircle,
+} from 'react-icons/ai';
 
 export {
+  AiOutlineLoading3Quarters as Loader2,
+  AiOutlineDollarCircle,
+  AiFillDollarCircle,
   FaPaypal,
   FaGoogle,
   FaApple,
