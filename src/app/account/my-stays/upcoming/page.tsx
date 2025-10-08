@@ -209,7 +209,8 @@ export default function UpcomingStaysPage() {
                       modifiersClassNames={{
                         booked:
                           'bg-primary/90 text-primary-foreground rounded-md [&:not(.day-outside)]:bg-primary/90',
-                        today: 'bg-orange-500 text-white rounded-full',
+                        today:
+                          'bg-orange-500/90 text-orange-50 rounded-full [&:not([aria-selected])]:bg-orange-500/90',
                       }}
                       classNames={{
                         day_outside: 'text-muted-foreground opacity-50',
