@@ -46,12 +46,16 @@ function ResultsPageContent() {
       const allAccommodations = await fetchAccommodations();
 
       const filtered = allAccommodations.filter((accommodation) => {
-        if (
-          location &&
-          location.trim() &&
-          !accommodation.location.toLowerCase().includes(location.toLowerCase())
-        ) {
-          return false;
+        if (location && location.trim()) {
+          const searchTerms = location.toLowerCase().split(/[\s,]+/);
+          const locationParts = accommodation.location.toLowerCase().split(/[\s,]+/);
+          // Check if all search terms are present in the location parts
+          const allTermsMatch = searchTerms.every((term) =>
+            locationParts.some((part) => part.includes(term))
+          );
+          if (!allTermsMatch) {
+            return false;
+          }
         }
         return true;
       });
