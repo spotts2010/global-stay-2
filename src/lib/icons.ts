@@ -38,6 +38,7 @@ export { MdAssignment as ClipboardList } from 'react-icons/md';
 export { MdBadge as IdCard } from 'react-icons/md';
 export { MdMenuBook as BookOpenText } from 'react-icons/md';
 export { MdUpload as Upload } from 'react-icons/md';
+export { MdDownload as Download } from 'react-icons/md';
 export { MdLink as LinkIcon } from 'react-icons/md';
 export { MdFlag as Flag } from 'react-icons/md';
 export { MdDelete as Trash2 } from 'react-icons/md';
