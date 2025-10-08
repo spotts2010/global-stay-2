@@ -61,7 +61,7 @@ export type Accommodation = {
   reviewsCount: number;
   image: string; // Legacy cover image, will be first item in images array
   images: string[];
-  amenities: Amenity[];
+  amenities: string[]; // Changed from Amenity[] to string[] to support dynamic tags
   chargeableAmenities?: string[]; // Array of amenity IDs that have fees
   type: string; // Now a string to be dynamic
   bookingType: 'room' | 'bed' | 'hybrid';

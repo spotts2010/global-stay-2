@@ -226,8 +226,11 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
 
       // Extract and set structured address components
       const addressComponents = place.address_components || [];
-      const getAddressComponent = (type: string) => {
-        return addressComponents.find((c) => c.types.includes(type))?.long_name || '';
+      const getAddressComponent = (
+        type: string,
+        nameType: 'long_name' | 'short_name' = 'long_name'
+      ) => {
+        return addressComponents.find((c) => c.types.includes(type))?.[nameType] || '';
       };
 
       const streetNumber = getAddressComponent('street_number');
