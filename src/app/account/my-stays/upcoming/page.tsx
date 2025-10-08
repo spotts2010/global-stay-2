@@ -112,6 +112,8 @@ export default function UpcomingStaysPage() {
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<EnrichedBooking | null>(null);
   const [month, setMonth] = useState<Date>(new Date());
+  const [bookedDays, setBookedDays] = useState<({ from: Date; to: Date } | null)[]>([]);
+  const [today, setToday] = useState<Date | null>(null);
 
   useEffect(() => {
     const getBookings = async () => {
@@ -136,16 +138,23 @@ export default function UpcomingStaysPage() {
       );
 
       setBookings(enrichedBookings);
+
+      // This logic is now inside useEffect to prevent hydration errors
+      setBookedDays(
+        enrichedBookings
+          .map((b) =>
+            b.startDate && b.endDate
+              ? { from: new Date(b.startDate), to: new Date(b.endDate) }
+              : null
+          )
+          .filter((d): d is { from: Date; to: Date } => d !== null)
+      );
+      setToday(new Date());
+
       setLoading(false);
     };
     getBookings();
   }, []);
-
-  const bookedDays = bookings
-    .map((b) =>
-      b.startDate && b.endDate ? { from: new Date(b.startDate), to: new Date(b.endDate) } : null
-    )
-    .filter((d): d is { from: Date; to: Date } => d !== null);
 
   const handleDayClick = (day: Date) => {
     const booking = bookings.find(
@@ -162,7 +171,7 @@ export default function UpcomingStaysPage() {
   };
 
   const bookedDaysModifier = { booked: bookedDays };
-  const todayModifier = { today: new Date() };
+  const todayModifier = today ? { today: today } : {};
 
   return (
     <>
