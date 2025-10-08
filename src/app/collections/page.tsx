@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from '@/lib/icons';
 import placeholderImages from '@/lib/placeholder-images.json';
 
 export default async function CollectionsPage() {

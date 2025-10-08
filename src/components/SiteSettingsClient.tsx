@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ImageIcon, PlusCircle, Trash2, UploadCloud, Loader2, Save } from 'lucide-react';
+import { ImageIcon, PlusCircle, Trash2, UploadCloud, Loader2, Save } from '@/lib/icons';
 import Image from 'next/image';
 import React, { useState, useEffect, useTransition } from 'react';
 import { updateHeroImagesAction } from '@/app/actions';
