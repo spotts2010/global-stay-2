@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Building, Bed } from 'lucide-react';
+import { Building, Bed } from '@/lib/icons';
 
 export default function BasicInfoPage() {
   return (
