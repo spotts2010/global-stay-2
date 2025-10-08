@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Bed, Bath, Users, PlusCircle, Trash2 } from 'lucide-react';
+import { Bed, Bath, Users, PlusCircle, Trash2 } from '@/lib/icons';
 import React, { useState, useEffect } from 'react';
 import type { BedType } from '@/lib/data';
 
