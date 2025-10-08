@@ -381,7 +381,7 @@ export default function AccommodationDetailClient({
                   <AmenityIcon amenity={amenityTag} />
                   <span>{amenityMap.get(amenityTag) || amenityTag}</span>
                   {accommodation.chargeableAmenities?.includes(amenityTag) && (
-                    <FeeIcon className="h-5 w-5" />
+                    <FeeIcon className="h-4 w-4" />
                   )}
                 </div>
               ))}
