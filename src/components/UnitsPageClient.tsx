@@ -19,17 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import {
-  Bed,
-  Box,
-  Building,
-  FilePen,
-  PlusCircle,
-  Trash2,
-  Users,
-  Loader2,
-  Save,
-} from 'lucide-react';
+import { Bed, Box, Building, FilePen, PlusCircle, Trash2, Users, Loader2, Save } from '@/lib/icons';
 import type { Accommodation } from '@/lib/data';
 import React, { useState, useTransition } from 'react';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
