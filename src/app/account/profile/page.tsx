@@ -68,7 +68,7 @@ export default function ProfilePage() {
       fullName: 'Sam Potts',
       email: 'sam.expression@gmail.com',
       phone: '+61 0403688874',
-      address: '2403/100 Duporth Avenue, Maroochydore QLD, Australia',
+      address: '2403/100 Duporth Avenue, Maroochydore, Queensland, Australia',
       timezone: 'Australia/Brisbane',
       currency: preferences.currency,
       language: preferences.language,
