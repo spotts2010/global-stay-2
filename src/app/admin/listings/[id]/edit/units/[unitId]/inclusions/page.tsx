@@ -248,7 +248,7 @@ export default function InclusionsPage() {
                 Save Changes
               </Button>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4">
               <AiFillDollarCircle className="h-5 w-5 text-primary" />
               <span>
                 = When enabled, this icon indicates that additional fees may be applicable.
@@ -256,7 +256,7 @@ export default function InclusionsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="my-6 flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
               <div className="relative w-full sm:max-w-xs">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
