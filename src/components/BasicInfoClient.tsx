@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Bed, MdOutlineDoorFront, HelpCircle } from '@/lib/icons';
+import { Bed, MdOutlineDoorFront, HelpCircle, SquarePen } from '@/lib/icons';
 import type { Accommodation } from '@/lib/data';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from './ui/tooltip';
 
@@ -37,7 +37,10 @@ export default function BasicInfoClient({ listing }: { listing: Accommodation })
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Basic Info</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <SquarePen className="h-5 w-5 text-primary" />
+            Basic Info
+          </CardTitle>
           <CardDescription>
             Provide details for this unit, including its name, type, and status. This information
             forms the foundation for how the unit is displayed and managed within the system.
@@ -48,12 +51,7 @@ export default function BasicInfoClient({ listing }: { listing: Accommodation })
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="unit-name">Unit Name*</Label>
-                <Input
-                  id="unit-name"
-                  placeholder="e.g., 'Queen Room with Balcony'"
-                  required
-                  className="bg-white"
-                />
+                <Input id="unit-name" placeholder="e.g., 'Queen Room with Balcony'" required />
               </div>
             </div>
 
@@ -78,7 +76,7 @@ export default function BasicInfoClient({ listing }: { listing: Accommodation })
                   </TooltipProvider>
                 </div>
                 <Select defaultValue={defaultUnitType} disabled={isUnitTypeLocked}>
-                  <SelectTrigger id="unit-type" className="w-full bg-white">
+                  <SelectTrigger id="unit-type" className="w-full">
                     <SelectValue placeholder="Select a unit type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -97,7 +95,7 @@ export default function BasicInfoClient({ listing }: { listing: Accommodation })
               </div>
               <div className="space-y-2">
                 <Label htmlFor="unit-ref">Unit Ref / Internal Code*</Label>
-                <Input id="unit-ref" placeholder="e.g., 'QR-101'" required className="bg-white" />
+                <Input id="unit-ref" placeholder="e.g., 'QR-101'" required />
               </div>
             </div>
 
@@ -107,7 +105,6 @@ export default function BasicInfoClient({ listing }: { listing: Accommodation })
                 id="description"
                 placeholder="A short summary about the unit (e.g., 'Spacious room with a private balcony overlooking the city')."
                 rows={4}
-                className="bg-white"
               />
             </div>
           </div>

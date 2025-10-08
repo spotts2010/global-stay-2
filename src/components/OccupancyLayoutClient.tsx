@@ -69,13 +69,16 @@ export default function OccupancyLayoutClient({ bedTypes }: { bedTypes: BedType[
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Occupancy & Layout</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-primary" />
+          Occupancy & Layout
+        </CardTitle>
         <CardDescription>
           Define the guest capacity and bed configuration for this unit.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {hasMounted && (
+        {hasMounted ? (
           <Accordion type="multiple" defaultValue={['occupancy']} className="w-full space-y-4">
             {/* Occupancy Section */}
             <AccordionItem
@@ -100,7 +103,7 @@ export default function OccupancyLayoutClient({ bedTypes }: { bedTypes: BedType[
                       id="min-occupancy"
                       type="number"
                       placeholder="e.g., 2"
-                      className="bg-white w-28"
+                      className="w-28"
                       onWheel={(e) => (e.target as HTMLElement).blur()}
                     />
                   </div>
@@ -111,7 +114,7 @@ export default function OccupancyLayoutClient({ bedTypes }: { bedTypes: BedType[
                       type="number"
                       placeholder="e.g., 4"
                       required
-                      className="bg-white w-28"
+                      className="w-28"
                       onWheel={(e) => (e.target as HTMLElement).blur()}
                     />
                   </div>
@@ -158,7 +161,7 @@ export default function OccupancyLayoutClient({ bedTypes }: { bedTypes: BedType[
                           value={bed.type}
                           onValueChange={(val) => handleBedTypeChange(bed.id, val)}
                         >
-                          <SelectTrigger className="bg-white" aria-label="Bed Type">
+                          <SelectTrigger aria-label="Bed Type">
                             <SelectValue placeholder="Select bed type..." />
                           </SelectTrigger>
                           <SelectContent>
@@ -180,7 +183,6 @@ export default function OccupancyLayoutClient({ bedTypes }: { bedTypes: BedType[
                             onChange={(e) =>
                               handleBedDetailChange(bed.id, 'sleeps', e.target.value)
                             }
-                            className="bg-white"
                             onWheel={(e) => (e.target as HTMLElement).blur()}
                           />
                           <div className="flex items-end gap-2">
@@ -196,7 +198,6 @@ export default function OccupancyLayoutClient({ bedTypes }: { bedTypes: BedType[
                                   parseInt(e.target.value) || 1
                                 )
                               }
-                              className="bg-white"
                               onWheel={(e) => (e.target as HTMLElement).blur()}
                             />
                             <Button
@@ -241,7 +242,7 @@ export default function OccupancyLayoutClient({ bedTypes }: { bedTypes: BedType[
                       min="0"
                       placeholder="e.g., 1"
                       defaultValue={1}
-                      className="bg-white w-28"
+                      className="w-28"
                       onWheel={(e) => (e.target as HTMLElement).blur()}
                     />
                   </div>
@@ -254,7 +255,7 @@ export default function OccupancyLayoutClient({ bedTypes }: { bedTypes: BedType[
                       placeholder="e.g., 2"
                       value={sharedBathrooms}
                       onChange={(e) => setSharedBathrooms(parseInt(e.target.value) || 0)}
-                      className="bg-white w-28"
+                      className="w-28"
                       onWheel={(e) => (e.target as HTMLElement).blur()}
                     />
                   </div>
@@ -262,7 +263,7 @@ export default function OccupancyLayoutClient({ bedTypes }: { bedTypes: BedType[
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-        )}
+        ) : null}
       </CardContent>
       <CardFooter className="flex justify-start gap-2">
         <Button variant="outline">Save Draft</Button>

@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useTransition } from 'react';
-import { Loader2, Save } from '@/lib/icons';
+import { Loader2, Save, Shield } from '@/lib/icons';
 
 export default function UnitPoliciesPage() {
   const [isPending, startTransition] = useTransition();
@@ -35,7 +35,10 @@ export default function UnitPoliciesPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Unit Policies</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="h-5 w-5 text-primary" />
+          Unit Policies
+        </CardTitle>
         <CardDescription>
           Set specific rules for this unit. These will override the default property policies where
           filled out.

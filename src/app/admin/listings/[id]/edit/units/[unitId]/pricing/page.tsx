@@ -36,7 +36,10 @@ export default function PricingPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Pricing & Stay Requirements</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="h-5 w-5 text-primary" />
+          Pricing & Stay Requirements
+        </CardTitle>
         <CardDescription>
           Set the pricing model, rates, and stay conditions for this unit.
         </CardDescription>

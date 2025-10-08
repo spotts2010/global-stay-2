@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Save, Loader2, Search } from '@/lib/icons';
+import { Save, Loader2, Search, ListChecks } from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
 import { FormLabel } from '@/components/ui/form';
 import { Badge } from '@/components/ui/badge';
@@ -267,7 +267,10 @@ export default function InclusionsPage() {
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1.5">
-                <CardTitle>Inclusions</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <ListChecks className="h-5 w-5 text-primary" />
+                  Inclusions
+                </CardTitle>
                 <CardDescription>
                   Select all features available inside this specific unit and specify if fees apply.
                 </CardDescription>
