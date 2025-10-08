@@ -15,7 +15,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { Database, Download, Edit, Trash2, Settings, ChevronRight } from '@/lib/icons';
+import { Database, Download, FilePen, Trash2, Settings, ChevronRight } from '@/lib/icons';
 import Link from 'next/link';
 import {
   AlertDialog,
@@ -119,7 +119,7 @@ export default function DataManagementPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild variant="outline">
                   <Link href="/account/profile">
-                    <Edit className="mr-2 h-4 w-4" />
+                    <FilePen className="mr-2 h-4 w-4" />
                     Update Personal Details
                   </Link>
                 </Button>
