@@ -32,7 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Loader2, ImageIcon, UploadCloud, Save, Trash2, GripVertical, Camera } from 'lucide-react';
+import { Loader2, ImageIcon, UploadCloud, Save, Trash2, GripVertical, Camera } from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
 import { updateUnitAction } from '@/app/actions';
 import Image from 'next/image';
