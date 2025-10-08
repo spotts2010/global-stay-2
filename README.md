@@ -161,6 +161,7 @@ The action buttons displayed on the notification detail page change based on the
     - **Verification**: Custom inclusions or accessibility features added by hosts must be reviewed by an admin.
     - **Approval**: If approved, the custom item is added to the relevant master list (e.g., Inclusions or Accessibility) under an appropriate category for future use by all hosts.
     - **Denial**: If denied, the item is hidden from view, and an automated system notification and email are sent to the host, explaining the reason for the denial (e.g., already exists, inappropriate, etc.).
+- **Amenity, Inclusion, and Accessibility Icons**: Implement a system to allow administrators to assign a specific icon to each amenity, private inclusion, and accessibility feature. This will provide a richer, more visual display on the front-end accommodation detail pages.
 
 ### Resolved Issues
 
@@ -196,3 +197,5 @@ The action buttons displayed on the notification detail page change based on the
   - **Incorrect `params` Handling**: Several components were accessing `params` directly instead of using `React.use()` as required by the latest Next.js version, which was causing console errors. This has been fixed across the affected admin pages.
 - **`react-beautiful-dnd` Console Warning** (Resolved: 22/09/2024): A development-only warning (`Invariant failed: isDropDisabled must be a boolean`) that appeared in the console on the "Photo Gallery" edit page has been resolved.
 - **Admin Map Interaction** (Resolved: 27/09/2024): The map on the `/admin/listings/[id]/edit/about` page now correctly supports drag and zoom functionality. The issue was resolved by implementing the modern `Places API (New)` and correctly managing the map's camera state, preventing conflicts that previously locked user interaction.
+- **Upcoming Stays Calendar Highlighting** (Resolved: 08/10/2024): The calendar on the "Upcoming Stays" page now correctly highlights the current day in orange, as indicated by the legend. This was fixed by adjusting the Tailwind CSS class specificity to ensure the 'today' modifier was not being overridden by other styles.
+- **Context Provider Hydration Error** (Resolved: 08/10/2024): Fixed a `useUserPreferences must be used within a UserPreferencesProvider` error that occurred on server-rendered pages. The issue was resolved by moving data fetching logic that depended on client-side context into a `useEffect` hook within the client components, preventing the context from being accessed on the server.

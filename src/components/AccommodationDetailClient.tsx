@@ -1,19 +1,6 @@
 'use client';
 
-import {
-  Star,
-  MapPin,
-  Hotel,
-  MdOutlinePrivacyTip,
-  Banknote,
-  Ban,
-  Wifi,
-  Waves,
-  Dumbbell,
-  Car,
-  Utensils,
-  Accessibility,
-} from '@/lib/icons';
+import { Star, MapPin, Hotel, MdOutlinePrivacyTip, Banknote, Ban, Loader2 } from '@/lib/icons';
 import { APIProvider, Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -25,6 +12,7 @@ import PhotoGallery from '@/components/PhotoGallery';
 import ReviewCard from '@/components/ReviewCard';
 import { Separator } from '@/components/ui/separator';
 import type { Accommodation, Place } from '@/lib/data';
+import { fetchAccommodationById, fetchPointsOfInterest } from '@/lib/firestore';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -218,18 +206,6 @@ const PoliciesSection = ({ accommodation }: { accommodation: Accommodation }) =>
   );
 };
 
-const AmenityIcon = ({ amenity }: { amenity: string }) => {
-  const icons: Record<string, React.ElementType> = {
-    wifi: Wifi,
-    parking: Car,
-    kitchen: Utensils,
-    pool: Waves,
-    gym: Dumbbell,
-  };
-  const Icon = icons[amenity] || Hotel;
-  return <Icon className="h-5 w-5 text-muted-foreground" />;
-};
-
 // --- Main Page Component ---
 type AccommodationDetailClientProps = {
   accommodation: Accommodation;
@@ -238,13 +214,32 @@ type AccommodationDetailClientProps = {
 };
 
 export default function AccommodationDetailClient({
-  accommodation,
-  pointsOfInterest,
+  accommodation: initialAccommodation,
+  pointsOfInterest: initialPois,
   allAmenities,
 }: AccommodationDetailClientProps) {
+  const [accommodation, setAccommodation] = useState(initialAccommodation);
+  const [pointsOfInterest, setPointsOfInterest] = useState(initialPois);
+  const [loading, setLoading] = useState(true);
+
   const searchParams = useSearchParams();
   const { preferences } = useUserPreferences();
   const mapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      const [accomData, poiData] = await Promise.all([
+        fetchAccommodationById(initialAccommodation.id),
+        fetchPointsOfInterest(initialAccommodation.id),
+      ]);
+
+      if (accomData) setAccommodation(accomData);
+      setPointsOfInterest(poiData);
+      setLoading(false);
+    };
+    loadData();
+  }, [initialAccommodation.id]);
 
   const amenityMap = useMemo(() => {
     return new Map(allAmenities.map((amenity) => [amenity.id, amenity.label]));
@@ -296,6 +291,14 @@ export default function AccommodationDetailClient({
         ? [accommodation.image]
         : [];
 
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 md:px-6 py-6 pb-16">
       <Breadcrumb className="mb-4">
@@ -325,7 +328,7 @@ export default function AccommodationDetailClient({
           <div className="pb-4 border-b">
             <h1 className="font-headline text-4xl md:text-5xl font-bold">{accommodation.name}</h1>
             <div className="flex flex-col items-start mt-2 gap-y-2 text-muted-foreground">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-sm">
                 <MapPin className="h-4 w-4" />
                 <span>{accommodation.location}</span>
                 <a
@@ -378,7 +381,6 @@ export default function AccommodationDetailClient({
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
               {(accommodation.amenities || []).map((amenityTag) => (
                 <div key={amenityTag} className="flex items-center gap-3">
-                  <AmenityIcon amenity={amenityTag} />
                   <span>{amenityMap.get(amenityTag) || amenityTag}</span>
                   {accommodation.chargeableAmenities?.includes(amenityTag) && (
                     <FeeIcon className="h-4 w-4" />
@@ -395,11 +397,9 @@ export default function AccommodationDetailClient({
             <h2 className="font-headline text-2xl font-bold mb-4">Accessibility</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
               <div className="flex items-center gap-3">
-                <Accessibility className="h-5 w-5 text-muted-foreground" />
                 <span>Wheelchair accessible</span>
               </div>
               <div className="flex items-center gap-3">
-                <Accessibility className="h-5 w-5 text-muted-foreground" />
                 <span>Elevator access</span>
               </div>
             </div>
