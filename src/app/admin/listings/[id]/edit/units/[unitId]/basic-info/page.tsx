@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Building, Bed } from '@/lib/icons';
+import { Bed, MdOutlineDoorFront } from '@/lib/icons';
 
 export default function BasicInfoPage() {
   return (
@@ -37,29 +37,34 @@ export default function BasicInfoPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-2">
                 <Label htmlFor="unit-name">Unit Name*</Label>
-                <Input id="unit-name" placeholder="e.g., 'Queen Room with Balcony'" required />
+                <Input
+                  id="unit-name"
+                  placeholder="e.g., 'Queen Room with Balcony'"
+                  required
+                  className="bg-white"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="unit-ref">Unit Ref / Internal Code*</Label>
-                <Input id="unit-ref" placeholder="e.g., 'QR-101'" required />
+                <Input id="unit-ref" placeholder="e.g., 'QR-101'" required className="bg-white" />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="unit-type">Unit Type*</Label>
               <Select defaultValue="room">
-                <SelectTrigger id="unit-type" className="w-full md:w-auto md:max-w-xs">
+                <SelectTrigger id="unit-type" className="w-full md:w-auto md:max-w-xs bg-white">
                   <SelectValue placeholder="Select a unit type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="room">
                     <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4" /> By Room
+                      <MdOutlineDoorFront className="h-4 w-4" /> Room
                     </div>
                   </SelectItem>
                   <SelectItem value="bed">
                     <div className="flex items-center gap-2">
-                      <Bed className="h-4 w-4" /> By Bed
+                      <Bed className="h-4 w-4" /> Bed
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -75,6 +80,7 @@ export default function BasicInfoPage() {
                 id="description"
                 placeholder="A short summary about the unit (e.g., 'Spacious room with a private balcony overlooking the city')."
                 rows={4}
+                className="bg-white"
               />
             </div>
           </div>

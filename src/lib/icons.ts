@@ -3,6 +3,7 @@
 import { FaPaypal, FaGoogle, FaApple, FaFacebook, FaDatabase, FaArchive } from 'react-icons/fa';
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapse } from 'react-icons/tb';
 import { HiOutlineLocationMarker } from 'react-icons/hi';
+import { MdOutlineDoorFront } from 'react-icons/md';
 
 // Material Design Icons
 export { MdKeyboardArrowDown as ChevronDown } from 'react-icons/md';
@@ -135,5 +136,6 @@ export {
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarRightCollapse,
   HiOutlineLocationMarker,
+  MdOutlineDoorFront,
 };
 export { MdForum as Forum } from 'react-icons/md';
