@@ -28,7 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { updateAccommodationAction } from '@/app/actions';
+import { updateAccommodationAction, updateUnitsAction } from '@/app/actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,26 +60,28 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
   const [isSaving, startTransition] = useTransition();
   const [hasMounted, setHasMounted] = useState(false);
 
-  const [initialUnits, setInitialUnits] = useState<BookableUnit[]>(() => [
-    {
-      id: `unit1`, // Simplified ID
-      unitRef: 'PR-01',
-      name: 'Private Room',
-      type: 'Room',
-      guests: 2,
-      price: listing.price,
-      status: 'Published',
-    },
-    {
-      id: `unit2`, // Simplified ID
-      unitRef: 'DB-01',
-      name: 'Dorm Bed',
-      type: 'Bed',
-      guests: 1,
-      price: listing.price / 4,
-      status: 'Published',
-    },
-  ]);
+  const [initialUnits, setInitialUnits] = useState<BookableUnit[]>(
+    listing.units || [
+      {
+        id: `unit1`, // Simplified ID
+        unitRef: 'PR-01',
+        name: 'Private Room',
+        type: 'Room',
+        guests: 2,
+        price: listing.price,
+        status: 'Published',
+      },
+      {
+        id: `unit2`, // Simplified ID
+        unitRef: 'DB-01',
+        name: 'Dorm Bed',
+        type: 'Bed',
+        guests: 1,
+        price: listing.price / 4,
+        status: 'Published',
+      },
+    ]
+  );
 
   const [bookableUnits, setBookableUnits] = useState<BookableUnit[]>(initialUnits);
   const [isUnitsDirty, setIsUnitsDirty] = useState(false);
@@ -134,15 +136,20 @@ export default function UnitsPageClient({ listing }: { listing: Accommodation })
 
   const handleSaveAll = () => {
     startTransition(async () => {
-      // In a real app, you would have an action to save all units.
-      // For now, we simulate the save and update the state.
-      console.log('Simulating save for all units:', bookableUnits);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setInitialUnits(bookableUnits); // Set the current state as the new "saved" state
-      toast({
-        title: 'Changes Saved',
-        description: 'All unit configurations have been updated.',
-      });
+      const result = await updateUnitsAction(listing.id, bookableUnits);
+      if (result.success) {
+        setInitialUnits(bookableUnits); // Set the current state as the new "saved" state
+        toast({
+          title: 'Changes Saved',
+          description: 'All unit configurations have been updated.',
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Save Failed',
+          description: result.error || 'An unknown error occurred.',
+        });
+      }
     });
   };
 

@@ -1,3 +1,5 @@
+import { BookableUnit } from '@/components/UnitsPageClient';
+
 export type Amenity = 'wifi' | 'pool' | 'gym' | 'parking' | 'kitchen';
 export type Currency = 'USD' | 'AUD' | 'EUR' | 'GBP';
 
@@ -67,6 +69,7 @@ export type Accommodation = {
   paymentTerms?: string;
   cancellationPolicy?: string;
   houseRules?: string;
+  units?: BookableUnit[];
 };
 
 export type Booking = {

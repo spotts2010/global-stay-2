@@ -326,6 +326,42 @@ export async function deletePropertyTypeAction(
 
 // --- Unit Actions ---
 
+export async function updateUnitsAction(
+  listingId: string,
+  units: BookableUnit[]
+): Promise<{ success: boolean; error?: string }> {
+  if (!listingId) {
+    return { success: false, error: 'Listing ID is missing.' };
+  }
+  const db = getAdminDb();
+  const unitsCollectionRef = db.collection('accommodations').doc(listingId).collection('units');
+
+  try {
+    const batch = db.batch();
+    const existingUnitsSnapshot = await unitsCollectionRef.get();
+
+    // Delete all existing units
+    existingUnitsSnapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    // Add the new set of units
+    units.forEach((unit) => {
+      const { id, ...unitData } = unit;
+      const unitRef = unitsCollectionRef.doc(id);
+      batch.set(unitRef, unitData);
+    });
+
+    await batch.commit();
+    revalidatePath(`/admin/listings/${listingId}/edit/units`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating units:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update units: ${errorMessage}` };
+  }
+}
+
 export async function updateUnitAction(
   listingId: string,
   unitId: string,
