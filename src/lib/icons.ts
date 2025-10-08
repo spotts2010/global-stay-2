@@ -71,7 +71,7 @@ export { MdImage as ImageIcon } from 'react-icons/md';
 export { MdCloudUpload as UploadCloud } from 'react-icons/md';
 export { MdSave as Save } from 'react-icons/md';
 export { MdDragIndicator as GripVertical } from 'react-icons/md';
-export { MdHelpOutline as ShieldQuestion } from 'react-icons/md';
+export { MdOutlinePrivacyTip as MdOutlinePrivacyTip } from 'react-icons/md';
 export { MdAttachMoney as DollarSign } from 'react-icons/md';
 export { MdBed as BedDouble } from 'react-icons/md';
 export { MdEventNote as CalendarClock } from 'react-icons/md';

@@ -1,3 +1,4 @@
+// src/components/EditListingSidebar.tsx
 'use client';
 
 import Link from 'next/link';
@@ -8,7 +9,7 @@ import {
   CalendarDays,
   ImageIcon,
   Package2,
-  ShieldQuestion,
+  MdOutlinePrivacyTip,
   Users,
   Hotel,
   SquarePen,
@@ -37,7 +38,7 @@ export const menuItems = [
       { label: 'Photo Gallery', href: '/edit/photos', icon: ImageIcon },
       { label: 'Shared Amenities', href: '/edit/amenities', icon: ListChecks },
       { label: 'Points of Interest', href: '/edit/pois', icon: HiOutlineLocationMarker },
-      { label: 'Property Policies', href: '/edit/property-policies', icon: ShieldQuestion },
+      { label: 'Property Policies', href: '/edit/property-policies', icon: MdOutlinePrivacyTip },
     ],
   },
   { label: 'Unit Setup', href: '/edit/units', icon: BedDouble },

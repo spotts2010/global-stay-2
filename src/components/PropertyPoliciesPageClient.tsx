@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Save, Loader2, ShieldQuestion } from '@/lib/icons';
+import { Save, Loader2, MdOutlinePrivacyTip } from '@/lib/icons';
 import React, { useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Accommodation } from '@/lib/data';
@@ -76,7 +76,7 @@ export default function PropertyPoliciesPageClient({ listing }: { listing: Accom
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <ShieldQuestion className="h-5 w-5 text-primary" />
+                <MdOutlinePrivacyTip className="h-5 w-5 text-primary" />
                 Property Policies &amp; Terms
               </CardTitle>
               <CardDescription>

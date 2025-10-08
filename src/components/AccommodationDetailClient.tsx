@@ -1,6 +1,6 @@
 'use client';
 
-import { Star, MapPin, Award, ShieldQuestion, Banknote, Ban } from 'lucide-react';
+import { Star, MapPin, Award, MdOutlinePrivacyTip, Banknote, Ban } from 'lucide-react';
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
@@ -200,7 +200,7 @@ const PoliciesSection = ({ accommodation }: { accommodation: Accommodation }) =>
         {houseRules && (
           <Card>
             <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-              <ShieldQuestion className="h-5 w-5 text-primary" />
+              <MdOutlinePrivacyTip className="h-5 w-5 text-primary" />
               <CardTitle className="text-base font-semibold">House Rules</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">{houseRules}</CardContent>
