@@ -139,10 +139,10 @@ The action buttons displayed on the notification detail page change based on the
     - **Chargeable Extras**: Add the ability to mark specific inclusions as having an additional cost (e.g., “Towels $5 hire”, “Parking $10 per night”).
     - **Photos/Icons**: Allow hosts to associate an icon or photo with each inclusion for a richer display on the front-end.
     - **Grouping & Priority**: Implement a system to group inclusions and set a display priority, allowing hosts to emphasize key features like A/C, WiFi, or a TV.
-  - **Custom Inclusions Workflow**:
-    - **Verification**: Custom inclusions added by hosts must be reviewed by an admin.
-    - **Approval**: If approved, the custom inclusion is added to the master list under an appropriate category for future use by all hosts.
-    - **Denial**: If denied, the inclusion is hidden from view, and an automated system notification and email are sent to the host, explaining the reason for the denial (e.g., already exists, inappropriate, etc.).
+  - **Custom Inclusions & Accessibility Features Workflow**:
+    - **Verification**: Custom inclusions or accessibility features added by hosts must be reviewed by an admin.
+    - **Approval**: If approved, the custom item is added to the relevant master list (e.g., Inclusions or Accessibility) under an appropriate category for future use by all hosts.
+    - **Denial**: If denied, the item is hidden from view, and an automated system notification and email are sent to the host, explaining the reason for the denial (e.g., already exists, inappropriate, etc.).
 
 ### Resolved Issues
 
