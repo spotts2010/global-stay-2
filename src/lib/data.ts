@@ -48,12 +48,7 @@ export type Accommodation = {
   id: string;
   slug: string;
   name: string;
-  location: string; // The full formatted address string
-  street?: string;
-  city?: string;
-  state?: string;
-  postcode?: string;
-  country?: string;
+  location: string;
   price: number;
   currency: Currency;
   rating: number; // User review rating

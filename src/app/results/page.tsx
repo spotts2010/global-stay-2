@@ -47,18 +47,9 @@ function ResultsPageContent() {
       const filtered = allAccommodations.filter((accommodation) => {
         if (location && location.trim()) {
           const searchTerms = location.toLowerCase().split(/[\s,]+/);
+          const locationString = accommodation.location.toLowerCase();
 
-          // Check against both the formatted 'location' string and the structured 'state' field
-          const locationString = [
-            accommodation.location.toLowerCase(),
-            accommodation.state?.toLowerCase() || '',
-          ].join(' ');
-
-          const locationParts = locationString.split(/[\s,]+/);
-
-          const allTermsMatch = searchTerms.every((term) =>
-            locationParts.some((part) => part.includes(term))
-          );
+          const allTermsMatch = searchTerms.every((term) => locationString.includes(term));
           if (!allTermsMatch) {
             return false;
           }

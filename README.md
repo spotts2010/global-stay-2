@@ -162,6 +162,10 @@ The action buttons displayed on the notification detail page change based on the
     - **Approval**: If approved, the custom item is added to the relevant master list (e.g., Inclusions or Accessibility) under an appropriate category for future use by all hosts.
     - **Denial**: If denied, the item is hidden from view, and an automated system notification and email are sent to the host, explaining the reason for the denial (e.g., already exists, inappropriate, etc.).
 - **Amenity, Inclusion, and Accessibility Icons**: Implement a system to allow administrators to assign a specific icon to each amenity, private inclusion, and accessibility feature. This will provide a richer, more visual display on the front-end accommodation detail pages.
+- **Enhanced Address Handling**: Improve search functionality by storing and querying structured address data (street, city, state, postcode, country) instead of a single string. This would involve:
+  - Modifying the Firestore data model to include separate fields for each address component.
+  - Updating the admin interface to parse these components from the Google Places API response.
+  - Enhancing the search feature to perform more precise, field-specific queries.
 
 ### Resolved Issues
 

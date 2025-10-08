@@ -43,11 +43,6 @@ const propertyFormSchema = z.object({
   type: z.string().min(1, 'Property type is required'),
   starRating: z.coerce.number().optional(),
   location: z.string().min(1, 'Location is required'),
-  street: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  postcode: z.string().optional(),
-  country: z.string().optional(),
   description: z.string().optional(),
   lat: z.number().optional(),
   lng: z.number().optional(),
@@ -191,11 +186,6 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
       type: listing?.type || 'Hotel',
       starRating: listing?.starRating,
       location: listing?.location || '',
-      street: listing?.street || '',
-      city: listing?.city || '',
-      state: listing?.state || '',
-      postcode: listing?.postcode || '',
-      country: listing?.country || '',
       description: listing?.description || '',
       lat: listing?.lat,
       lng: listing?.lng,
@@ -210,7 +200,6 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
 
   const handlePlaceSelected = (place: google.maps.places.PlaceResult | null) => {
     if (!place) {
-      // Potentially clear form fields if the input is cleared
       return;
     }
 
@@ -224,27 +213,7 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
       form.setValue('lat', newPosition.lat, { shouldDirty: true });
       form.setValue('lng', newPosition.lng, { shouldDirty: true });
 
-      // Extract and set structured address components
-      const addressComponents = place.address_components || [];
-      const getAddressComponent = (
-        type: string,
-        nameType: 'long_name' | 'short_name' = 'long_name'
-      ) => {
-        return addressComponents.find((c) => c.types.includes(type))?.[nameType] || '';
-      };
-
-      const streetNumber = getAddressComponent('street_number');
-      const route = getAddressComponent('route');
-
-      form.setValue('street', `${streetNumber} ${route}`.trim(), { shouldDirty: true });
-      form.setValue('city', getAddressComponent('locality'), { shouldDirty: true });
-      form.setValue('state', getAddressComponent('administrative_area_level_1'), {
-        shouldDirty: true,
-      });
-      form.setValue('postcode', getAddressComponent('postal_code'), { shouldDirty: true });
-      form.setValue('country', getAddressComponent('country'), { shouldDirty: true });
-
-      setMapKey((prevKey) => prevKey + 1); // Change key to force map re-render
+      setMapKey((prevKey) => prevKey + 1);
     }
   };
 
@@ -254,7 +223,7 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
         lat: e.latLng.lat(),
         lng: e.latLng.lng(),
       };
-      setTempMarkerPosition(newPosition); // Update temp position
+      setTempMarkerPosition(newPosition);
       form.setValue('lat', newPosition.lat, { shouldDirty: true });
       form.setValue('lng', newPosition.lng, { shouldDirty: true });
     }
@@ -271,7 +240,7 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
         if (formData.lat && formData.lng) {
           setMarkerPosition({ lat: formData.lat, lng: formData.lng });
           setTempMarkerPosition({ lat: formData.lat, lng: formData.lng });
-          setMapKey((prevKey) => prevKey + 1); // Force map to re-center on saved location
+          setMapKey((prevKey) => prevKey + 1);
         }
         form.reset(formData);
       } else {
