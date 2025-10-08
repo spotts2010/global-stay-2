@@ -365,22 +365,27 @@ export async function updateUnitsAction(
 export async function updateUnitAction(
   listingId: string,
   unitId: string,
-  unitData: Partial<BookableUnit> // Use a more specific type
+  unitData: Partial<BookableUnit>
 ): Promise<{ success: boolean; error?: string }> {
   if (!listingId || !unitId) {
     return { success: false, error: 'Listing or Unit ID is missing.' };
   }
+  const db = getAdminDb();
+  const unitRef = db.collection('accommodations').doc(listingId).collection('units').doc(unitId);
 
-  // This is a placeholder. In a real app, this would save to a subcollection
-  // e.g., /accommodations/{listingId}/units/{unitId}
-  console.log('Simulating update for unit:', { listingId, unitId, unitData });
+  try {
+    await unitRef.set(unitData, { merge: true });
 
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
+    // Revalidate relevant paths
+    revalidatePath(`/admin/listings/${listingId}/edit/units`);
+    revalidatePath(`/admin/listings/${listingId}/edit/units/${unitId}`);
 
-  // For now, always return success
-  revalidatePath(`/admin/listings/${listingId}/edit/units/${unitId}/photos`);
-  return { success: true };
+    return { success: true };
+  } catch (error) {
+    console.error(`Error updating unit ${unitId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update unit: ${errorMessage}` };
+  }
 }
 
 // --- Legal Page Actions ---

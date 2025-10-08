@@ -214,7 +214,7 @@ export default function PhotosPage() {
 
   const handleSaveChanges = () => {
     startTransition(async () => {
-      // In a real app, updateUnitAction would save the images array to the unit document
+      // The updateUnitAction now saves the images array to the unit document
       const result = await updateUnitAction(listingId, unitId, { images });
       if (result.success) {
         toast({
