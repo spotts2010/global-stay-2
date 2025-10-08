@@ -72,7 +72,7 @@
   input,
   select,
   textarea {
-    @apply text-foreground focus:outline-none;
+    @apply bg-card text-foreground focus:outline-none;
   }
 
   /* Browser autofill */
