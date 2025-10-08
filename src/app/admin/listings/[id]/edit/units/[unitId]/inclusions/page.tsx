@@ -221,111 +221,114 @@ export default function InclusionsPage() {
   });
 
   return (
-    <FormProvider {...formMethods}>
-      <form onSubmit={formMethods.handleSubmit(handleSave)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1.5">
-                <CardTitle className="flex items-center gap-2">
-                  <ListChecks className="h-5 w-5 text-primary" />
-                  Inclusions
-                </CardTitle>
-                <CardDescription>
-                  Select all features available inside this specific unit and specify if fees apply.
-                </CardDescription>
-              </div>
-              <Button
-                type="submit"
-                disabled={isPending || !formMethods.formState.isDirty}
-                className="mt-4 sm:mt-0 w-full sm:w-auto"
-              >
-                {isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Save Changes
-              </Button>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4">
-              <AiFillDollarCircle className="h-5 w-5 text-primary" />
-              <span>
-                = When enabled, this icon indicates that additional fees may be applicable.
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-              <div className="relative w-full sm:max-w-xs">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Filter by keyword..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex w-full sm:w-auto items-center gap-2">
-                <Label
-                  htmlFor="inclusion-category-filter"
-                  className="text-sm font-medium sr-only sm:not-sr-only"
+    <div className="space-y-6">
+      <FormProvider {...formMethods}>
+        <form onSubmit={formMethods.handleSubmit(handleSave)}>
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-1.5">
+                  <CardTitle className="flex items-center gap-2">
+                    <ListChecks className="h-5 w-5 text-primary" />
+                    Inclusions
+                  </CardTitle>
+                  <CardDescription>
+                    Select all features available inside this specific unit and specify if fees
+                    apply.
+                  </CardDescription>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isPending || !formMethods.formState.isDirty}
+                  className="mt-4 sm:mt-0 w-full sm:w-auto"
                 >
-                  Category:
-                </Label>
-                <Select
-                  value={activeCategory}
-                  onValueChange={(value) => setActiveCategory(value as InclusionCategory)}
-                >
-                  <SelectTrigger id="inclusion-category-filter" className="w-full sm:w-[280px]">
-                    <SelectValue placeholder="Filter by category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {inclusionCategories.map((category) => {
-                      const selectedInCategory = privateInclusionsData.filter(
-                        (a) =>
-                          selectedInclusions.includes(a.id) &&
-                          (category === 'All' || a.category === category)
-                      );
-                      return (
-                        <SelectItem key={category} value={category}>
-                          <div className="flex items-center justify-between w-full">
-                            <span>{category}</span>
-                            <Badge variant="secondary" className="ml-4 px-1.5 py-0">
-                              {selectedInCategory.length}
-                            </Badge>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                  {isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Save Changes
+                </Button>
               </div>
-            </div>
-            <InclusionGrid inclusions={filteredInclusions} />
-          </CardContent>
-        </Card>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4">
+                <AiFillDollarCircle className="h-5 w-5 text-primary" />
+                <span>
+                  = When enabled, this icon indicates that additional fees may be applicable.
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+                <div className="relative w-full sm:max-w-xs">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Filter by keyword..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="flex w-full sm:w-auto items-center gap-2">
+                  <Label
+                    htmlFor="inclusion-category-filter"
+                    className="text-sm font-medium sr-only sm:not-sr-only"
+                  >
+                    Category:
+                  </Label>
+                  <Select
+                    value={activeCategory}
+                    onValueChange={(value) => setActiveCategory(value as InclusionCategory)}
+                  >
+                    <SelectTrigger id="inclusion-category-filter" className="w-full sm:w-[280px]">
+                      <SelectValue placeholder="Filter by category..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {inclusionCategories.map((category) => {
+                        const selectedInCategory = privateInclusionsData.filter(
+                          (a) =>
+                            selectedInclusions.includes(a.id) &&
+                            (category === 'All' || a.category === category)
+                        );
+                        return (
+                          <SelectItem key={category} value={category}>
+                            <div className="flex items-center justify-between w-full">
+                              <span>{category}</span>
+                              <Badge variant="secondary" className="ml-4 px-1.5 py-0">
+                                {selectedInCategory.length}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <InclusionGrid inclusions={filteredInclusions} />
+            </CardContent>
+          </Card>
+        </form>
+      </FormProvider>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Custom Inclusions</CardTitle>
-            <CardDescription>
-              If an inclusion is not in the master list, add it here. Custom inclusions require
-              admin approval before they appear on the live site.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea placeholder="e.g., Japanese Tatami Mats, Smart Mirror" />
-          </CardContent>
-          <CardFooter className="flex-col items-start gap-4">
-            <Button variant="outline">Submit for Approval</Button>
-            <p className="text-xs text-muted-foreground">
-              These will be reviewed before being added to the main inclusions list.
-            </p>
-          </CardFooter>
-        </Card>
-      </form>
-    </FormProvider>
+      <Card>
+        <CardHeader>
+          <CardTitle>Custom Inclusions</CardTitle>
+          <CardDescription>
+            If an inclusion is not in the master list, add it here. Custom inclusions require admin
+            approval before they appear on the live site.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Textarea placeholder="e.g., Japanese Tatami Mats, Smart Mirror" />
+        </CardContent>
+        <CardFooter className="flex-col items-start gap-4">
+          <Button variant="outline">Submit for Approval</Button>
+          <p className="text-xs text-muted-foreground">
+            These will be reviewed before being added to the main inclusions list.
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
