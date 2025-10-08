@@ -248,7 +248,7 @@ export default function InclusionsPage() {
                 Save Changes
               </Button>
             </div>
-            <div className="!mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <AiFillDollarCircle className="h-5 w-5 text-primary" />
               <span>
                 = When enabled, this icon indicates that additional fees may be applicable.
