@@ -42,10 +42,15 @@ const propertyFormSchema = z.object({
   name: z.string().min(1, 'Listing name is required'),
   type: z.string().min(1, 'Property type is required'),
   starRating: z.coerce.number().optional(),
-  location: z.string().min(1, 'Location is required'),
   description: z.string().optional(),
   lat: z.number().optional(),
   lng: z.number().optional(),
+  // New structured address fields
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().optional(),
+  // Location is now just for display in the autocomplete input
+  location: z.string().min(1, 'Location is required'),
 });
 
 type PropertyFormValues = z.infer<typeof propertyFormSchema>;
@@ -73,7 +78,6 @@ function AddressAutocomplete({
     });
 
     return () => {
-      // Important: Remove the listener to prevent memory leaks
       listener.remove();
     };
   }, [places, onPlaceSelected]);
@@ -179,16 +183,21 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
     setHasMounted(true);
   }, []);
 
+  const fullLocation = [listing.city, listing.state, listing.country].filter(Boolean).join(', ');
+
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertyFormSchema),
     defaultValues: {
       name: listing?.name || '',
       type: listing?.type || 'Hotel',
       starRating: listing?.starRating,
-      location: listing?.location || '',
+      location: fullLocation,
       description: listing?.description || '',
       lat: listing?.lat,
       lng: listing?.lng,
+      city: listing?.city,
+      state: listing?.state,
+      country: listing?.country,
     },
   });
 
@@ -199,19 +208,47 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
   const [tempMarkerPosition, setTempMarkerPosition] = useState<Position | null>(markerPosition);
 
   const handlePlaceSelected = (place: google.maps.places.PlaceResult | null) => {
-    if (!place) {
-      return;
-    }
+    if (!place) return;
 
-    if (place.geometry?.location) {
+    if (place.geometry?.location && place.address_components) {
       const newPosition = {
         lat: place.geometry.location.lat(),
         lng: place.geometry.location.lng(),
       };
       setTempMarkerPosition(newPosition);
+
+      // Extract structured address components
+      let city = '';
+      let state = '';
+      let country = '';
+
+      for (const component of place.address_components) {
+        if (component.types.includes('locality')) {
+          city = component.long_name;
+        } else if (component.types.includes('administrative_area_level_1')) {
+          state = component.long_name;
+        } else if (component.types.includes('country')) {
+          country = component.long_name;
+        }
+      }
+
+      // Fallback for city if not found
+      if (!city) {
+        const postalTown = place.address_components.find((c) => c.types.includes('postal_town'));
+        if (postalTown) city = postalTown.long_name;
+      }
+      if (!city) {
+        const neighborhood = place.address_components.find((c) => c.types.includes('neighborhood'));
+        if (neighborhood) city = neighborhood.long_name;
+      }
+
+      // Update form values
       form.setValue('location', place.formatted_address || '', { shouldDirty: true });
       form.setValue('lat', newPosition.lat, { shouldDirty: true });
       form.setValue('lng', newPosition.lng, { shouldDirty: true });
+      form.setValue('city', city, { shouldDirty: true });
+      form.setValue('state', state, { shouldDirty: true });
+      form.setValue('country', country, { shouldDirty: true });
 
       setMapKey((prevKey) => prevKey + 1);
     }
@@ -226,12 +263,15 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
       setTempMarkerPosition(newPosition);
       form.setValue('lat', newPosition.lat, { shouldDirty: true });
       form.setValue('lng', newPosition.lng, { shouldDirty: true });
+      // Note: Dragging does not update the address string, only coordinates.
     }
   };
 
   const handleSave = (formData: PropertyFormValues) => {
     startTransition(async () => {
-      const result = await updateAccommodationAction(listing.id, formData);
+      // Remove the display-only 'location' field before saving
+      const { location: _, ...dataToSave } = formData;
+      const result = await updateAccommodationAction(listing.id, dataToSave);
       if (result.success) {
         toast({
           title: 'Changes Saved',

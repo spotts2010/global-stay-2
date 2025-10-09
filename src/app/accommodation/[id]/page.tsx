@@ -4,22 +4,26 @@ import {
   fetchAccommodationById,
   fetchPointsOfInterest,
   fetchSharedAmenities,
+  fetchUnitsForAccommodation,
 } from '@/lib/firestore.server';
 import AccommodationDetailClient from '@/components/AccommodationDetailClient';
 import type { Accommodation } from '@/lib/data';
+import { BookableUnit } from '@/components/UnitsPageClient';
+import { use } from 'react';
 
 // This is now a SERVER component responsible for data fetching
-export default async function AccommodationDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function AccommodationDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
 
   if (!id) {
     return <div>Error: Accommodation ID is missing.</div>;
   }
 
   // Fetch all data on the server first.
-  const accommodationData = await fetchAccommodationById(id);
-  const poiData = await fetchPointsOfInterest(id);
-  const allAmenities = await fetchSharedAmenities();
+  const accommodationData = use(fetchAccommodationById(id));
+  const poiData = use(fetchPointsOfInterest(id));
+  const allAmenities = use(fetchSharedAmenities());
+  const unitsData = use(fetchUnitsForAccommodation(id)) as BookableUnit[];
 
   if (!accommodationData) {
     return (
@@ -37,6 +41,7 @@ export default async function AccommodationDetailPage({ params }: { params: { id
       accommodation={accommodationData as Accommodation}
       pointsOfInterest={poiData}
       allAmenities={allAmenities}
+      units={unitsData}
     />
   );
 }

@@ -7,7 +7,7 @@ import { serializeFirestoreData } from './serialize';
 import placeholderImages from './placeholder-images.json';
 import type { BookableUnit } from '@/components/UnitsPageClient';
 
-type AmenityOrInclusion = {
+export type AmenityOrInclusion = {
   id: string;
   label: string;
   systemTag: string;
@@ -15,7 +15,9 @@ type AmenityOrInclusion = {
 };
 
 // Server-side function using Admin SDK (bypasses security rules)
-export async function fetchAccommodations(): Promise<Accommodation[]> {
+export async function fetchAccommodations(options?: {
+  publishedOnly?: boolean;
+}): Promise<Accommodation[]> {
   try {
     const adminDb = getAdminDb();
     const accommodationsSnapshot = await adminDb.collection('accommodations').get();
@@ -26,24 +28,35 @@ export async function fetchAccommodations(): Promise<Accommodation[]> {
     const accommodations = await Promise.all(
       accommodationsSnapshot.docs.map(async (doc) => {
         const accommodationData = doc.data();
-        const unitsSnapshot = await doc.ref.collection('units').get();
-        const units = unitsSnapshot.docs.map((unitDoc) => unitDoc.data() as BookableUnit);
 
-        // Find the lowest price among all units
-        let lowestPrice = accommodationData.price;
-        if (units.length > 0) {
-          const prices = units
+        const unitsSnapshot = await doc.ref.collection('units').get();
+        const allUnits = unitsSnapshot.docs.map((unitDoc) => unitDoc.data() as BookableUnit);
+        const publishedUnits = allUnits.filter((u) => u.status === 'Published');
+
+        let lowestPrice = Infinity;
+        let hasPricedPublishedUnit = false;
+
+        if (publishedUnits.length > 0) {
+          const prices = publishedUnits
             .map((u) => u.price)
-            .filter((p): p is number => typeof p === 'number');
+            .filter((p): p is number => typeof p === 'number' && p > 0);
+
           if (prices.length > 0) {
             lowestPrice = Math.min(...prices);
+            hasPricedPublishedUnit = true;
           }
         }
+
+        const finalStatus =
+          accommodationData.status === 'Published' && !hasPricedPublishedUnit
+            ? 'Draft'
+            : accommodationData.status;
 
         const accommodation = {
           id: doc.id,
           ...accommodationData,
-          price: lowestPrice, // Overwrite with the lowest unit price
+          price: isFinite(lowestPrice) ? lowestPrice : 0,
+          status: finalStatus,
           unitsCount: unitsSnapshot.size,
         };
 
@@ -52,6 +65,12 @@ export async function fetchAccommodations(): Promise<Accommodation[]> {
       })
     );
 
+    // If the publishedOnly flag is true, filter out non-published accommodations
+    if (options?.publishedOnly) {
+      return accommodations.filter((acc) => acc.status === 'Published');
+    }
+
+    // Otherwise, return all accommodations (for admin view)
     return accommodations;
   } catch (error) {
     console.error('Error fetching accommodations with Admin SDK:', error);
@@ -71,21 +90,34 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
     }
 
     const accommodationData = docSnap.data();
-    const unitsSnapshot = await docRef.collection('units').get();
-    const units = unitsSnapshot.docs.map((unitDoc) => unitDoc.data() as BookableUnit);
+    if (!accommodationData) return null;
 
-    let lowestPrice = accommodationData?.price;
-    if (units.length > 0) {
-      const prices = units.map((u) => u.price).filter((p): p is number => typeof p === 'number');
+    const unitsSnapshot = await docRef.collection('units').get();
+    const allUnits = unitsSnapshot.docs.map((unitDoc) => unitDoc.data() as BookableUnit);
+    const publishedUnits = allUnits.filter((u) => u.status === 'Published');
+
+    let lowestPrice = Infinity;
+    let hasPricedPublishedUnit = false;
+    if (publishedUnits.length > 0) {
+      const prices = publishedUnits
+        .map((u) => u.price)
+        .filter((p): p is number => typeof p === 'number' && p > 0);
       if (prices.length > 0) {
         lowestPrice = Math.min(...prices);
+        hasPricedPublishedUnit = true;
       }
     }
+
+    const finalStatus =
+      accommodationData.status === 'Published' && !hasPricedPublishedUnit
+        ? 'Draft'
+        : accommodationData.status;
 
     const accommodation = {
       id: docSnap.id,
       ...accommodationData,
-      price: lowestPrice,
+      price: isFinite(lowestPrice) ? lowestPrice : 0,
+      status: finalStatus,
       unitsCount: unitsSnapshot.size,
     };
 
@@ -221,6 +253,10 @@ export async function fetchSharedAmenities(): Promise<AmenityOrInclusion[]> {
 
 export async function fetchPrivateInclusions(): Promise<AmenityOrInclusion[]> {
   return fetchMasterList('privateInclusions');
+}
+
+export async function fetchAccessibilityFeatures(): Promise<AmenityOrInclusion[]> {
+  return fetchMasterList('accessibilityFeatures');
 }
 
 export async function fetchCollections(): Promise<Collection[]> {

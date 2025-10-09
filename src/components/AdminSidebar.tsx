@@ -19,6 +19,7 @@ import {
   FileText,
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarRightCollapse,
+  Accessibility,
 } from '@/lib/icons';
 import React, { useState, useEffect } from 'react';
 
@@ -42,6 +43,7 @@ export const menuItems: NavItem[] = [
     icon: Cog,
     children: [
       { href: '/admin/amenities', label: 'Amenities & Inclusions', icon: ListChecks },
+      { href: '/admin/accessibility-features', label: 'Accessibility', icon: Accessibility },
       { href: '/admin/bed-types', label: 'Bed Types', icon: Bed },
       { href: '/admin/property-types', label: 'Property Types', icon: Home },
       { href: '/admin/poi-categories', label: 'POI Categories', icon: MapPin },

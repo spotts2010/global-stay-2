@@ -23,24 +23,64 @@ import { Textarea } from '@/components/ui/textarea';
 import { Bed, MdOutlineDoorFront, HelpCircle, SquarePen, Save, Loader2 } from '@/lib/icons';
 import type { Accommodation } from '@/lib/data';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from './ui/tooltip';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form';
-import React, { useTransition } from 'react';
+import React, { useTransition, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { BookableUnit } from './UnitsPageClient';
 import { useParams, useRouter } from 'next/navigation';
 import { updateUnitAction } from '@/app/actions';
+import { Skeleton } from './ui/skeleton';
 
 const unitSchema = z.object({
   name: z.string().min(1, 'Unit name is required.'),
   unitRef: z.string().min(1, 'Unit reference is required.'),
   type: z.enum(['Room', 'Bed']),
   description: z.string().optional(),
+  area: z.coerce.number().optional().or(z.literal('')),
 });
 
 type UnitFormValues = z.infer<typeof unitSchema>;
+
+const FormSkeleton = () => (
+  <Card>
+    <CardHeader>
+      <Skeleton className="h-6 w-48" />
+      <Skeleton className="h-4 w-full max-w-md mt-2" />
+    </CardHeader>
+    <CardContent className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    </CardContent>
+    <CardFooter>
+      <Skeleton className="h-10 w-32" />
+    </CardFooter>
+  </Card>
+);
 
 export default function BasicInfoClient({
   listing,
@@ -54,6 +94,11 @@ export default function BasicInfoClient({
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const isCreating = params.unitId === 'new';
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const form = useForm<UnitFormValues>({
     resolver: zodResolver(unitSchema),
@@ -62,23 +107,31 @@ export default function BasicInfoClient({
       unitRef: unit?.unitRef || '',
       type: unit?.type || 'Room',
       description: unit?.description || '',
+      area: unit?.area || '',
     },
+  });
+
+  const unitType = useWatch({
+    control: form.control,
+    name: 'type',
   });
 
   const onSubmit = (data: UnitFormValues) => {
     startTransition(async () => {
       const unitId = isCreating ? 'new' : (params.unitId as string);
-      const result = await updateUnitAction(listing.id, unitId, data);
+      const dataToSave = { ...data, area: data.area === '' ? undefined : Number(data.area) };
+      const result = await updateUnitAction(listing.id, unitId, dataToSave);
 
       if (result.success) {
         toast({
           title: isCreating ? 'Unit Created' : 'Changes Saved',
           description: `The unit "${data.name}" has been successfully saved.`,
         });
-        form.reset(data); // Reset dirty state
         if (isCreating && result.newUnitId) {
-          // Redirect to the new unit's edit page
+          // Redirect to the new unit's edit page, keeping the same page (basic-info)
           router.replace(`/admin/listings/${listing.id}/edit/units/${result.newUnitId}/basic-info`);
+        } else {
+          form.reset(data); // Reset dirty state only on update
         }
       } else {
         toast({
@@ -94,6 +147,10 @@ export default function BasicInfoClient({
   const isUnitTypeLocked = listing.bookingType !== 'hybrid';
   const defaultUnitType =
     listing.bookingType === 'room' || listing.bookingType === 'hybrid' ? 'Room' : 'Bed';
+
+  if (!hasMounted) {
+    return <FormSkeleton />;
+  }
 
   return (
     <div className="space-y-6">
@@ -121,6 +178,19 @@ export default function BasicInfoClient({
                         <Label>Unit Name*</Label>
                         <FormControl>
                           <Input placeholder="e.g., 'Queen Room with Balcony'" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="unitRef"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label>Unit Ref / Internal Code*</Label>
+                        <FormControl>
+                          <Input placeholder="e.g., 'QR-101'" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -180,19 +250,26 @@ export default function BasicInfoClient({
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="unitRef"
-                    render={({ field }) => (
-                      <FormItem>
-                        <Label>Unit Ref / Internal Code*</Label>
-                        <FormControl>
-                          <Input placeholder="e.g., 'QR-101'" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {unitType === 'Room' && (
+                    <FormField
+                      control={form.control}
+                      name="area"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Label>Area (m²)</Label>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="e.g., 75 (optional)"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </div>
 
                 <FormField

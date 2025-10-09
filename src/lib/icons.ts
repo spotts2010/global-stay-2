@@ -112,7 +112,7 @@ export { MdFormatBold as Bold } from 'react-icons/md';
 export { MdFormatItalic as Italic } from 'react-icons/md';
 export { MdFormatUnderlined as Underline } from 'react-icons/md';
 export { MdFormatStrikethrough as Strikethrough } from 'react-icons/md';
-export { MdFormatListBulleted as List } from 'react-icons/md';
+export { MdOutlineViewList as List } from 'react-icons/md';
 export { MdFormatListNumbered as ListOrdered } from 'react-icons/md';
 export { MdUndo as Undo } from 'react-icons/md';
 export { MdRedo as Redo } from 'react-icons/md';
@@ -130,6 +130,8 @@ export { MdAreaChart as AreaChart } from 'react-icons/md';
 export { MdTrendingUp as TrendingUp } from 'react-icons/md';
 export { MdOutlineHotel as Hotel } from 'react-icons/md';
 export { MdOutlineEmojiEvents as Award } from 'react-icons/md';
+export { MdMap as Map } from 'react-icons/md';
+export { MdForum } from 'react-icons/md';
 
 // Ant Design Icons (for loaders)
 import {
@@ -153,4 +155,3 @@ export {
   HiOutlineLocationMarker,
   MdOutlineDoorFront,
 };
-export { MdForum as Forum } from 'react-icons/md';

@@ -15,16 +15,24 @@ import { FirestorePermissionError } from '@/firebase/errors';
 
 // This file should now ONLY contain client-side or shared Firestore logic.
 
-export async function fetchAccommodations(): Promise<Accommodation[]> {
+export async function fetchAccommodations(options?: {
+  publishedOnly?: boolean;
+}): Promise<Accommodation[]> {
   const accommodationsRef = collection(db, 'accommodations');
   return getDocsClient(accommodationsRef)
     .then((accommodationsSnapshot) => {
       if (accommodationsSnapshot.empty) {
         return [];
       }
-      return accommodationsSnapshot.docs.map(
+      let accommodations = accommodationsSnapshot.docs.map(
         (doc) => ({ id: doc.id, ...doc.data() }) as Accommodation
       );
+
+      if (options?.publishedOnly) {
+        accommodations = accommodations.filter((acc) => acc.status === 'Published');
+      }
+
+      return accommodations;
     })
     .catch((error: FirestoreError) => {
       console.error('Error fetching accommodations:', error);

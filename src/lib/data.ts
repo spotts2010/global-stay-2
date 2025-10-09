@@ -44,12 +44,23 @@ export type LegalPage = {
   versionNote?: string;
 };
 
+export type AmenityOrInclusion = {
+  id: string;
+  label: string;
+  systemTag: string;
+  category: string;
+  isShared?: boolean;
+  isPrivate?: boolean;
+};
+
 export type Accommodation = {
   id: string;
   slug: string;
   name: string;
-  location: string;
-  price: number;
+  city: string;
+  state: string;
+  country: string;
+  price: number; // This will be dynamically calculated from units
   currency: Currency;
   rating: number; // User review rating
   starRating?: number; // Official star rating (e.g., 1-5)
@@ -71,6 +82,8 @@ export type Accommodation = {
   houseRules?: string;
   units?: BookableUnit[];
   unitsCount?: number;
+  // Deprecating location in favor of structured address
+  location: string;
 };
 
 export type Booking = {

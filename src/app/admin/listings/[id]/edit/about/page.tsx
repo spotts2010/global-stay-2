@@ -4,10 +4,13 @@ import { fetchAccommodationById } from '@/lib/firestore.server';
 import AboutPageClient from '@/components/AboutPageClient';
 import type { Accommodation } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { use } from 'react';
 
 // This is now a SERVER component responsible for data fetching
-export default async function AboutPage({ params }: { params: { id: string } }) {
-  if (!params.id) {
+export default function AboutPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+
+  if (!id) {
     return (
       <Card>
         <CardHeader>
@@ -20,8 +23,8 @@ export default async function AboutPage({ params }: { params: { id: string } }) 
     );
   }
 
-  // Data is already serialized by the fetching function
-  const accommodationData = await fetchAccommodationById(params.id);
+  // We need to await the fetch inside the component body now
+  const accommodationData = use(fetchAccommodationById(id));
 
   if (!accommodationData) {
     return (

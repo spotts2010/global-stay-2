@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, MapPin, Star } from '@/lib/icons';
+import { Heart, Hotel, Star } from '@/lib/icons';
 import type { Accommodation } from '@/lib/data';
 import {
   Card,
@@ -22,11 +22,23 @@ import { convertCurrency, formatCurrency } from '@/lib/currency';
 type AccommodationCardProps = {
   accommodation: Accommodation;
   searchParams?: { [key: string]: string | string[] | undefined };
+  disableHover?: boolean;
 };
 
 const PLACEHOLDER_IMAGE = 'https://picsum.photos/seed/1/600/400';
 
-const AccommodationCard = ({ accommodation, searchParams }: AccommodationCardProps) => {
+const getPropertyTypeLabel = (starRating: number | undefined, type: string) => {
+  if (starRating && starRating > 0) {
+    return `${starRating}-star ${type}`;
+  }
+  return type;
+};
+
+const AccommodationCard = ({
+  accommodation,
+  searchParams,
+  disableHover = false,
+}: AccommodationCardProps) => {
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const { preferences } = useUserPreferences();
   const favorite = isFavorite(accommodation.id);
@@ -54,44 +66,51 @@ const AccommodationCard = ({ accommodation, searchParams }: AccommodationCardPro
   const formattedPrice = formatCurrency(convertedPrice.toFixed(0), preferences.currency);
 
   return (
-    <Card className="w-full h-full overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
+    <Card
+      className={cn(
+        'w-full h-full overflow-hidden flex flex-col',
+        !disableHover && 'transition-all duration-300 hover:shadow-xl hover:-translate-y-1'
+      )}
+    >
       <CardHeader className="p-0">
-        <Link
-          href={detailUrl}
-          className="block"
-          aria-label={`View details for ${accommodation.name}`}
-        >
-          <div className="relative aspect-video">
-            <Image
-              src={accommodation.image || PLACEHOLDER_IMAGE}
-              alt={accommodation.name}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              className="object-cover"
-              data-ai-hint={accommodation.imageHint}
-            />
-            <div className="absolute bottom-3 left-3">
-              <div className="bg-black/60 text-white px-2 py-0.5 rounded-sm">
-                <span className="text-base font-bold">{formattedPrice}</span>
-                <span className="text-xs">/night</span>
+        <div className="relative">
+          <Link
+            href={detailUrl}
+            className="block"
+            aria-label={`View details for ${accommodation.name}`}
+          >
+            <div className="relative aspect-video">
+              <Image
+                src={accommodation.image || PLACEHOLDER_IMAGE}
+                alt={accommodation.name}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                className="object-cover"
+                data-ai-hint={accommodation.imageHint}
+              />
+              <div className="absolute bottom-3 left-3">
+                <div className="bg-black/60 text-white px-2 py-0.5 rounded-sm">
+                  <span className="text-base font-bold">{formattedPrice}</span>
+                  <span className="text-xs">/night</span>
+                </div>
               </div>
             </div>
-          </div>
-        </Link>
-        <Button
-          size="icon"
-          variant="secondary"
-          className="absolute top-3 right-3 rounded-full h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white z-10"
-          onClick={toggleFavorite}
-          aria-label={favorite ? 'Remove from favourites' : 'Add to favourites'}
-        >
-          <Heart
-            className={cn(
-              'h-5 w-5 text-black/50 transition-colors',
-              favorite && 'fill-red-500 text-red-500'
-            )}
-          />
-        </Button>
+          </Link>
+          <Button
+            size="icon"
+            variant="secondary"
+            className="absolute top-3 right-3 rounded-full h-8 w-8 bg-white hover:bg-white/90 z-10"
+            onClick={toggleFavorite}
+            aria-label={favorite ? 'Remove from favourites' : 'Add to favourites'}
+          >
+            <Heart
+              className={cn(
+                'h-5 w-5 text-black/70 transition-colors',
+                favorite && 'fill-red-500 text-red-500'
+              )}
+            />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <CardTitle className="font-headline text-xl font-bold leading-tight">
@@ -100,8 +119,8 @@ const AccommodationCard = ({ accommodation, searchParams }: AccommodationCardPro
           </Link>
         </CardTitle>
         <CardDescription className="flex items-center gap-1 text-sm mt-1 text-muted-foreground">
-          <MapPin className="h-4 w-4" />
-          {accommodation.location}
+          <Hotel className="h-4 w-4" />
+          {getPropertyTypeLabel(accommodation.starRating, accommodation.type)}
         </CardDescription>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">

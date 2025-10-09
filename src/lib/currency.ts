@@ -54,19 +54,25 @@ export function convertCurrency(
 
 /**
  * Formats a number as a currency string.
+ * It displays two decimal places only if the number is not whole.
  * @param amount The numeric amount.
  * @param currency The currency code (e.g., 'USD', 'EUR').
- * @returns A formatted currency string (e.g., '$1,234.56').
+ * @returns A formatted currency string (e.g., '$1,234' or '$1,234.56').
  */
 export function formatCurrency(amount: number | string, currency: Currency): string {
   const symbol = getCurrencySymbol(currency);
   const numberAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
 
-  const formattedAmount = new Intl.NumberFormat('en-US', {
+  // Check if the number is whole
+  const isWholeNumber = numberAmount % 1 === 0;
+
+  const options: Intl.NumberFormatOptions = {
     style: 'decimal',
-    minimumFractionDigits: 0,
+    minimumFractionDigits: isWholeNumber ? 0 : 2,
     maximumFractionDigits: 2,
-  }).format(numberAmount);
+  };
+
+  const formattedAmount = new Intl.NumberFormat('en-US', options).format(numberAmount);
 
   return `${symbol}${formattedAmount}`;
 }

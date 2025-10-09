@@ -28,6 +28,7 @@ import {
   RotateCcw,
   Loader2,
   Search,
+  ImageIcon,
 } from '@/lib/icons';
 import {
   DropdownMenu,
@@ -38,6 +39,17 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Pagination,
   PaginationContent,
@@ -51,7 +63,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import type { Accommodation } from '@/lib/data';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { convertCurrency, formatCurrency } from '@/lib/currency';
-import { updateAccommodationStatusAction } from '@/app/actions';
+import {
+  updateAccommodationStatusAction,
+  duplicateListingAction,
+  deleteListingAction,
+} from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -63,7 +79,7 @@ import {
 } from '@/components/ui/select';
 
 type ListingStatus = 'All' | 'Published' | 'Draft' | 'Archived';
-type SortKey = 'name' | 'price' | 'status' | 'host' | 'lastModified';
+type SortKey = 'name' | 'price' | 'status' | 'lastModified';
 type SortDirection = 'asc' | 'desc';
 
 type EnrichedProperty = Accommodation & {
@@ -80,7 +96,7 @@ export default function ListingsPageClient({
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { preferences } = useUserPreferences();
-  const [_isPendingGlobal, startTransition] = useTransition();
+  const [actionPending, startActionTransition] = useTransition();
 
   const [properties, setProperties] = useState<EnrichedProperty[]>([]);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
@@ -93,8 +109,6 @@ export default function ListingsPageClient({
     key: (searchParams.get('sortKey') as SortKey) || 'lastModified',
     direction: (searchParams.get('sortDir') as SortDirection) || 'desc',
   });
-
-  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setSearchTerm(searchParams.get('q') || '');
@@ -150,14 +164,8 @@ export default function ListingsPageClient({
   }, [searchTerm, statusFilter, itemsPerPage]);
 
   const handleStatusChange = (id: string, status: 'Published' | 'Draft' | 'Archived') => {
-    startTransition(async () => {
-      setPendingIds((prev) => new Set(prev).add(id));
+    startActionTransition(async () => {
       const result = await updateAccommodationStatusAction(id, status);
-      setPendingIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(id);
-        return newSet;
-      });
 
       if (result.success) {
         toast({
@@ -173,6 +181,46 @@ export default function ListingsPageClient({
         toast({
           variant: 'destructive',
           title: 'Update Failed',
+          description: result.error,
+        });
+      }
+    });
+  };
+
+  const handleDuplicateListing = (id: string) => {
+    startActionTransition(async () => {
+      const result = await duplicateListingAction(id);
+      if (result.success) {
+        toast({
+          title: 'Listing Duplicated',
+          description: 'A new draft has been created. Refreshing list...',
+        });
+        // We can either optimistically add it or just re-fetch/re-validate
+        // For simplicity, we can rely on revalidation or a page refresh.
+        router.refresh();
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Duplication Failed',
+          description: result.error,
+        });
+      }
+    });
+  };
+
+  const handleDeleteListing = (id: string, name: string) => {
+    startActionTransition(async () => {
+      const result = await deleteListingAction(id);
+      if (result.success) {
+        toast({
+          title: 'Listing Deleted',
+          description: `"${name}" has been permanently deleted.`,
+        });
+        setProperties((prev) => prev.filter((p) => p.id !== id));
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Deletion Failed',
           description: result.error,
         });
       }
@@ -196,26 +244,20 @@ export default function ListingsPageClient({
     );
   };
 
-  const getShortLocation = (fullLocation: string): string => {
-    if (!fullLocation) return '';
-    const parts = fullLocation.split(',').map((p) => p.trim());
-    if (parts.length < 2) return fullLocation;
-
-    // Assumes Country is always the last part.
-    const country = parts[parts.length - 1];
-    // Assumes City is the second to last part (or first if only two parts).
-    const city = parts.length > 2 ? parts[parts.length - 2] : parts[0];
-
-    return `${city}, ${country}`;
+  const getShortLocation = (property: Accommodation): string => {
+    return [property.city, property.country].filter(Boolean).join(', ');
   };
 
   const filteredAndSortedProperties = useMemo(() => {
     const filtered = properties.filter((property) => {
       const matchesStatus = statusFilter === 'All' || property.status === statusFilter;
+      const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         searchTerm === '' ||
-        property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.location.toLowerCase().includes(searchTerm.toLowerCase());
+        property.name.toLowerCase().includes(searchLower) ||
+        property.city.toLowerCase().includes(searchLower) ||
+        property.state.toLowerCase().includes(searchLower) ||
+        property.country.toLowerCase().includes(searchLower);
       return matchesStatus && matchesSearch;
     });
 
@@ -339,11 +381,8 @@ export default function ListingsPageClient({
             </TableHead>
             <TableHead className="hidden md:table-cell">Units</TableHead>
             <TableHead className="hidden md:table-cell">Location</TableHead>
-            <TableHead className="hidden lg:table-cell">
-              <SortableHeader sortKey="host">Host</SortableHeader>
-            </TableHead>
             <TableHead className="hidden md:table-cell">
-              <SortableHeader sortKey="price">Lowest Price</SortableHeader>
+              <SortableHeader sortKey="price">Price</SortableHeader>
             </TableHead>
             <TableHead>
               <SortableHeader sortKey="status">Status</SortableHeader>
@@ -361,29 +400,32 @@ export default function ListingsPageClient({
               );
               const canPublish = property.images && property.images.length > 0;
               const coverImage = property.image;
-              const isPending = pendingIds.has(property.id);
+              const isPending = actionPending;
 
               return (
                 <TableRow key={property.id}>
                   <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={property.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={coverImage}
-                      width="64"
-                      data-ai-hint={property.imageHint}
-                    />
+                    {coverImage ? (
+                      <Image
+                        alt={property.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={coverImage}
+                        width="64"
+                        data-ai-hint={property.imageHint}
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="font-medium">{property.name}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     <Badge variant="secondary">{property.unitsCount || 0}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-muted-foreground">
-                    {getShortLocation(property.location)}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell text-muted-foreground">
-                    {property.host}
+                    {getShortLocation(property)}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     {formatCurrency(convertedPrice, preferences.currency)}
@@ -404,10 +446,17 @@ export default function ListingsPageClient({
                   <TableCell>
                     <TooltipProvider>
                       <div className="flex items-center justify-end gap-2">
+                        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                         {/* Edit */}
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              disabled={isPending}
+                            >
                               <Link href={getEditUrl(property.id)}>
                                 <FilePen className="h-4 w-4" />
                               </Link>
@@ -421,7 +470,13 @@ export default function ListingsPageClient({
                         {/* Duplicate */}
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleDuplicateListing(property.id)}
+                              disabled={isPending}
+                            >
                               <Copy className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
@@ -441,11 +496,7 @@ export default function ListingsPageClient({
                                 onClick={() => handleStatusChange(property.id, 'Draft')}
                                 disabled={isPending}
                               >
-                                {isPending ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <RotateCcw className="h-4 w-4" />
-                                )}
+                                <RotateCcw className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -462,11 +513,7 @@ export default function ListingsPageClient({
                                 onClick={() => handleStatusChange(property.id, 'Published')}
                                 disabled={isPending || !canPublish}
                               >
-                                {isPending ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <Check className="h-4 w-4" />
-                                )}
+                                <Check className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -481,20 +528,40 @@ export default function ListingsPageClient({
 
                         {/* Delete / Archive */}
                         {property.status === 'Draft' ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Delete Listing</p>
-                            </TooltipContent>
-                          </Tooltip>
+                          <AlertDialog>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive"
+                                    disabled={isPending}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent>Delete Listing</TooltipContent>
+                            </Tooltip>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the "
+                                  {property.name}" listing.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteListing(property.id, property.name)}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         ) : (
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -505,11 +572,7 @@ export default function ListingsPageClient({
                                 onClick={() => handleStatusChange(property.id, 'Archived')}
                                 disabled={isPending}
                               >
-                                {isPending ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <FaArchive className="h-4 w-4" />
-                                )}
+                                <FaArchive className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -525,7 +588,7 @@ export default function ListingsPageClient({
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={8} className="h-24 text-center">
+              <TableCell colSpan={7} className="h-24 text-center">
                 No properties found.
               </TableCell>
             </TableRow>

@@ -2,7 +2,7 @@
 
 import { Star, MapPin, Hotel, MdOutlinePrivacyTip, Banknote, Ban } from '@/lib/icons';
 import { APIProvider, Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -29,6 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from './ui/skeleton';
+import { BookableUnit } from './UnitsPageClient';
 
 // --- Helper Functions & Components ---
 
@@ -204,6 +206,7 @@ type AccommodationDetailClientProps = {
   accommodation: Accommodation;
   pointsOfInterest: Place[];
   allAmenities: { id: string; label: string; category: string }[];
+  units: BookableUnit[];
 };
 
 export default function AccommodationDetailClient({
@@ -214,6 +217,19 @@ export default function AccommodationDetailClient({
   const searchParams = useSearchParams();
   const { preferences } = useUserPreferences();
   const mapRef = useRef<HTMLDivElement>(null);
+  const [formattedPrice, setFormattedPrice] = useState<string | null>(null);
+
+  const fullLocation = [accommodation.city, accommodation.state, accommodation.country]
+    .filter(Boolean)
+    .join(', ');
+
+  useEffect(() => {
+    // This effect runs only on the client, after hydration
+    const convertedPrice = accommodation.price
+      ? convertCurrency(accommodation.price, accommodation.currency, preferences.currency)
+      : 0;
+    setFormattedPrice(formatCurrency(convertedPrice, preferences.currency));
+  }, [accommodation.price, accommodation.currency, preferences.currency]);
 
   const amenityMap = useMemo(() => {
     return new Map(allAmenities.map((amenity) => [amenity.id, amenity.label]));
@@ -250,12 +266,7 @@ export default function AccommodationDetailClient({
   }
 
   const resultsLink = `/results?${new URLSearchParams(cleanSearchParams).toString()}`;
-
-  const convertedPrice = convertCurrency(
-    accommodation.price,
-    accommodation.currency,
-    preferences.currency
-  );
+  const unitsLink = `/accommodation/${accommodation.id}/units?${new URLSearchParams(cleanSearchParams).toString()}`;
 
   const position = { lat: accommodation.lat, lng: accommodation.lng };
   const allImages =
@@ -296,7 +307,7 @@ export default function AccommodationDetailClient({
             <div className="flex flex-col items-start mt-2 gap-y-2 text-muted-foreground">
               <div className="flex items-center gap-2 text-sm">
                 <MapPin className="h-4 w-4" />
-                <span>{accommodation.location}</span>
+                <span>{fullLocation}</span>
                 <a
                   href="#map-section"
                   onClick={handleShowOnMap}
@@ -371,10 +382,11 @@ export default function AccommodationDetailClient({
             </div>
           </div>
 
-          <Separator className="my-6" />
+          {/* Location Section Separator */}
+          <Separator ref={mapRef} id="map-section" className="my-6 scroll-mt-20" />
 
           {/* Location & Map Section */}
-          <div ref={mapRef} id="map-section">
+          <div>
             <h2 className="font-headline text-2xl font-bold mb-4">Location</h2>
             <div className="aspect-video rounded-lg overflow-hidden border">
               <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
@@ -388,7 +400,7 @@ export default function AccommodationDetailClient({
                 </GoogleMap>
               </APIProvider>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">{accommodation.location}</p>
+            <p className="text-sm text-muted-foreground mt-2">{fullLocation}</p>
           </div>
 
           <Separator className="my-6" />
@@ -422,13 +434,17 @@ export default function AccommodationDetailClient({
           <Card className="sticky top-24 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-3xl font-bold text-primary">
-                  {formatCurrency(convertedPrice, preferences.currency)}
-                </span>
-                <span className="text-muted-foreground">/ night</span>
+                {formattedPrice ? (
+                  <>
+                    <span className="text-xl font-bold text-primary">From {formattedPrice}</span>
+                    <span className="text-muted-foreground text-sm">/ night</span>
+                  </>
+                ) : (
+                  <Skeleton className="h-9 w-32" />
+                )}
               </div>
-              <Button className="w-full text-lg" size="lg">
-                Book Now
+              <Button asChild className="w-full text-lg" size="lg">
+                <Link href={unitsLink}>Select a Room</Link>
               </Button>
             </CardContent>
           </Card>

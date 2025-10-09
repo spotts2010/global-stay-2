@@ -21,8 +21,6 @@ import {
 import { Label } from '@/components/ui/label';
 import {
   Bed,
-  Box,
-  Building,
   FilePen,
   PlusCircle,
   Trash2,
@@ -35,6 +33,8 @@ import {
   Check,
   ArrowUp,
   ArrowDown,
+  MdOutlineDoorFront,
+  BedDouble,
 } from '@/lib/icons';
 import type { Accommodation } from '@/lib/data';
 import React, { useState, useTransition, useEffect, useMemo } from 'react';
@@ -81,6 +81,7 @@ export type BookableUnit = {
   privateBathrooms?: number;
   sharedBathrooms?: number;
   description?: string;
+  area?: number;
   minStay?: number;
   maxStay?: number;
   includedOccupancy?: number;
@@ -288,7 +289,10 @@ export default function UnitsPageClient({
       />
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-xl">Configure Units</CardTitle>
+          <CardTitle className="font-headline text-xl flex items-center gap-2">
+            <BedDouble className="h-6 w-6 text-primary" />
+            Configure Units
+          </CardTitle>
           <CardDescription>
             View and manage all units for this property. Add new units or edit existing ones to set
             occupancy, amenities, pricing, and availability.
@@ -334,10 +338,7 @@ export default function UnitsPageClient({
               <div className="space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Box className="h-5 w-5" />
-                      Unit Overview
-                    </h3>
+                    <h3 className="font-semibold">Unit Overview</h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       Manage rooms, dorms, or beds. Each listing must have at least one unit.
                     </p>
@@ -408,7 +409,7 @@ export default function UnitsPageClient({
                                     <SelectContent>
                                       <SelectItem value="room">
                                         <div className="flex items-center gap-2">
-                                          <Building className="h-4 w-4" /> Room
+                                          <MdOutlineDoorFront className="h-4 w-4" /> Room
                                         </div>
                                       </SelectItem>
                                       <SelectItem value="bed">

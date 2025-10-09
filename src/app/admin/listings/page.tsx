@@ -16,7 +16,8 @@ const LoadingSpinner = () => (
 
 // This is now a Server Component that fetches data
 export default async function AdminListingsPage() {
-  const accommodations: Accommodation[] = await fetchAccommodations();
+  // Fetch ALL accommodations for the admin view
+  const accommodations: Accommodation[] = await fetchAccommodations({ publishedOnly: false });
 
   return (
     <Card>

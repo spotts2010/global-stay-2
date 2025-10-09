@@ -64,6 +64,86 @@ export async function updateAccommodationAction(
   }
 }
 
+export async function duplicateListingAction(
+  listingId: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!listingId) {
+    return { success: false, error: 'Listing ID is missing.' };
+  }
+  const db = getAdminDb();
+
+  try {
+    const sourceListingRef = db.collection('accommodations').doc(listingId);
+    const sourceListingSnap = await sourceListingRef.get();
+
+    if (!sourceListingSnap.exists) {
+      return { success: false, error: 'Source listing not found.' };
+    }
+
+    const sourceData = sourceListingSnap.data() as Accommodation;
+
+    // Create a new document with a new ID
+    const newListingRef = db.collection('accommodations').doc();
+
+    const newListingData: Partial<Accommodation> = {
+      ...sourceData,
+      name: `${sourceData.name} (Copy)`,
+      status: 'Draft',
+      slug: `${sourceData.slug}-copy-${Date.now()}`,
+      lastModified: new Date(),
+    };
+
+    // Remove fields that should not be copied
+    delete newListingData.id;
+    delete newListingData.units;
+    delete newListingData.unitsCount;
+
+    await newListingRef.set(newListingData);
+
+    // Revalidate the listings page to show the new draft
+    revalidatePath('/admin/listings');
+
+    return { success: true };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'An unknown server error occurred.';
+    return { success: false, error: `Failed to duplicate listing: ${errorMessage}` };
+  }
+}
+
+export async function deleteListingAction(
+  listingId: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!listingId) {
+    return { success: false, error: 'Listing ID is missing.' };
+  }
+
+  const db = getAdminDb();
+  const listingRef = db.collection('accommodations').doc(listingId);
+
+  try {
+    const listingDoc = await listingRef.get();
+    if (!listingDoc.exists) {
+      return { success: false, error: 'Listing not found.' };
+    }
+
+    // The status check was removed to allow deletion of draft listings.
+    // In a real app, you'd also check if it has any associated booking history.
+
+    await listingRef.delete();
+
+    // Revalidate paths to reflect the deletion
+    revalidatePath('/admin/listings');
+    revalidatePath('/');
+
+    return { success: true };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'An unknown server error occurred.';
+    return { success: false, error: `Failed to delete listing: ${errorMessage}` };
+  }
+}
+
 // --- Policies Update Action ---
 export async function updateAccommodationPoliciesAction(
   id: string,
@@ -222,16 +302,21 @@ export async function updateHeroImagesAction(
   }
 }
 
-// --- Amenity & Inclusion Actions ---
-type Item = {
-  label: string;
+// --- Amenity, Inclusion & Accessibility Actions ---
+type AmenityItem = {
   systemTag: string;
+  label: string;
   category: string;
 };
 
+type AccessibilityItem = AmenityItem & {
+  isShared: boolean;
+  isPrivate: boolean;
+};
+
 async function updateMasterList(
-  collectionName: 'sharedAmenities' | 'privateInclusions',
-  items: Item[]
+  collectionName: 'sharedAmenities' | 'privateInclusions' | 'accessibilityFeatures',
+  items: AmenityItem[] | AccessibilityItem[]
 ): Promise<{ success: boolean; error?: string }> {
   const db = getAdminDb();
   const collectionRef = db.collection(collectionName);
@@ -240,19 +325,33 @@ async function updateMasterList(
     const batch = db.batch();
     const snapshot = await collectionRef.get();
     snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+
     items.forEach((item) => {
       if (!item.systemTag) {
         console.warn('Skipping item with empty systemTag:', item);
         return;
       }
       const docRef = collectionRef.doc(item.systemTag);
-      batch.set(docRef, {
+
+      // Use a type assertion to satisfy TypeScript
+      const dataToSet: { [key: string]: string | boolean } = {
         label: item.label,
         category: item.category,
-      });
+      };
+
+      // Specific handling for accessibility features
+      if (collectionName === 'accessibilityFeatures' && 'isShared' in item && 'isPrivate' in item) {
+        dataToSet.isShared = item.isShared ?? false;
+        dataToSet.isPrivate = item.isPrivate ?? true;
+      }
+
+      batch.set(docRef, dataToSet);
     });
+
     await batch.commit();
+
     revalidatePath('/admin/amenities');
+    revalidatePath('/admin/accessibility-features');
     return { success: true };
   } catch (error) {
     console.error(`Error updating ${collectionName} with Admin SDK:`, error);
@@ -262,15 +361,21 @@ async function updateMasterList(
 }
 
 export async function updateSharedAmenitiesAction(
-  items: Item[]
+  items: AmenityItem[]
 ): Promise<{ success: boolean; error?: string }> {
   return updateMasterList('sharedAmenities', items);
 }
 
 export async function updatePrivateInclusionsAction(
-  items: Item[]
+  items: AmenityItem[]
 ): Promise<{ success: boolean; error?: string }> {
   return updateMasterList('privateInclusions', items);
+}
+
+export async function updateAccessibilityFeaturesAction(
+  items: AccessibilityItem[]
+): Promise<{ success: boolean; error?: string }> {
+  return updateMasterList('accessibilityFeatures', items);
 }
 
 // --- Listing-specific Amenity Actions ---
@@ -301,6 +406,34 @@ export async function updateListingSharedAmenitiesAction(
   }
 }
 
+// --- Listing-specific Accessibility Features Actions ---
+export async function updateListingAccessibilityFeaturesAction(
+  listingId: string,
+  featureIds: string[],
+  chargeableFeatureIds: string[]
+): Promise<{ success: boolean; error?: string }> {
+  if (!listingId) {
+    return { success: false, error: 'Listing ID is missing.' };
+  }
+  const db = getAdminDb();
+  const listingRef = db.collection('accommodations').doc(listingId);
+
+  try {
+    await listingRef.update({
+      accessibilityFeatures: featureIds,
+      chargeableAccessibilityFeatures: chargeableFeatureIds,
+      lastModified: new Date(),
+    });
+    revalidatePath(`/admin/listings/${listingId}/edit/accessibility-features`);
+    revalidatePath(`/accommodation/${listingId}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Error updating accessibility features for listing ${listingId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update features: ${errorMessage}` };
+  }
+}
+
 // --- Unit-specific Inclusion Actions ---
 export async function updateUnitInclusionsAction(
   listingId: string,
@@ -326,6 +459,33 @@ export async function updateUnitInclusionsAction(
     console.error(`Error updating inclusions for unit ${unitId}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update inclusions: ${errorMessage}` };
+  }
+}
+
+// --- Unit-specific Accessibility Feature Actions ---
+export async function updateUnitAccessibilityFeaturesAction(
+  listingId: string,
+  unitId: string,
+  featureIds: string[],
+  chargeableFeatureIds: string[]
+): Promise<{ success: boolean; error?: string }> {
+  if (!listingId || !unitId) {
+    return { success: false, error: 'Listing or Unit ID is missing.' };
+  }
+  const db = getAdminDb();
+  const unitRef = db.collection('accommodations').doc(listingId).collection('units').doc(unitId);
+  try {
+    await unitRef.update({
+      accessibilityFeatures: featureIds,
+      chargeableAccessibilityFeatures: chargeableFeatureIds,
+    });
+    revalidatePath(`/admin/listings/${listingId}/edit/units/${unitId}/accessibility-features`);
+    revalidatePath(`/accommodation/${listingId}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Error updating accessibility features for unit ${unitId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to update unit features: ${errorMessage}` };
   }
 }
 
