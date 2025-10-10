@@ -241,35 +241,3 @@
 .gm-style-iw-d {
   overflow: hidden !important;
 }
-
-/* Custom styles for Google Places Autocomplete Dropdown */
-.pac-container {
-  @apply mt-2 rounded-lg border border-border bg-popover shadow-md z-50;
-  width: var(--location-search-width) !important;
-  left: 0 !important;
-}
-
-#location-search-wrapper .pac-container {
-  width: 100% !important;
-  left: 0 !important;
-}
-
-.pac-item {
-  @apply cursor-pointer p-2 text-sm text-popover-foreground;
-}
-
-.pac-item:hover {
-  @apply bg-accent text-accent-foreground;
-}
-
-.pac-item-query {
-  @apply font-semibold;
-}
-
-.pac-icon {
-  @apply mr-2 text-muted-foreground;
-}
-
-.pac-logo:after {
-  @apply text-xs text-muted-foreground p-2;
-}

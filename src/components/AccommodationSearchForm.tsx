@@ -28,7 +28,6 @@ export default function AccommodationSearchForm() {
   const [guests, setGuests] = React.useState<number>(2);
   const [range, setRange] = React.useState<DateRange | undefined>(undefined);
   const locationInputRef = React.useRef<HTMLInputElement>(null);
-  const locationWrapperRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     setLocation(params.get('location') || '');
@@ -91,14 +90,6 @@ export default function AccommodationSearchForm() {
     router.push(`/results?${search.toString()}`);
   }
 
-  // Set CSS variable for location input width
-  React.useEffect(() => {
-    if (locationWrapperRef.current) {
-      const width = locationWrapperRef.current.offsetWidth;
-      document.documentElement.style.setProperty('--location-search-width', `${width}px`);
-    }
-  }, []);
-
   return (
     <form
       onSubmit={onSubmit}
@@ -107,11 +98,7 @@ export default function AccommodationSearchForm() {
     >
       <div className="flex flex-col md:flex-row md:items-stretch md:divide-x divide-y md:divide-y-0 divide-slate-200">
         {/* Location */}
-        <div
-          ref={locationWrapperRef}
-          className="flex-grow min-w-0 flex items-center gap-2 px-4 h-14 relative"
-          id="location-search-wrapper"
-        >
+        <div className="flex-grow min-w-0 flex items-center gap-2 px-4 h-14 relative">
           <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
           <input
             ref={locationInputRef}
