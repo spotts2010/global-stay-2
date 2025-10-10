@@ -245,10 +245,15 @@
 /* Custom styles for Google Places Autocomplete Dropdown */
 .pac-container {
   @apply mt-2 rounded-lg border border-border bg-popover shadow-md z-50;
+  width: var(--location-search-width) !important;
+}
+
+#location-search-wrapper:has(input:focus) + .pac-container {
+  width: var(--location-search-width) !important;
 }
 
 .pac-item {
-  @apply cursor-pointer p-3 text-sm text-popover-foreground;
+  @apply cursor-pointer p-2 text-sm text-popover-foreground;
 }
 
 .pac-item:hover {

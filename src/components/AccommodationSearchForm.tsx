@@ -98,7 +98,10 @@ export default function AccommodationSearchForm() {
     >
       <div className="flex flex-col md:flex-row md:items-stretch md:divide-x divide-y md:divide-y-0 divide-slate-200">
         {/* Location */}
-        <div className="flex-grow min-w-0 flex items-center gap-2 px-4 h-14">
+        <div
+          className="flex-grow min-w-0 flex items-center gap-2 px-4 h-14 relative"
+          id="location-search-wrapper"
+        >
           <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
           <input
             ref={locationInputRef}
