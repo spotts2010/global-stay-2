@@ -14,17 +14,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { format } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { format, parseISO } from 'date-fns';
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Utility: format date for display, ensuring UTC is handled correctly.
 function formatDate(dateString: string | undefined) {
   if (!dateString) return 'Any date';
-  // IMPORTANT: Parse date strings by treating them as being in the user's local timezone (Brisbane for this example).
-  // This creates a Date object that correctly represents the intended day.
-  const date = toZonedTime(`${dateString}T00:00:00`, 'Australia/Brisbane');
+  // The date string from the URL is YYYY-MM-DD. parseISO handles this correctly.
+  const date = parseISO(dateString);
   // Then format it. Using a specific format avoids locale-based ambiguity.
   return format(date, 'LLL dd, yyyy');
 }
@@ -52,9 +50,13 @@ export default function ResultsPageClient({
       const city = accommodation.city?.toLowerCase() || '';
       const state = accommodation.state?.toLowerCase() || '';
       const country = accommodation.country?.toLowerCase() || '';
+      const name = accommodation.name?.toLowerCase() || '';
 
       return (
-        city.includes(searchLower) || state.includes(searchLower) || country.includes(searchLower)
+        city.includes(searchLower) ||
+        state.includes(searchLower) ||
+        country.includes(searchLower) ||
+        name.includes(searchLower)
       );
     });
   }, [location, initialAccommodations]);

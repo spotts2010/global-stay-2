@@ -5,57 +5,49 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { MapPin, CalendarDays, Users, Search } from '@/lib/icons';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 function formatRangeUK(range: DateRange | undefined) {
-  if (!range?.from || !range?.to) return '';
-  const fmt = (d: Date) =>
-    d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  return `${fmt(range.from)} – ${fmt(range.to)}`;
+  if (!range?.from) return 'Pick a date range';
+  if (!range.to) return format(range.from, 'LLL dd, yyyy');
+  return `${format(range.from, 'LLL dd, yyyy')} – ${format(range.to, 'LLL dd, yyyy')}`;
 }
 
-// Function to format a date as a YYYY-MM-DD string in a specific timezone.
-function toTimeZoneDateString(date: Date, timeZone: string) {
-  return formatInTimeZone(date, timeZone, 'yyyy-MM-dd');
+function toURLDateString(date: Date) {
+  return format(date, 'yyyy-MM-dd');
 }
 
 export default function AccommodationSearchForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const userTimeZone = 'Australia/Brisbane'; // User's specified timezone
 
-  // Initialize state with default values
   const [location, setLocation] = React.useState('');
   const [guests, setGuests] = React.useState<number>(2);
   const [range, setRange] = React.useState<DateRange | undefined>(undefined);
 
-  // Defer reading from searchParams until the component has mounted on the client
   React.useEffect(() => {
-    setLocation(params.get('location') ?? '');
-    const g = parseInt(params.get('guests') ?? '2', 10);
-    setGuests(Number.isFinite(g) && g > 0 ? g : 2);
+    setLocation(params.get('location') || '');
+    setGuests(Number(params.get('guests')) || 2);
     const fromParam = params.get('from');
     const toParam = params.get('to');
-    if (fromParam && toParam) {
-      // Parse date strings by treating them as being in the user's timezone.
-      const from = toZonedTime(`${fromParam}T00:00:00`, userTimeZone);
-      const to = toZonedTime(`${toParam}T00:00:00`, userTimeZone);
-      if (!isNaN(from.getTime()) && !isNaN(to.getTime())) {
-        setRange({ from, to });
+    if (fromParam) {
+      const fromDate = parseISO(fromParam);
+      const toDate = toParam ? parseISO(toParam) : undefined;
+      if (!isNaN(fromDate.getTime())) {
+        setRange({ from: fromDate, to: toDate });
       }
+    } else {
+      setRange(undefined);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
-  // Date popover (headless)
   const pickerRef = React.useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
     function onDocClick(e: MouseEvent) {
-      if (!pickerRef.current) return;
-      if (!pickerRef.current.contains(e.target as Node)) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     }
@@ -70,9 +62,9 @@ export default function AccommodationSearchForm() {
     e.preventDefault();
     const search = new URLSearchParams();
     if (location.trim()) search.set('location', location.trim());
-    if (range?.from) search.set('from', toTimeZoneDateString(range.from, userTimeZone));
-    if (range?.to) search.set('to', toTimeZoneDateString(range.to, userTimeZone));
-    search.set('guests', String(guests));
+    if (range?.from) search.set('from', toURLDateString(range.from));
+    if (range?.to) search.set('to', toURLDateString(range.to));
+    if (guests) search.set('guests', String(guests));
     router.push(`/results?${search.toString()}`);
   }
 
@@ -100,7 +92,7 @@ export default function AccommodationSearchForm() {
 
         {/* Dates */}
         <div
-          className="relative flex-shrink-0 flex items-center gap-2 px-4 h-14 w-full md:w-52"
+          className="relative flex-shrink-0 flex items-center gap-2 px-4 h-14 w-full md:w-64"
           ref={pickerRef}
         >
           <CalendarDays className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
@@ -111,7 +103,7 @@ export default function AccommodationSearchForm() {
             aria-haspopup="dialog"
             aria-expanded={open}
           >
-            {range?.from && range?.to ? formatRangeUK(range) : 'Pick a date range'}
+            <span className={cn(!range?.from && 'text-slate-400')}>{formatRangeUK(range)}</span>
           </button>
 
           {open && (
