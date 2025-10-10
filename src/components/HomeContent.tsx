@@ -47,17 +47,13 @@ export default function HomeContent() {
   }, []);
 
   useEffect(() => {
-    if (hasMounted && heroImages && heroImages.length > 0) {
-      setSelectedHeroImage(heroImages[0]);
-    } else if (hasMounted) {
-      setSelectedHeroImage(defaultHeroImage);
-    }
-  }, [hasMounted, heroImages]);
-
-  useEffect(() => {
-    if (hasMounted && heroImages.length > 0) {
-      const randomIndex = Math.floor(Math.random() * heroImages.length);
-      setSelectedHeroImage(heroImages[randomIndex]);
+    if (hasMounted) {
+      if (heroImages && heroImages.length > 0) {
+        const randomIndex = Math.floor(Math.random() * heroImages.length);
+        setSelectedHeroImage(heroImages[randomIndex]);
+      } else {
+        setSelectedHeroImage(defaultHeroImage);
+      }
     }
   }, [hasMounted, heroImages]);
 
