@@ -246,12 +246,17 @@
 .pac-container {
   @apply mt-2 rounded-lg border border-border bg-popover shadow-md z-50;
   width: var(--location-search-width) !important;
-  /* Unset the inline left style from Google's script to align with our wrapper */
-  left: unset !important;
+  left: 0 !important;
+  top: 100% !important;
 }
 
-#location-search-wrapper:has(input:focus) + .pac-container {
-  width: var(--location-search-width) !important;
+#location-search-wrapper {
+  position: relative;
+}
+
+#location-search-wrapper .pac-container {
+  width: 100% !important;
+  left: 0 !important;
 }
 
 .pac-item {
