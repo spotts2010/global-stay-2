@@ -96,7 +96,8 @@ export default function ListingsPageClient({
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { preferences } = useUserPreferences();
-  const [actionPending, startActionTransition] = useTransition();
+  const [isTransitioning, startTransition] = useTransition();
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   const [properties, setProperties] = useState<EnrichedProperty[]>([]);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
@@ -164,7 +165,8 @@ export default function ListingsPageClient({
   }, [searchTerm, statusFilter, itemsPerPage]);
 
   const handleStatusChange = (id: string, status: 'Published' | 'Draft' | 'Archived') => {
-    startActionTransition(async () => {
+    setPendingAction(id);
+    startTransition(async () => {
       const result = await updateAccommodationStatusAction(id, status);
 
       if (result.success) {
@@ -184,11 +186,13 @@ export default function ListingsPageClient({
           description: result.error,
         });
       }
+      setPendingAction(null);
     });
   };
 
   const handleDuplicateListing = (id: string) => {
-    startActionTransition(async () => {
+    setPendingAction(id);
+    startTransition(async () => {
       const result = await duplicateListingAction(id);
       if (result.success) {
         toast({
@@ -205,11 +209,13 @@ export default function ListingsPageClient({
           description: result.error,
         });
       }
+      setPendingAction(null);
     });
   };
 
   const handleDeleteListing = (id: string, name: string) => {
-    startActionTransition(async () => {
+    setPendingAction(id);
+    startTransition(async () => {
       const result = await deleteListingAction(id);
       if (result.success) {
         toast({
@@ -224,6 +230,7 @@ export default function ListingsPageClient({
           description: result.error,
         });
       }
+      setPendingAction(null);
     });
   };
 
@@ -400,7 +407,7 @@ export default function ListingsPageClient({
               );
               const canPublish = property.images && property.images.length > 0;
               const coverImage = property.image;
-              const isPending = actionPending;
+              const isPending = pendingAction === property.id && isTransitioning;
 
               return (
                 <TableRow key={property.id}>
