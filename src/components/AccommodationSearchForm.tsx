@@ -7,6 +7,7 @@ import { DayPicker, type DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useMapsLibrary } from '@vis.gl/react-google-maps';
 
 function formatRangeUK(range: DateRange | undefined) {
   if (!range?.from) return 'Pick a date range';
@@ -21,10 +22,12 @@ function toURLDateString(date: Date) {
 export default function AccommodationSearchForm() {
   const router = useRouter();
   const params = useSearchParams();
+  const places = useMapsLibrary('places');
 
   const [location, setLocation] = React.useState('');
   const [guests, setGuests] = React.useState<number>(2);
   const [range, setRange] = React.useState<DateRange | undefined>(undefined);
+  const locationInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     setLocation(params.get('location') || '');
@@ -41,6 +44,25 @@ export default function AccommodationSearchForm() {
       setRange(undefined);
     }
   }, [params]);
+
+  React.useEffect(() => {
+    if (!places || !locationInputRef.current) return;
+
+    const autocomplete = new places.Autocomplete(locationInputRef.current, {
+      fields: ['formatted_address'],
+    });
+
+    const listener = autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place && place.formatted_address) {
+        setLocation(place.formatted_address);
+      }
+    });
+
+    return () => {
+      listener.remove();
+    };
+  }, [places]);
 
   const pickerRef = React.useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = React.useState(false);
@@ -79,6 +101,7 @@ export default function AccommodationSearchForm() {
         <div className="flex-grow min-w-0 flex items-center gap-2 px-4 h-14">
           <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
           <input
+            ref={locationInputRef}
             type="text"
             inputMode="search"
             autoComplete="off"
