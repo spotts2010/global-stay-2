@@ -1,3 +1,4 @@
+// src/components/AccessibilityPageClient.tsx
 'use client';
 
 import React, { useState, useTransition, useMemo } from 'react';
@@ -30,7 +31,7 @@ import { Badge } from './ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { BookableUnit } from './UnitsPageClient';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 type AccessibilityFeatureItem = {
   id: string; // systemTag
@@ -50,14 +51,16 @@ export default function AccessibilityPageClient({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const router = useRouter();
+  const params = useParams();
+  const unitId = params.unitId as string;
   const [searchTerm, setSearchTerm] = useState('');
-  const isUnitPage = !!unit;
+  const isUnitPage = !!unit || unitId === 'new';
 
   const initialSelected = isUnitPage
-    ? unit.accessibilityFeatures || []
+    ? unit?.accessibilityFeatures || []
     : listing.accessibilityFeatures || [];
   const initialChargeable = isUnitPage
-    ? unit.chargeableAccessibilityFeatures || []
+    ? unit?.chargeableAccessibilityFeatures || []
     : listing.chargeableAccessibilityFeatures || [];
 
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>(initialSelected);
@@ -146,7 +149,7 @@ export default function AccessibilityPageClient({
     );
   };
 
-  if (isUnitPage && unitId === 'new') {
+  if (isUnitPage && !unit) {
     return (
       <Card>
         <CardHeader>
