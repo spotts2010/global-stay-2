@@ -247,11 +247,6 @@
   @apply mt-2 rounded-lg border border-border bg-popover shadow-md z-50;
   width: var(--location-search-width) !important;
   left: 0 !important;
-  top: 100% !important;
-}
-
-#location-search-wrapper {
-  position: relative;
 }
 
 #location-search-wrapper .pac-container {
