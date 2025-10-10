@@ -128,6 +128,10 @@ The action buttons displayed on the notification detail page change based on the
       - **Guests**: Default dashboard will focus on upcoming trips, saved places, and personalized recommendations.
       - **Hosts**: Default dashboard will show booking calendars, revenue summaries, and listing performance metrics.
       - **Admins**: Default dashboard will provide a high-level overview of system health, user activity, pending requests, and financial reports.
+- **Top-rated Stays Enhancements**:
+  - Filter during fetch or immediately after based on accommodation status = "Published" and Rating is >= 4.9.
+  - Move the filtering server-side in `fetchAccommodations()` to reduce client payload.
+  - Pre-sort by Rating during the fetch.
 - **Dynamic Collections via Tagging**:
   - **Purpose**: To automatically associate listings with one or more curated collections based on tags.
   - **Implementation**:
