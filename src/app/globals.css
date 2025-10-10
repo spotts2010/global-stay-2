@@ -246,6 +246,8 @@
 .pac-container {
   @apply mt-2 rounded-lg border border-border bg-popover shadow-md z-50;
   width: var(--location-search-width) !important;
+  /* Unset the inline left style from Google's script to align with our wrapper */
+  left: unset !important;
 }
 
 #location-search-wrapper:has(input:focus) + .pac-container {
