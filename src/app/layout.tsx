@@ -5,17 +5,11 @@ import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ClientProviders from '@/components/ClientProviders';
-import { Playfair_Display, PT_Sans } from 'next/font/google';
+import { Quicksand } from 'next/font/google';
 
-const playfairDisplay = Playfair_Display({
+const quicksand = Quicksand({
   subsets: ['latin'],
-  variable: '--font-playfair-display',
-});
-
-const ptSans = PT_Sans({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-pt-sans',
+  variable: '--font-quicksand',
 });
 
 export const metadata: Metadata = {
@@ -29,11 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${playfairDisplay.variable} ${ptSans.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="en" className={`${quicksand.variable}`} suppressHydrationWarning>
       <head />
       <body className={cn('font-body antialiased bg-background text-foreground')}>
         <ClientProviders>

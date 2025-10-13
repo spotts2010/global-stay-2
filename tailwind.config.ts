@@ -19,8 +19,8 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        body: ['var(--font-pt-sans)', 'sans-serif'],
-        headline: ['var(--font-playfair-display)', 'serif'],
+        body: ['var(--font-quicksand)', 'sans-serif'],
+        headline: ['var(--font-quicksand)', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
