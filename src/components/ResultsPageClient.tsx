@@ -18,14 +18,14 @@ import { format, parseISO } from 'date-fns';
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Utility: format date for display, ensuring UTC is handled correctly
+// Utility: format date for display, ensuring UTC is handled correctly.
 function formatDate(dateString: string | undefined) {
   if (!dateString) return 'Any date';
   try {
     const date = parseISO(dateString);
     if (isNaN(date.getTime())) return 'Invalid date';
     return format(date, 'LLL dd, yyyy');
-  } catch {
+  } catch (_e) {
     return 'Invalid date';
   }
 }
@@ -39,33 +39,45 @@ export default function ResultsPageClient({
 }) {
   const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
 
-  // --- Read and normalize search parameters ---
-  const location = decodeURIComponent((searchParams?.location as string) || '');
-  const from = (searchParams?.from as string) || '';
-  const to = (searchParams?.to as string) || '';
-  const guests = searchParams?.guests ? Number(searchParams.guests) : 0;
+  // Correctly read search parameters
+  const location = (searchParams?.location as string) || '';
+  const from = searchParams?.from as string;
+  const to = searchParams?.to as string;
+  const guests = searchParams?.guests ? Number(searchParams.guests) : undefined;
+  const locationLower = location.toLowerCase().trim();
 
-  // --- Apply filtering ---
+  // Filter accommodations based on search params
   const accommodations = useMemo(() => {
-    if (!initialAccommodations) return [];
+    if (!initialAccommodations || initialAccommodations.length === 0) return [];
 
-    return initialAccommodations.filter((a) => {
-      const matchesLocation = location
-        ? a.city?.toLowerCase().includes(location.toLowerCase()) ||
-          a.state?.toLowerCase().includes(location.toLowerCase()) ||
-          a.country?.toLowerCase().includes(location.toLowerCase())
-        : true;
+    return initialAccommodations.filter((acc) => {
+      // Location match
+      const matchesLocation =
+        !locationLower ||
+        acc.city?.toLowerCase().includes(locationLower) ||
+        acc.state?.toLowerCase().includes(locationLower) ||
+        acc.country?.toLowerCase().includes(locationLower) ||
+        acc.name?.toLowerCase().includes(locationLower);
 
-      const matchesGuests = guests > 0 ? a.maxGuests >= guests : true;
+      // Guests match (using placeholder as maxGuests is not available yet)
+      // This part will be updated once maxGuests is available on the Accommodation type.
+      const matchesGuests = !guests || (acc.maxGuests && acc.maxGuests >= guests);
 
+      // Return true only if both match
       return matchesLocation && matchesGuests;
     });
-  }, [initialAccommodations, location, guests]);
+  }, [initialAccommodations, locationLower, guests]);
 
-  // --- Format date range for summary display ---
-  const formattedDateRange = from && to ? `${formatDate(from)} - ${formatDate(to)}` : 'Any date';
+  // Format date range for display
+  const formattedDateRange =
+    from && to
+      ? `${formatDate(from)} - ${formatDate(to)}`
+      : from
+        ? formatDate(from)
+        : to
+          ? formatDate(to)
+          : 'Any date';
 
-  // --- Prepare searchParams for AccommodationCard ---
   const plainSearchParams: { [key: string]: string } = {};
   if (searchParams) {
     for (const [key, value] of Object.entries(searchParams)) {
@@ -75,11 +87,9 @@ export default function ResultsPageClient({
     }
   }
 
-  // --- Determine map center based on filtered accommodations ---
+  // Map center based on filtered accommodations
   const mapCenter = useMemo(() => {
-    if (accommodations.length === 0) {
-      return { lat: -25.2744, lng: 133.7751 }; // Default: Australia
-    }
+    if (accommodations.length === 0) return { lat: -25.2744, lng: 133.7751 }; // Default to Australia center
     const { lat, lng } = accommodations.reduce(
       (acc, curr) => ({
         lat: acc.lat + curr.lat,
@@ -95,11 +105,9 @@ export default function ResultsPageClient({
     [accommodations, activeMarkerId]
   );
 
-  // --- Render ---
   return (
     <main className="min-h-screen bg-slate-50/50 px-4 md:px-6 py-5 pb-16">
       <div className="container mx-auto">
-        {/* Breadcrumb */}
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -114,7 +122,7 @@ export default function ResultsPageClient({
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Search Summary */}
+        {/* Header + Filters */}
         <section
           aria-labelledby="search-results-heading"
           className="mb-8 rounded-lg bg-white p-4 shadow-sm border border-slate-200"
@@ -144,7 +152,7 @@ export default function ResultsPageClient({
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-primary" />
                 <span className="font-medium">Guests:</span>
-                <span>{guests > 0 ? `${guests} guest(s)` : 'Any'}</span>
+                <span>{guests ? `${guests} guest(s)` : 'Any'}</span>
               </div>
             </div>
           </div>
@@ -166,7 +174,7 @@ export default function ResultsPageClient({
               </TabsList>
             </div>
 
-            {/* --- Card View --- */}
+            {/* Card View */}
             <TabsContent value="card">
               {accommodations.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -189,7 +197,7 @@ export default function ResultsPageClient({
               )}
             </TabsContent>
 
-            {/* --- Map View --- */}
+            {/* Map View */}
             <TabsContent value="map">
               <div className="aspect-[16/9] w-full rounded-lg overflow-hidden border">
                 <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
@@ -201,11 +209,11 @@ export default function ResultsPageClient({
                     disableDefaultUI={true}
                     onClick={() => setActiveMarkerId(null)}
                   >
-                    {accommodations.map((a) => (
+                    {accommodations.map((accommodation) => (
                       <AdvancedMarker
-                        key={a.id}
-                        position={{ lat: a.lat, lng: a.lng }}
-                        onClick={() => setActiveMarkerId(a.id)}
+                        key={accommodation.id}
+                        position={{ lat: accommodation.lat, lng: accommodation.lng }}
+                        onClick={() => setActiveMarkerId(accommodation.id)}
                       />
                     ))}
 

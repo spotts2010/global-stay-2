@@ -9,16 +9,17 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookableUnit } from '@/components/UnitsPageClient';
 import UnitSelectionPageClient from '@/components/UnitSelectionPageClient';
+import { use } from 'react';
 
 // This is a SERVER component responsible for data fetching
-export default async function SelectUnitPage({
+export default function SelectUnitPage({
   params,
   searchParams,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const { id } = params;
+  const { id } = use(params);
 
   if (!id) {
     return (
@@ -33,10 +34,10 @@ export default async function SelectUnitPage({
     );
   }
 
-  const accommodationData = await fetchAccommodationById(id);
-  const unitsData = (await fetchUnitsForAccommodation(id)) as BookableUnit[];
-  const allInclusions = await fetchPrivateInclusions();
-  const allAccessibilityFeatures = await fetchAccessibilityFeatures();
+  const accommodationData = use(fetchAccommodationById(id));
+  const unitsData = use(fetchUnitsForAccommodation(id)) as BookableUnit[];
+  const allInclusions = use(fetchPrivateInclusions());
+  const allAccessibilityFeatures = use(fetchAccessibilityFeatures());
 
   if (!accommodationData) {
     return (

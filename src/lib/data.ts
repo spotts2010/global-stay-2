@@ -84,6 +84,7 @@ export type Accommodation = {
   unitsCount?: number;
   // Deprecating location in favor of structured address
   location: string;
+  maxGuests?: number;
 };
 
 export type Booking = {

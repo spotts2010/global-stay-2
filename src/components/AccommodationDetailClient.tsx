@@ -1,3 +1,4 @@
+// src/components/AccommodationDetailClient.tsx
 'use client';
 
 import { Star, MapPin, Hotel, MdOutlinePrivacyTip, Banknote, Ban } from '@/lib/icons';
@@ -31,6 +32,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from './ui/skeleton';
 import { BookableUnit } from './UnitsPageClient';
+import { Progress } from '@/components/ui/progress';
 
 // --- Helper Functions & Components ---
 
@@ -213,15 +215,22 @@ export default function AccommodationDetailClient({
   accommodation,
   pointsOfInterest,
   allAmenities,
+  units,
 }: AccommodationDetailClientProps) {
   const searchParams = useSearchParams();
   const { preferences } = useUserPreferences();
   const mapRef = useRef<HTMLDivElement>(null);
+  const reviewsRef = useRef<HTMLDivElement>(null); // Ref for reviews section
   const [formattedPrice, setFormattedPrice] = useState<string | null>(null);
 
   const fullLocation = [accommodation.city, accommodation.state, accommodation.country]
     .filter(Boolean)
     .join(', ');
+
+  const publishedUnits = useMemo(
+    () => units.filter((unit) => unit.status === 'Published'),
+    [units]
+  );
 
   useEffect(() => {
     // This effect runs only on the client, after hydration
@@ -240,7 +249,22 @@ export default function AccommodationDetailClient({
     mapRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // TODO: Replace with dynamic reviews from Firestore
+  const handleShowReviews = (e: React.MouseEvent) => {
+    e.preventDefault();
+    reviewsRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const reviewCategories = [
+    { name: 'Cleanliness', score: 7.5 },
+    { name: 'Facilities', score: 8.3 },
+    { name: 'Value for money', score: 8.8 },
+    { name: 'Location', score: 9.2 },
+    { name: 'Comfort', score: 6.1 },
+    { name: 'Staff', score: 9.6 },
+  ];
+  const averageReviewScore =
+    reviewCategories.reduce((acc, curr) => acc + curr.score, 0) / reviewCategories.length;
+
   const reviews = [
     {
       id: 'r1',
@@ -266,7 +290,9 @@ export default function AccommodationDetailClient({
   }
 
   const resultsLink = `/results?${new URLSearchParams(cleanSearchParams).toString()}`;
-  const unitsLink = `/accommodation/${accommodation.id}/units?${new URLSearchParams(cleanSearchParams).toString()}`;
+  const unitsLink = `/accommodation/${accommodation.id}/units?${new URLSearchParams(
+    cleanSearchParams
+  ).toString()}`;
 
   const position = { lat: accommodation.lat, lng: accommodation.lng };
   const allImages =
@@ -416,7 +442,7 @@ export default function AccommodationDetailClient({
           {/* Policies Section */}
           <PoliciesSection accommodation={accommodation} />
 
-          <Separator className="my-6" />
+          <Separator ref={reviewsRef} id="reviews-section" className="my-6 scroll-mt-20" />
 
           {/* Reviews Section */}
           <div>
@@ -429,11 +455,17 @@ export default function AccommodationDetailClient({
           </div>
         </div>
 
-        {/* Booking Card Section */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-24 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-baseline gap-2 mb-6">
+        {/* Right Sidebar Section */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Booking Card */}
+          <Card className="sticky top-24 shadow-lg bg-card z-10">
+            <CardContent className="p-6 text-center">
+              {publishedUnits.length > 0 && (
+                <p className="text-xl font-semibold text-foreground mb-2">
+                  Only {publishedUnits.length} available
+                </p>
+              )}
+              <div className="flex items-baseline justify-center gap-2 mb-6">
                 {formattedPrice ? (
                   <>
                     <span className="text-xl font-bold text-primary">From {formattedPrice}</span>
@@ -445,6 +477,41 @@ export default function AccommodationDetailClient({
               </div>
               <Button asChild className="w-full text-lg" size="lg">
                 <Link href={unitsLink}>Select a Room</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Ratings & Reviews Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Ratings &amp; Reviews</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-lg">
+                  {averageReviewScore.toFixed(1)}{' '}
+                  <span className="text-sm text-muted-foreground">/ 10</span>
+                </span>
+                <span className="text-sm text-muted-foreground">Average Rating</span>
+              </div>
+              <div className="space-y-3">
+                {reviewCategories.map((category) => (
+                  <div key={category.name}>
+                    <div className="flex justify-between items-center text-xs mb-1">
+                      <span className="text-muted-foreground">{category.name}</span>
+                      <span className="font-medium">{category.score.toFixed(1)}</span>
+                    </div>
+                    <Progress value={category.score * 10} className="h-2" />
+                  </div>
+                ))}
+              </div>
+              <Separator />
+              <div>
+                <p className="text-sm text-muted-foreground line-clamp-3">"{reviews[0].comment}"</p>
+                <button className="text-sm text-primary hover:underline mt-1">Read more</button>
+              </div>
+              <Button variant="outline" className="w-full" onClick={handleShowReviews}>
+                Read All {accommodation.reviewsCount} Reviews
               </Button>
             </CardContent>
           </Card>

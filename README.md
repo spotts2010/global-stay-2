@@ -77,6 +77,11 @@ The action buttons displayed on the notification detail page change based on the
 
 ## Resolved Issues
 
+- **`<tbody>` Nesting & Invalid Prop Hydration Errors** (13/10/2024): A persistent series of hydration errors on the `/accommodation/[id]/units` page, caused by invalid HTML table structures (`<tbody>` inside `<tbody>`) and incorrect prop handling on `React.Fragment`, have been fully resolved. The `UnitRow` component was completely refactored to use a valid structure with `React.Fragment` and `Collapsible` content correctly placed inside its own `TableRow`, eliminating the crashes and console warnings.
+- **Booking Card Z-Index** (13/10/2024): Fixed a visual bug on the accommodation detail page where the "Ratings & Reviews" card's progress bars would appear on top of the sticky "From Price" booking card during scrolling. This was resolved by applying a `z-10` class to the booking card, ensuring it maintains the correct visual stacking order.
+- **Booking Card Transparency** (13/10/2024): Resolved an issue where the sticky booking card on the accommodation detail page had a transparent background, making it unreadable as content scrolled behind it. The `bg-card` class was added to ensure it has a solid, opaque background.
+- **Cross-Origin Request Errors** (13/10/2024): Resolved a persistent `Blocked cross-origin request` error that was preventing the Next.js development server from starting correctly. The issue was fixed by adding the required `allowedDevOrigins` configuration to the `next.config.ts` file, whitelisting the Studio development environment.
+- **`use()` Hook in Server Component** (13/10/2024): Fixed a server-side rendering error on the `/accommodation/[id]/units` page. The component was attempting to access `params.id` directly from a Promise. The code was updated to correctly use the `React.use(params)` hook to resolve the `params` promise before accessing its properties, as required by recent Next.js versions.
 - **Accessibility Features Crash & Data Flow** (12/10/2024): Resolved a persistent client-side exception on the `/admin/accessibility-features` page. The issue was caused by incorrect data handling, missing component imports, and flawed state management. The page and its corresponding client component were completely rebuilt to mirror the stable "Amenities" page, ensuring correct data flow and resolving the crash.
 - **Separation of Shared & Private Accessibility Features** (12/10/2024): Addressed a logical flaw where the property-level accessibility page was showing all features. The logic has been corrected to filter features based on their `isShared` or `isPrivate` flags, ensuring only relevant options appear on the "Shared (Property)" and "Private (Unit)" pages respectively. A new page was created at `/admin/listings/[id]/edit/units/[unitId]/accessibility-features` to manage unit-specific features.
 - **Next.js `params` Await Error** (12/10/2024): Fixed a server-side rendering error in several dynamic pages (`/admin/listings/[id]/...`) caused by attempting to access `params.id` directly. The code was updated to use the `React.use()` hook to correctly resolve the `params` promise, as required by recent Next.js versions.
@@ -118,6 +123,7 @@ The action buttons displayed on the notification detail page change based on the
 
 ## In Progress / Future Features
 
+- **Search Results Data Mismatch**: The search results page (`/results`) does not correctly populate the search form with the criteria (location, dates, guests) from the URL parameters. Additionally, the list of accommodations is not being filtered based on these criteria, showing all available properties instead.
 - **Customizable User Dashboards**:
   - **Purpose**: To provide a personalized and efficient overview for each user type (Guest, Host, Admin).
   - **Implementation**:
@@ -132,6 +138,11 @@ The action buttons displayed on the notification detail page change based on the
   - Filter during fetch or immediately after based on accommodation status = "Published" and Rating is >= 4.9.
   - Move the filtering server-side in `fetchAccommodations()` to reduce client payload.
   - Pre-sort by Rating during the fetch.
+- **Unit Availability Indicator**:
+  - **Purpose**: To provide a clear visual cue on the accommodation detail page regarding the number of available units.
+  - **Implementation**:
+    - On the booking card, display a message like "Only `x` available" where `x` is the count of published units.
+    - **Styling**: The message color should change based on availability. If `x` represents 25% or less of the total units, the text should be red to indicate low stock. Otherwise, it should be the default text color.
 - **Dynamic Collections via Tagging**:
   - **Purpose**: To automatically associate listings with one or more curated collections based on tags.
   - **Implementation**:

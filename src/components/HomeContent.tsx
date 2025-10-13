@@ -227,15 +227,15 @@ export default function HomeContent() {
               <div className="relative h-full">
                 <div className="relative h-full w-full min-h-[400px]">
                   <Image
-                    src="https://images.unsplash.com/photo-1560518883-ce09059eeffa"
-                    alt="A smiling couple handing keys over a table"
-                    data-ai-hint="smiling couple keys"
+                    src="https://firebasestorage.googleapis.com/v0/b/global-stay-20.firebasestorage.app/o/images%2F1760332686919.png?alt=media&token=de319530-ae6c-449c-9e24-f3c4431d6b34"
+                    alt="A person working on a laptop in a modern apartment."
+                    data-ai-hint="person laptop"
                     fill
                     sizes="(max-width: 1024px) 50vw, 100vw"
                     className="object-cover"
                   />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                 <CardContent className="absolute bottom-0 left-0 right-0 p-6 text-white">
                   <h3 className="font-headline text-2xl font-bold max-w-md">
                     Manage your listings with ease, so you can feel like you're on holiday too.
