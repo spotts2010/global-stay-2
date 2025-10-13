@@ -18,11 +18,16 @@ import { format, parseISO } from 'date-fns';
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Utility: format date for display, ensuring UTC is handled correctly.
+// Utility: format date for display, ensuring UTC is handled correctly
 function formatDate(dateString: string | undefined) {
   if (!dateString) return 'Any date';
-  const date = parseISO(dateString);
-  return format(date, 'LLL dd, yyyy');
+  try {
+    const date = parseISO(dateString);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    return format(date, 'LLL dd, yyyy');
+  } catch {
+    return 'Invalid date';
+  }
 }
 
 export default function ResultsPageClient({
@@ -34,40 +39,33 @@ export default function ResultsPageClient({
 }) {
   const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
 
-  const location = searchParams?.location as string;
-  const from = searchParams?.from as string;
-  const to = searchParams?.to as string;
-  const guests = searchParams?.guests ? Number(searchParams.guests) : undefined;
+  // --- Read and normalize search parameters ---
+  const location = decodeURIComponent((searchParams?.location as string) || '');
+  const from = (searchParams?.from as string) || '';
+  const to = (searchParams?.to as string) || '';
+  const guests = searchParams?.guests ? Number(searchParams.guests) : 0;
 
-  // ✅ Improved structured search matching
+  // --- Apply filtering ---
   const accommodations = useMemo(() => {
-    if (!location || !location.trim()) {
-      return initialAccommodations;
-    }
+    if (!initialAccommodations) return [];
 
-    const searchLower = location.toLowerCase().trim();
+    return initialAccommodations.filter((a) => {
+      const matchesLocation = location
+        ? a.city?.toLowerCase().includes(location.toLowerCase()) ||
+          a.state?.toLowerCase().includes(location.toLowerCase()) ||
+          a.country?.toLowerCase().includes(location.toLowerCase())
+        : true;
 
-    return initialAccommodations.filter((accommodation) => {
-      const city = accommodation.city?.toLowerCase() || '';
-      const state = accommodation.state?.toLowerCase() || '';
-      const country = accommodation.country?.toLowerCase() || '';
-      const name = accommodation.name?.toLowerCase() || '';
+      const matchesGuests = guests > 0 ? a.maxGuests >= guests : true;
 
-      // Phase 1: prioritize structured fields, allow partial matches
-      return (
-        searchLower === city ||
-        searchLower === state ||
-        searchLower === country ||
-        name.includes(searchLower) ||
-        city.includes(searchLower) ||
-        state.includes(searchLower) ||
-        country.includes(searchLower)
-      );
+      return matchesLocation && matchesGuests;
     });
-  }, [location, initialAccommodations]);
+  }, [initialAccommodations, location, guests]);
 
+  // --- Format date range for summary display ---
   const formattedDateRange = from && to ? `${formatDate(from)} - ${formatDate(to)}` : 'Any date';
 
+  // --- Prepare searchParams for AccommodationCard ---
   const plainSearchParams: { [key: string]: string } = {};
   if (searchParams) {
     for (const [key, value] of Object.entries(searchParams)) {
@@ -77,10 +75,10 @@ export default function ResultsPageClient({
     }
   }
 
-  // Calculate map center based on accommodations
+  // --- Determine map center based on filtered accommodations ---
   const mapCenter = useMemo(() => {
     if (accommodations.length === 0) {
-      return { lat: -25.2744, lng: 133.7751 }; // Default to Australia center
+      return { lat: -25.2744, lng: 133.7751 }; // Default: Australia
     }
     const { lat, lng } = accommodations.reduce(
       (acc, curr) => ({
@@ -97,9 +95,11 @@ export default function ResultsPageClient({
     [accommodations, activeMarkerId]
   );
 
+  // --- Render ---
   return (
     <main className="min-h-screen bg-slate-50/50 px-4 md:px-6 py-5 pb-16">
       <div className="container mx-auto">
+        {/* Breadcrumb */}
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -114,7 +114,7 @@ export default function ResultsPageClient({
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Header + Filters */}
+        {/* Search Summary */}
         <section
           aria-labelledby="search-results-heading"
           className="mb-8 rounded-lg bg-white p-4 shadow-sm border border-slate-200"
@@ -123,23 +123,28 @@ export default function ResultsPageClient({
             <h1 id="search-results-heading" className="text-2xl font-bold text-slate-900">
               Search Results ({accommodations.length})
             </h1>
+
             <div className="flex-grow flex flex-col sm:flex-row items-center justify-end gap-4 text-sm text-slate-700 w-full md:w-auto">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-primary" />
                 <span className="font-medium">Location:</span>
                 <span>{location || 'Any location'}</span>
               </div>
+
               <div className="hidden sm:block border-l h-6 border-slate-200"></div>
+
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-primary" />
                 <span className="font-medium">Dates:</span>
                 <span>{formattedDateRange}</span>
               </div>
+
               <div className="hidden sm:block border-l h-6 border-slate-200"></div>
+
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-primary" />
                 <span className="font-medium">Guests:</span>
-                <span>{guests ? `${guests} guest(s)` : 'Any'}</span>
+                <span>{guests > 0 ? `${guests} guest(s)` : 'Any'}</span>
               </div>
             </div>
           </div>
@@ -161,7 +166,7 @@ export default function ResultsPageClient({
               </TabsList>
             </div>
 
-            {/* Card View */}
+            {/* --- Card View --- */}
             <TabsContent value="card">
               {accommodations.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -184,7 +189,7 @@ export default function ResultsPageClient({
               )}
             </TabsContent>
 
-            {/* Map View */}
+            {/* --- Map View --- */}
             <TabsContent value="map">
               <div className="aspect-[16/9] w-full rounded-lg overflow-hidden border">
                 <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
@@ -196,13 +201,14 @@ export default function ResultsPageClient({
                     disableDefaultUI={true}
                     onClick={() => setActiveMarkerId(null)}
                   >
-                    {accommodations.map((accommodation) => (
+                    {accommodations.map((a) => (
                       <AdvancedMarker
-                        key={accommodation.id}
-                        position={{ lat: accommodation.lat, lng: accommodation.lng }}
-                        onClick={() => setActiveMarkerId(accommodation.id)}
+                        key={a.id}
+                        position={{ lat: a.lat, lng: a.lng }}
+                        onClick={() => setActiveMarkerId(a.id)}
                       />
                     ))}
+
                     {activeAccommodation && (
                       <InfoWindow
                         position={{
