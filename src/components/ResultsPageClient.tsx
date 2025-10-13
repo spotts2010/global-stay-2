@@ -21,9 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // Utility: format date for display, ensuring UTC is handled correctly.
 function formatDate(dateString: string | undefined) {
   if (!dateString) return 'Any date';
-  // The date string from the URL is YYYY-MM-DD. parseISO handles this correctly.
   const date = parseISO(dateString);
-  // Then format it. Using a specific format avoids locale-based ambiguity.
   return format(date, 'LLL dd, yyyy');
 }
 
@@ -41,22 +39,29 @@ export default function ResultsPageClient({
   const to = searchParams?.to as string;
   const guests = searchParams?.guests ? Number(searchParams.guests) : undefined;
 
+  // ✅ Improved structured search matching
   const accommodations = useMemo(() => {
     if (!location || !location.trim()) {
       return initialAccommodations;
     }
+
     const searchLower = location.toLowerCase().trim();
+
     return initialAccommodations.filter((accommodation) => {
       const city = accommodation.city?.toLowerCase() || '';
       const state = accommodation.state?.toLowerCase() || '';
       const country = accommodation.country?.toLowerCase() || '';
       const name = accommodation.name?.toLowerCase() || '';
 
+      // Phase 1: prioritize structured fields, allow partial matches
       return (
+        searchLower === city ||
+        searchLower === state ||
+        searchLower === country ||
+        name.includes(searchLower) ||
         city.includes(searchLower) ||
         state.includes(searchLower) ||
-        country.includes(searchLower) ||
-        name.includes(searchLower)
+        country.includes(searchLower)
       );
     });
   }, [location, initialAccommodations]);
@@ -72,7 +77,7 @@ export default function ResultsPageClient({
     }
   }
 
-  // Calculate center of map
+  // Calculate map center based on accommodations
   const mapCenter = useMemo(() => {
     if (accommodations.length === 0) {
       return { lat: -25.2744, lng: 133.7751 }; // Default to Australia center
@@ -108,7 +113,8 @@ export default function ResultsPageClient({
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        {/* Combined Heading and Filters */}
+
+        {/* Header + Filters */}
         <section
           aria-labelledby="search-results-heading"
           className="mb-8 rounded-lg bg-white p-4 shadow-sm border border-slate-200"
@@ -139,7 +145,7 @@ export default function ResultsPageClient({
           </div>
         </section>
 
-        {/* Results */}
+        {/* Results Section */}
         <section aria-label="Accommodation results">
           <Tabs defaultValue="card" className="w-full">
             <div className="flex justify-end mb-4">
@@ -154,6 +160,8 @@ export default function ResultsPageClient({
                 </TabsTrigger>
               </TabsList>
             </div>
+
+            {/* Card View */}
             <TabsContent value="card">
               {accommodations.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -175,6 +183,8 @@ export default function ResultsPageClient({
                 </div>
               )}
             </TabsContent>
+
+            {/* Map View */}
             <TabsContent value="map">
               <div className="aspect-[16/9] w-full rounded-lg overflow-hidden border">
                 <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
@@ -182,7 +192,7 @@ export default function ResultsPageClient({
                     mapId={process.env.NEXT_PUBLIC_GOOGLE_MAP_ID as string}
                     defaultCenter={mapCenter}
                     defaultZoom={accommodations.length > 1 ? 4 : 10}
-                    gestureHandling={'greedy'}
+                    gestureHandling="greedy"
                     disableDefaultUI={true}
                     onClick={() => setActiveMarkerId(null)}
                   >
