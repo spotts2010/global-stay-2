@@ -29,7 +29,7 @@ import {
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { Accommodation } from '@/lib/data';
+import type { Accommodation, Address } from '@/lib/data';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Save, Loader2, MapPin, SquarePen } from '@/lib/icons';
 import React, { useEffect, useState, useTransition, useRef } from 'react';
@@ -37,20 +37,40 @@ import { useToast } from '@/hooks/use-toast';
 import { updateAccommodationAction } from '@/app/actions';
 import { Map, AdvancedMarker, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Skeleton } from './ui/skeleton';
+import { formatPlaceResult } from '@/utils/formatPlaceResult';
+
+const addressSchema = z.object({
+  formatted: z.string().min(1, 'Formatted address is required'),
+  streetNumber: z.string().optional(),
+  street: z.string().optional(),
+  suburb: z.string().optional(),
+  city: z.string().optional(),
+  county: z.string().optional(),
+  state: z
+    .object({
+      short: z.string(),
+      long: z.string(),
+    })
+    .optional(),
+  country: z
+    .object({
+      short: z.string(),
+      long: z.string(),
+    })
+    .optional(),
+  postcode: z.string().optional(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
+  searchIndex: z.string().optional(),
+});
 
 const propertyFormSchema = z.object({
   name: z.string().min(1, 'Listing name is required'),
   type: z.string().min(1, 'Property type is required'),
   starRating: z.coerce.number().optional(),
   description: z.string().optional(),
-  lat: z.number().optional(),
-  lng: z.number().optional(),
-  // New structured address fields
-  city: z.string().optional(),
-  state: z.string().optional(),
-  country: z.string().optional(),
-  // Location is now just for display in the autocomplete input
-  location: z.string().min(1, 'Location is required'),
+  address: addressSchema,
+  location: z.string().min(1, 'Location is required'), // For display in autocomplete
 });
 
 type PropertyFormValues = z.infer<typeof propertyFormSchema>;
@@ -183,7 +203,18 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
     setHasMounted(true);
   }, []);
 
-  const fullLocation = [listing.city, listing.state, listing.country].filter(Boolean).join(', ');
+  const defaultAddress: Address = {
+    formatted: '',
+    streetNumber: '',
+    street: '',
+    city: '',
+    county: '',
+    state: { short: '', long: '' },
+    country: { short: '', long: '' },
+    postcode: '',
+    lat: -26.65,
+    lng: 153.09,
+  };
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertyFormSchema),
@@ -191,18 +222,16 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
       name: listing?.name || '',
       type: listing?.type || 'Hotel',
       starRating: listing?.starRating,
-      location: fullLocation,
       description: listing?.description || '',
-      lat: listing?.lat,
-      lng: listing?.lng,
-      city: listing?.city,
-      state: listing?.state,
-      country: listing?.country,
+      address: listing?.address || defaultAddress,
+      location: listing?.address?.formatted || '',
     },
   });
 
   const [markerPosition, setMarkerPosition] = useState<Position | null>(
-    listing.lat && listing.lng ? { lat: listing.lat, lng: listing.lng } : null
+    listing.address?.lat && listing.address?.lng
+      ? { lat: listing.address.lat, lng: listing.address.lng }
+      : null
   );
 
   const [tempMarkerPosition, setTempMarkerPosition] = useState<Position | null>(markerPosition);
@@ -210,45 +239,15 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
   const handlePlaceSelected = (place: google.maps.places.PlaceResult | null) => {
     if (!place) return;
 
-    if (place.geometry?.location && place.address_components) {
-      const newPosition = {
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-      };
+    const structuredAddress = formatPlaceResult(place);
+    const { lat, lng, formatted } = structuredAddress;
+
+    if (lat && lng) {
+      const newPosition = { lat, lng };
       setTempMarkerPosition(newPosition);
 
-      // Extract structured address components
-      let city = '';
-      let state = '';
-      let country = '';
-
-      for (const component of place.address_components) {
-        if (component.types.includes('locality')) {
-          city = component.long_name;
-        } else if (component.types.includes('administrative_area_level_1')) {
-          state = component.long_name;
-        } else if (component.types.includes('country')) {
-          country = component.long_name;
-        }
-      }
-
-      // Fallback for city if not found
-      if (!city) {
-        const postalTown = place.address_components.find((c) => c.types.includes('postal_town'));
-        if (postalTown) city = postalTown.long_name;
-      }
-      if (!city) {
-        const neighborhood = place.address_components.find((c) => c.types.includes('neighborhood'));
-        if (neighborhood) city = neighborhood.long_name;
-      }
-
-      // Update form values
-      form.setValue('location', place.formatted_address || '', { shouldDirty: true });
-      form.setValue('lat', newPosition.lat, { shouldDirty: true });
-      form.setValue('lng', newPosition.lng, { shouldDirty: true });
-      form.setValue('city', city, { shouldDirty: true });
-      form.setValue('state', state, { shouldDirty: true });
-      form.setValue('country', country, { shouldDirty: true });
+      form.setValue('address', structuredAddress, { shouldDirty: true });
+      form.setValue('location', formatted || '', { shouldDirty: true });
 
       setMapKey((prevKey) => prevKey + 1);
     }
@@ -261,15 +260,13 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
         lng: e.latLng.lng(),
       };
       setTempMarkerPosition(newPosition);
-      form.setValue('lat', newPosition.lat, { shouldDirty: true });
-      form.setValue('lng', newPosition.lng, { shouldDirty: true });
-      // Note: Dragging does not update the address string, only coordinates.
+      form.setValue('address.lat', newPosition.lat, { shouldDirty: true });
+      form.setValue('address.lng', newPosition.lng, { shouldDirty: true });
     }
   };
 
   const handleSave = (formData: PropertyFormValues) => {
     startTransition(async () => {
-      // Remove the display-only 'location' field before saving
       const { location: _, ...dataToSave } = formData;
       const result = await updateAccommodationAction(listing.id, dataToSave);
       if (result.success) {
@@ -277,9 +274,10 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
           title: 'Changes Saved',
           description: 'The property details have been updated.',
         });
-        if (formData.lat && formData.lng) {
-          setMarkerPosition({ lat: formData.lat, lng: formData.lng });
-          setTempMarkerPosition({ lat: formData.lat, lng: formData.lng });
+        if (formData.address.lat && formData.address.lng) {
+          const newPos = { lat: formData.address.lat, lng: formData.address.lng };
+          setMarkerPosition(newPos);
+          setTempMarkerPosition(newPos);
           setMapKey((prevKey) => prevKey + 1);
         }
         form.reset(formData);

@@ -223,9 +223,7 @@ export default function AccommodationDetailClient({
   const reviewsRef = useRef<HTMLDivElement>(null); // Ref for reviews section
   const [formattedPrice, setFormattedPrice] = useState<string | null>(null);
 
-  const fullLocation = [accommodation.city, accommodation.state, accommodation.country]
-    .filter(Boolean)
-    .join(', ');
+  const fullLocation = accommodation.address?.formatted || '';
 
   const publishedUnits = useMemo(
     () => units.filter((unit) => unit.status === 'Published'),
@@ -294,7 +292,7 @@ export default function AccommodationDetailClient({
     cleanSearchParams
   ).toString()}`;
 
-  const position = { lat: accommodation.lat, lng: accommodation.lng };
+  const position = { lat: accommodation.address.lat, lng: accommodation.address.lng };
   const allImages =
     accommodation.images && accommodation.images.length > 0
       ? accommodation.images.filter(Boolean) // Filter out empty strings
@@ -330,19 +328,21 @@ export default function AccommodationDetailClient({
           {/* Header Section */}
           <div className="pb-4 border-b">
             <h1 className="font-headline text-4xl md:text-5xl font-bold">{accommodation.name}</h1>
-            <div className="flex flex-col items-start mt-2 gap-y-2 text-muted-foreground">
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4" />
-                <span>{fullLocation}</span>
+            <div className="flex flex-col mt-2 gap-y-2 text-muted-foreground">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap">
+                <div className="flex items-start gap-2 text-sm">
+                  <MapPin className="h-4 w-4 mt-1" />
+                  <span>{fullLocation}</span>
+                </div>
                 <a
                   href="#map-section"
                   onClick={handleShowOnMap}
-                  className="ml-2 text-sm text-primary hover:underline"
+                  className="sm:ml-2 text-sm text-primary hover:underline"
                 >
                   (Show on Map)
                 </a>
               </div>
-              <div className="flex flex-wrap items-center gap-x-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1 text-sm mt-1">
                 <div className="flex items-center gap-1">
                   <Hotel className="h-4 w-4" />
                   <span>{getPropertyTypeLabel(accommodation.starRating, accommodation.type)}</span>

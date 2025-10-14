@@ -1,8 +1,10 @@
+// src/components/HomeContent.tsx
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRight, Sparkles, Building, Loader2 } from '@/lib/icons';
 import { Suspense, useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import AccommodationSearchForm from '@/components/AccommodationSearchForm';
@@ -34,6 +36,16 @@ export default function HomeContent() {
   const [hasMounted, setHasMounted] = useState(false);
   const heroImages = placeholderImages.heroImages;
   const collections: Collection[] = placeholderImages.collections;
+  const searchParams = useSearchParams();
+
+  const plainSearchParams: { [key: string]: string } = {};
+  if (searchParams) {
+    for (const [key, value] of searchParams.entries()) {
+      if (typeof value === 'string') {
+        plainSearchParams[key] = value;
+      }
+    }
+  }
 
   useEffect(() => {
     setHasMounted(true);
@@ -82,7 +94,7 @@ export default function HomeContent() {
               onError={() => setSelectedHeroImage(defaultHeroImage)}
             />
             <div className="absolute inset-0 bg-black/50 z-10" />
-            <div className="relative z-20 flex flex-col items-center gap-6 px-4">
+            <div className="relative z-20 flex flex-col items-center gap-6 px-4 w-full max-w-7xl">
               <h1
                 id="hero-heading"
                 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight"
@@ -93,9 +105,9 @@ export default function HomeContent() {
                 Unforgettable properties for your next holiday or business trip. Discover a place
                 you&apos;ll love to stay.
               </p>
-              <div className="w-full max-w-4xl mt-4 shadow-lg rounded-lg">
+              <div className="w-full mt-4 shadow-lg rounded-lg">
                 <Suspense fallback={<div className="h-14 bg-white rounded-lg" />}>
-                  <AccommodationSearchForm />
+                  <AccommodationSearchForm searchParams={plainSearchParams} />
                 </Suspense>
               </div>
             </div>

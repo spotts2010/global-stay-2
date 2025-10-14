@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminStorage } from '@/lib/firebaseAdmin';
+import { logger } from '@/lib/logger';
 
 // Disable the default body parser, as we're using formData
 export const config = {
@@ -59,7 +60,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, urls });
   } catch (error) {
-    console.error('Error uploading to Firebase Storage:', error);
+    logger.error('Error uploading to Firebase Storage:', error);
     const errorMessage =
       error instanceof Error ? error.message : 'An unknown server error occurred.';
     return NextResponse.json(

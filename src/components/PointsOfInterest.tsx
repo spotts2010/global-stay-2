@@ -357,7 +357,13 @@ export default function PointsOfInterest({
       visible: true,
       lat,
       lng,
-      distance: getDistance(listing.lat, listing.lng, lat, lng, preferences.distanceUnit),
+      distance: getDistance(
+        listing.address.lat,
+        listing.address.lng,
+        lat,
+        lng,
+        preferences.distanceUnit
+      ),
       isNew: true,
     };
 

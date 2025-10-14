@@ -2,6 +2,7 @@
 import admin from 'firebase-admin';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
+import { logger } from './logger';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config({ path: '.env' });
@@ -42,7 +43,7 @@ function initializeAdminApp() {
       storageBucket: storageBucket,
     });
   } catch (error) {
-    console.error('Firebase Admin SDK initialization failed:', error);
+    logger.error('Firebase Admin SDK initialization failed:', error);
     let errorMessage =
       'Could not initialize Firebase Admin SDK. Please check your environment variables.';
     if (error instanceof Error) {

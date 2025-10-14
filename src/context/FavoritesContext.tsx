@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { logger } from '@/lib/logger';
 
 interface FavoritesContextType {
   favorites: string[];
@@ -21,7 +22,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
         setFavorites(JSON.parse(storedFavorites));
       }
     } catch (error) {
-      console.error('Could not read favourites from localStorage', error);
+      logger.error('Could not read favourites from localStorage', error);
     }
   }, []);
 
@@ -29,7 +30,7 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     try {
       localStorage.setItem('global-stay-favorites', JSON.stringify(favorites));
     } catch (error) {
-      console.error('Could not save favourites to localStorage', error);
+      logger.error('Could not save favourites to localStorage', error);
     }
   }, [favorites]);
 

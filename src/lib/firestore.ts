@@ -12,6 +12,7 @@ import type { Accommodation, EnrichedBooking, Booking, Place, BookableUnit } fro
 import { isBefore } from 'date-fns';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { logger } from './logger';
 
 // This file should now ONLY contain client-side or shared Firestore logic.
 
@@ -35,7 +36,7 @@ export async function fetchAccommodations(options?: {
       return accommodations;
     })
     .catch((error: FirestoreError) => {
-      console.error('Error fetching accommodations:', error);
+      logger.error('Error fetching accommodations:', error);
       const permissionError = new FirestorePermissionError({
         path: accommodationsRef.path,
         operation: 'list',
@@ -57,7 +58,7 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
       return { id: docSnap.id, ...docSnap.data() } as Accommodation;
     })
     .catch((error: FirestoreError) => {
-      console.error(`Error fetching accommodation by id ${id}:`, error);
+      logger.error(`Error fetching accommodation by id ${id}:`, error);
       const permissionError = new FirestorePermissionError({
         path: docRef.path,
         operation: 'get',
@@ -78,7 +79,7 @@ export async function fetchUnitsForAccommodation(accommodationId: string): Promi
       return unitsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as BookableUnit);
     })
     .catch((error: FirestoreError) => {
-      console.error(`Error fetching units for accommodation ${accommodationId}:`, error);
+      logger.error(`Error fetching units for accommodation ${accommodationId}:`, error);
       const permissionError = new FirestorePermissionError({
         path: unitsRef.path,
         operation: 'list',
@@ -99,7 +100,7 @@ export async function fetchPointsOfInterest(accommodationId: string): Promise<Pl
       return poiSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Place);
     })
     .catch((error: FirestoreError) => {
-      console.error(`Error fetching POIs for accommodation ${accommodationId}:`, error);
+      logger.error(`Error fetching POIs for accommodation ${accommodationId}:`, error);
       const permissionError = new FirestorePermissionError({
         path: poiRef.path,
         operation: 'list',
@@ -189,7 +190,7 @@ export async function fetchSiteSettings() {
       return null;
     })
     .catch((error: FirestoreError) => {
-      console.error('Error fetching site settings:', error);
+      logger.error('Error fetching site settings:', error);
       const permissionError = new FirestorePermissionError({
         path: docRef.path,
         operation: 'get',

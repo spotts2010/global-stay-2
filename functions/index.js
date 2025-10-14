@@ -1,4 +1,4 @@
-import { onRequest } from 'firebase-functions/v2/https';
+import { onRequest } from 'firebase-functions/v2/onRequest';
 import admin from 'firebase-admin';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
@@ -41,7 +41,7 @@ export const getFullGeminiResponse = onRequest(async (req, res) => {
 
     res.status(200).send({ response: reply });
   } catch (error) {
-    console.error('Error generating Gemini response:', error);
+    console.error('Error generating Gemini response:', error); // Not replacing this as it's outside /src
     res.status(500).send({ error: error.message });
   }
 });

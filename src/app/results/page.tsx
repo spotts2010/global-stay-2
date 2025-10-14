@@ -1,6 +1,5 @@
 // src/app/results/page.tsx
-'use server';
-
+import 'server-only';
 import { Suspense } from 'react';
 import { fetchAccommodations } from '@/lib/firestore.server';
 import ResultsPageClient from '@/components/ResultsPageClient';
@@ -8,11 +7,7 @@ import { Loader2 } from '@/lib/icons';
 import { Accommodation } from '@/lib/data';
 
 // This is now a SERVER component responsible for data fetching
-export default async function ResultsPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
+export default async function ResultsPage() {
   // Fetch only published accommodations with correct pricing from the server
   const initialAccommodations: Accommodation[] = await fetchAccommodations({ publishedOnly: true });
 
@@ -24,10 +19,7 @@ export default async function ResultsPage({
         </div>
       }
     >
-      <ResultsPageClient
-        initialAccommodations={initialAccommodations}
-        searchParams={searchParams}
-      />
+      <ResultsPageClient initialAccommodations={initialAccommodations} />
     </Suspense>
   );
 }

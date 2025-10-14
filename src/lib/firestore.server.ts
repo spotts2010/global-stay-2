@@ -6,6 +6,7 @@ import type { Accommodation, BedType, Place, Collection, PropertyType, LegalPage
 import { serializeFirestoreData } from './serialize';
 import placeholderImages from './placeholder-images.json';
 import type { BookableUnit } from '@/components/UnitsPageClient';
+import { logger } from './logger';
 
 export type AmenityOrInclusion = {
   id: string;
@@ -73,7 +74,7 @@ export async function fetchAccommodations(options?: {
     // Otherwise, return all accommodations (for admin view)
     return accommodations;
   } catch (error) {
-    console.error('Error fetching accommodations with Admin SDK:', error);
+    logger.error('Error fetching accommodations with Admin SDK:', error);
     return []; // Return empty array on server-side errors
   }
 }
@@ -124,7 +125,7 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
     const { units: _units, ...rest } = accommodation;
     return serializeFirestoreData(rest) as Accommodation;
   } catch (error) {
-    console.error(`Error fetching accommodation by id ${id} with Admin SDK:`, error);
+    logger.error(`Error fetching accommodation by id ${id} with Admin SDK:`, error);
     return null;
   }
 }
@@ -141,7 +142,7 @@ export async function fetchUnitsForAccommodation(accommodationId: string): Promi
       (doc) => serializeFirestoreData({ id: doc.id, ...doc.data() }) as BookableUnit
     );
   } catch (error) {
-    console.error(`Error fetching units for accommodation ${accommodationId}:`, error);
+    logger.error(`Error fetching units for accommodation ${accommodationId}:`, error);
     return [];
   }
 }
@@ -166,7 +167,7 @@ export async function fetchUnitById(
 
     return serializeFirestoreData({ id: unitSnap.id, ...unitSnap.data() }) as BookableUnit;
   } catch (error) {
-    console.error(`Error fetching unit ${unitId} for accommodation ${accommodationId}:`, error);
+    logger.error(`Error fetching unit ${unitId} for accommodation ${accommodationId}:`, error);
     return null;
   }
 }
@@ -175,6 +176,9 @@ export async function fetchPointsOfInterest(accommodationId: string): Promise<Pl
   if (!accommodationId) return [];
   try {
     const adminDb = getAdminDb();
+    const accommodation = await fetchAccommodationById(accommodationId);
+    if (!accommodation) return [];
+
     const poiSnapshot = await adminDb
       .collection(`accommodations/${accommodationId}/pointsOfInterest`)
       .get();
@@ -183,10 +187,7 @@ export async function fetchPointsOfInterest(accommodationId: string): Promise<Pl
     }
     return poiSnapshot.docs.map((doc) => serializeFirestoreData({ id: doc.id, ...doc.data() }));
   } catch (error) {
-    console.error(
-      `Error fetching POIs for accommodation ${accommodationId} with Admin SDK:`,
-      error
-    );
+    logger.error(`Error fetching POIs for accommodation ${accommodationId} with Admin SDK:`, error);
     return [];
   }
 }
@@ -204,7 +205,7 @@ export async function fetchBedTypes(): Promise<BedType[]> {
     });
     return bedTypes;
   } catch (error) {
-    console.error('Error fetching bed types with Admin SDK:', error);
+    logger.error('Error fetching bed types with Admin SDK:', error);
     return [];
   }
 }
@@ -220,7 +221,7 @@ export async function fetchSiteSettings() {
     }
     return null;
   } catch (error) {
-    console.error('Error fetching site settings with Admin SDK:', error);
+    logger.error('Error fetching site settings with Admin SDK:', error);
     return null;
   }
 }
@@ -242,7 +243,7 @@ async function fetchMasterList(collectionName: string): Promise<AmenityOrInclusi
         }) as AmenityOrInclusion
     );
   } catch (error) {
-    console.error(`Error fetching ${collectionName} with Admin SDK:`, error);
+    logger.error(`Error fetching ${collectionName} with Admin SDK:`, error);
     return [];
   }
 }
@@ -274,7 +275,7 @@ export async function fetchPropertyTypes(): Promise<PropertyType[]> {
       (doc) => serializeFirestoreData({ id: doc.id, ...doc.data() }) as PropertyType
     );
   } catch (error) {
-    console.error('Error fetching property types with Admin SDK:', error);
+    logger.error('Error fetching property types with Admin SDK:', error);
     return [];
   }
 }
@@ -303,7 +304,7 @@ export async function fetchLegalPage(
 
     return serializeFirestoreData({ id: docSnap.id, ...docSnap.data() }) as LegalPage;
   } catch (error) {
-    console.error(`Error fetching legal page ${id}:`, error);
+    logger.error(`Error fetching legal page ${id}:`, error);
     return null;
   }
 }

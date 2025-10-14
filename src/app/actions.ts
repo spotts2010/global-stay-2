@@ -8,9 +8,10 @@ import {
   type AccommodationRecommendationsOutput,
 } from '@/ai/flows/accommodation-recommendations';
 import { getAdminDb } from '@/lib/firebaseAdmin';
-import type { Place, Accommodation, HeroImage, Currency } from './lib/data';
+import type { Place, Accommodation, HeroImage, Currency, Address } from './lib/data';
 import type { BookableUnit } from '@/components/UnitsPageClient';
 import { FieldValue, UpdateData } from 'firebase-admin/firestore';
+import { logger } from '@/lib/logger';
 
 interface ActionResult extends Partial<AccommodationRecommendationsOutput> {
   error?: string;
@@ -23,7 +24,7 @@ export async function handleGetRecommendations(
     const result = await getAccommodationRecommendations(input);
     return result;
   } catch (error) {
-    console.error('Error getting recommendations:', error);
+    logger.error('Error getting recommendations:', error);
     return { error: 'An unexpected error occurred. Please try again.' };
   }
 }
@@ -31,7 +32,7 @@ export async function handleGetRecommendations(
 // --- Accommodation Update Action ---
 export async function updateAccommodationAction(
   id: string,
-  accommodationData: Partial<Accommodation>
+  accommodationData: Partial<Accommodation> & { address?: Address }
 ): Promise<{ success: boolean; error?: string }> {
   if (!id) {
     return { success: false, error: 'Accommodation ID is missing.' };
@@ -40,11 +41,23 @@ export async function updateAccommodationAction(
   const accommodationRef = db.collection('accommodations').doc(id);
 
   try {
-    const dataToUpdate: Partial<Accommodation> = { ...accommodationData };
+    const dataToUpdate: UpdateData = { ...accommodationData };
 
     // Ensure image is set to the first of the images array, or empty string
     if (dataToUpdate.images) {
       dataToUpdate.image = dataToUpdate.images[0] || '';
+    }
+
+    // Handle nested address object
+    if (dataToUpdate.address) {
+      // The address object is now saved directly, no need to flatten.
+      // But we will still flatten some top-level fields for backwards compatibility and easy querying.
+      dataToUpdate.lat = dataToUpdate.address.lat;
+      dataToUpdate.lng = dataToUpdate.address.lng;
+      dataToUpdate.city = dataToUpdate.address.city;
+      dataToUpdate.state = dataToUpdate.address.state?.long; // Use long name
+      dataToUpdate.country = dataToUpdate.address.country?.long; // Use long name
+      dataToUpdate.location = dataToUpdate.address.formatted;
     }
 
     await accommodationRef.update({ ...dataToUpdate, lastModified: new Date() });
@@ -58,7 +71,7 @@ export async function updateAccommodationAction(
 
     return { success: true };
   } catch (error) {
-    console.error('Error updating accommodation:', error);
+    logger.error('Error updating accommodation:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update accommodation: ${errorMessage}` };
   }
@@ -163,7 +176,7 @@ export async function updateAccommodationPoliciesAction(
     revalidatePath(`/admin/listings/${id}/edit/property-policies`);
     return { success: true };
   } catch (error) {
-    console.error(`Error updating policies for accommodation ${id}:`, error);
+    logger.error(`Error updating policies for accommodation ${id}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update policies: ${errorMessage}` };
   }
@@ -205,7 +218,7 @@ export async function updatePointsOfInterestAction(
 
     return { success: true };
   } catch (error) {
-    console.error(`Error updating points of interest for accommodation ${accommodationId}:`, error);
+    logger.error(`Error updating points of interest for accommodation ${accommodationId}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update points of interest: ${errorMessage}` };
   }
@@ -231,7 +244,7 @@ export async function updateAccommodationStatusAction(
 
     return { success: true };
   } catch (error) {
-    console.error(`Error updating status for accommodation ${id}:`, error);
+    logger.error(`Error updating status for accommodation ${id}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update status: ${errorMessage}` };
   }
@@ -328,7 +341,7 @@ async function updateMasterList(
 
     items.forEach((item) => {
       if (!item.systemTag) {
-        console.warn('Skipping item with empty systemTag:', item);
+        logger.warn('Skipping item with empty systemTag:', item);
         return;
       }
       const docRef = collectionRef.doc(item.systemTag);
@@ -354,7 +367,7 @@ async function updateMasterList(
     revalidatePath('/admin/accessibility-features');
     return { success: true };
   } catch (error) {
-    console.error(`Error updating ${collectionName} with Admin SDK:`, error);
+    logger.error(`Error updating ${collectionName} with Admin SDK:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update ${collectionName}: ${errorMessage}` };
   }
@@ -400,7 +413,7 @@ export async function updateListingSharedAmenitiesAction(
     revalidatePath(`/accommodation/${listingId}`);
     return { success: true };
   } catch (error) {
-    console.error(`Error updating shared amenities for listing ${listingId}:`, error);
+    logger.error(`Error updating shared amenities for listing ${listingId}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update amenities: ${errorMessage}` };
   }
@@ -428,7 +441,7 @@ export async function updateListingAccessibilityFeaturesAction(
     revalidatePath(`/accommodation/${listingId}`);
     return { success: true };
   } catch (error) {
-    console.error(`Error updating accessibility features for listing ${listingId}:`, error);
+    logger.error(`Error updating accessibility features for listing ${listingId}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update features: ${errorMessage}` };
   }
@@ -456,7 +469,7 @@ export async function updateUnitInclusionsAction(
     revalidatePath(`/accommodation/${listingId}`);
     return { success: true };
   } catch (error) {
-    console.error(`Error updating inclusions for unit ${unitId}:`, error);
+    logger.error(`Error updating inclusions for unit ${unitId}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update inclusions: ${errorMessage}` };
   }
@@ -483,7 +496,7 @@ export async function updateUnitAccessibilityFeaturesAction(
     revalidatePath(`/accommodation/${listingId}`);
     return { success: true };
   } catch (error) {
-    console.error(`Error updating accessibility features for unit ${unitId}:`, error);
+    logger.error(`Error updating accessibility features for unit ${unitId}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update unit features: ${errorMessage}` };
   }
@@ -577,7 +590,7 @@ export async function updateUnitsAction(
     revalidatePath(`/admin/listings/${listingId}/edit/units`);
     return { success: true };
   } catch (error) {
-    console.error('Error updating units:', error);
+    logger.error('Error updating units:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update units: ${errorMessage}` };
   }
@@ -695,7 +708,7 @@ export async function updateLegalPageAction(
 
     return { success: true };
   } catch (error) {
-    console.error(`Error updating legal page ${pageId}:`, error);
+    logger.error(`Error updating legal page ${pageId}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return { success: false, error: `Failed to update page: ${errorMessage}` };
   }

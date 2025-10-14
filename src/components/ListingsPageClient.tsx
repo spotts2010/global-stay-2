@@ -1,9 +1,8 @@
 // src/components/ListingsPageClient.tsx
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
 import React, { useState, useEffect, useMemo, useTransition } from 'react';
+import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,17 +16,15 @@ import {
 import {
   Copy,
   PlusCircle,
-  Upload,
   ListFilter,
   FilePen,
   Trash2,
   Check,
+  RotateCcw,
+  Loader2,
   ArrowUp,
   ArrowDown,
   FaArchive,
-  RotateCcw,
-  Loader2,
-  Search,
   ImageIcon,
 } from '@/lib/icons';
 import {
@@ -77,6 +74,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import Link from 'next/link';
 
 type ListingStatus = 'All' | 'Published' | 'Draft' | 'Archived';
 type SortKey = 'name' | 'price' | 'status' | 'lastModified';
@@ -150,11 +148,11 @@ export default function ListingsPageClient({
   ]);
 
   useEffect(() => {
-    // Ensure initialProperties is not undefined before mapping
     if (initialProperties) {
       const enriched = initialProperties.map((p) => ({
         ...p,
-        host: 'Sam Potts', // Placeholder
+        host: 'Sam Potts',
+        lastModified: p.lastModified ? new Date(p.lastModified) : new Date(),
       }));
       setProperties(enriched);
     }
@@ -168,7 +166,6 @@ export default function ListingsPageClient({
     setPendingAction(id);
     startTransition(async () => {
       const result = await updateAccommodationStatusAction(id, status);
-
       if (result.success) {
         toast({
           title: 'Status Updated',
@@ -176,7 +173,13 @@ export default function ListingsPageClient({
         });
         setProperties((prev) =>
           prev.map((p) =>
-            p.id === id ? { ...p, status, lastModified: new Date().toISOString() } : p
+            p.id === id
+              ? {
+                  ...p,
+                  status,
+                  lastModified: new Date(),
+                }
+              : p
           )
         );
       } else {
@@ -199,8 +202,6 @@ export default function ListingsPageClient({
           title: 'Listing Duplicated',
           description: 'A new draft has been created. Refreshing list...',
         });
-        // We can either optimistically add it or just re-fetch/re-validate
-        // For simplicity, we can rely on revalidation or a page refresh.
         router.refresh();
       } else {
         toast({
@@ -236,9 +237,7 @@ export default function ListingsPageClient({
 
   const requestSort = (key: SortKey) => {
     let direction: SortDirection = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
     setSortConfig({ key, direction });
   };
 
@@ -250,21 +249,27 @@ export default function ListingsPageClient({
       <ArrowDown className="h-3 w-3" />
     );
   };
-
-  const getShortLocation = (property: Accommodation): string => {
+  const getShortLocation = (property: EnrichedProperty): string => {
+    if (property.address?.city && property.address?.country?.long) {
+      return [property.address.city, property.address.country.long].filter(Boolean).join(', ');
+    }
     return [property.city, property.country].filter(Boolean).join(', ');
   };
 
   const filteredAndSortedProperties = useMemo(() => {
+    const lowerSearch = searchTerm.toLowerCase();
+
     const filtered = properties.filter((property) => {
       const matchesStatus = statusFilter === 'All' || property.status === statusFilter;
-      const searchLower = searchTerm.toLowerCase();
+
       const matchesSearch =
         searchTerm === '' ||
-        property.name.toLowerCase().includes(searchLower) ||
-        property.city.toLowerCase().includes(searchLower) ||
-        property.state.toLowerCase().includes(searchLower) ||
-        property.country.toLowerCase().includes(searchLower);
+        property.name.toLowerCase().includes(lowerSearch) ||
+        (property.searchIndex?.toLowerCase().includes(lowerSearch) ?? false) ||
+        property.address?.city?.toLowerCase().includes(lowerSearch) ||
+        property.address?.state?.long?.toLowerCase().includes(lowerSearch) ||
+        property.address?.country?.long?.toLowerCase().includes(lowerSearch);
+
       return matchesStatus && matchesSearch;
     });
 
@@ -273,15 +278,15 @@ export default function ListingsPageClient({
       let bValue: string | number | Date | undefined = b[sortConfig.key];
 
       if (sortConfig.key === 'lastModified') {
-        aValue = new Date(a.lastModified);
-        bValue = new Date(b.lastModified);
+        aValue = a.lastModified;
+        bValue = b.lastModified;
       } else if (sortConfig.key === 'price') {
         aValue = convertCurrency(a.price, a.currency, preferences.currency);
         bValue = convertCurrency(b.price, b.currency, preferences.currency);
       }
 
-      aValue = aValue ?? '';
-      bValue = bValue ?? '';
+      if (aValue === undefined) aValue = '';
+      if (bValue === undefined) bValue = '';
 
       if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
@@ -317,9 +322,9 @@ export default function ListingsPageClient({
 
   return (
     <>
+      {/* Search + Filters */}
       <div className="flex items-center gap-2 mb-4">
         <div className="relative w-full sm:max-w-xs">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search by name or location..."
@@ -328,26 +333,25 @@ export default function ListingsPageClient({
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
         <div className="ml-auto flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Show</span>
-            <Select value={itemsPerPage} onValueChange={setItemsPerPage}>
-              <SelectTrigger className="h-8 w-20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="All">All</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={itemsPerPage} onValueChange={setItemsPerPage}>
+            <SelectTrigger className="h-8 w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="All">All</SelectItem>
+            </SelectContent>
+          </Select>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-8 gap-1">
                 <ListFilter className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
+                Filter
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -364,25 +368,20 @@ export default function ListingsPageClient({
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button size="sm" variant="outline" className="h-8 gap-1">
-            <Upload className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Import</span>
-          </Button>
           <Button asChild size="sm" className="h-8 gap-1">
             <Link href="/admin/listings/new">
               <PlusCircle className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add New</span>
+              New Listing
             </Link>
           </Button>
         </div>
       </div>
 
+      {/* Table */}
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="hidden w-[100px] sm:table-cell">
-              <span className="sr-only">Image</span>
-            </TableHead>
+            <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
             <TableHead>
               <SortableHeader sortKey="name">Name</SortableHeader>
             </TableHead>
@@ -397,6 +396,7 @@ export default function ListingsPageClient({
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {paginatedProperties.length > 0 ? (
             paginatedProperties.map((property) => {
@@ -416,10 +416,9 @@ export default function ListingsPageClient({
                       <Image
                         alt={property.name}
                         className="aspect-square rounded-md object-cover"
-                        height="64"
+                        height={64}
+                        width={64}
                         src={coverImage}
-                        width="64"
-                        data-ai-hint={property.imageHint}
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center">
@@ -450,31 +449,20 @@ export default function ListingsPageClient({
                       {property.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-right">
                     <TooltipProvider>
                       <div className="flex items-center justify-end gap-2">
-                        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                        {/* Edit */}
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button
-                              asChild
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              disabled={isPending}
-                            >
+                            <Button asChild variant="ghost" size="icon" className="h-8 w-8">
                               <Link href={getEditUrl(property.id)}>
                                 <FilePen className="h-4 w-4" />
                               </Link>
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Edit Listing</p>
-                          </TooltipContent>
+                          <TooltipContent>Edit</TooltipContent>
                         </Tooltip>
 
-                        {/* Duplicate */}
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -484,16 +472,40 @@ export default function ListingsPageClient({
                               onClick={() => handleDuplicateListing(property.id)}
                               disabled={isPending}
                             >
-                              <Copy className="h-4 w-4" />
+                              {isPending && pendingAction === property.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Duplicate Listing</p>
-                          </TooltipContent>
+                          <TooltipContent>Duplicate</TooltipContent>
                         </Tooltip>
 
-                        {/* Publish / Draft / Archive */}
-                        {property.status === 'Published' || property.status === 'Archived' ? (
+                        {property.status === 'Draft' ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 text-green-600"
+                                onClick={() => handleStatusChange(property.id, 'Published')}
+                                disabled={!canPublish || isPending}
+                              >
+                                {isPending && pendingAction === property.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Check className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {canPublish
+                                ? 'Publish'
+                                : 'Listing requires a cover image to be published.'}
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
@@ -503,37 +515,17 @@ export default function ListingsPageClient({
                                 onClick={() => handleStatusChange(property.id, 'Draft')}
                                 disabled={isPending}
                               >
-                                <RotateCcw className="h-4 w-4" />
+                                {isPending && pendingAction === property.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <RotateCcw className="h-4 w-4" />
+                                )}
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Return to Draft</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        ) : (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8 text-green-600"
-                                onClick={() => handleStatusChange(property.id, 'Published')}
-                                disabled={isPending || !canPublish}
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {canPublish ? (
-                                <p>Publish Listing</p>
-                              ) : (
-                                <p>A cover image is required to publish.</p>
-                              )}
-                            </TooltipContent>
+                            <TooltipContent>Return to Draft</TooltipContent>
                           </Tooltip>
                         )}
 
-                        {/* Delete / Archive */}
                         {property.status === 'Draft' ? (
                           <AlertDialog>
                             <Tooltip>
@@ -549,14 +541,14 @@ export default function ListingsPageClient({
                                   </Button>
                                 </AlertDialogTrigger>
                               </TooltipTrigger>
-                              <TooltipContent>Delete Listing</TooltipContent>
+                              <TooltipContent>Delete</TooltipContent>
                             </Tooltip>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently delete the "
-                                  {property.name}" listing.
+                                  This action cannot be undone. This will permanently delete "
+                                  {property.name}".
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -564,7 +556,7 @@ export default function ListingsPageClient({
                                 <AlertDialogAction
                                   onClick={() => handleDeleteListing(property.id, property.name)}
                                 >
-                                  Delete
+                                  Continue
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -579,12 +571,14 @@ export default function ListingsPageClient({
                                 onClick={() => handleStatusChange(property.id, 'Archived')}
                                 disabled={isPending}
                               >
-                                <FaArchive className="h-4 w-4" />
+                                {isPending && pendingAction === property.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <FaArchive className="h-4 w-4" />
+                                )}
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Archive Listing</p>
-                            </TooltipContent>
+                            <TooltipContent>Archive</TooltipContent>
                           </Tooltip>
                         )}
                       </div>
@@ -603,6 +597,7 @@ export default function ListingsPageClient({
         </TableBody>
       </Table>
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-end mt-4">
           <Pagination>

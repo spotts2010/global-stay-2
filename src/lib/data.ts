@@ -53,13 +53,32 @@ export type AmenityOrInclusion = {
   isPrivate?: boolean;
 };
 
+export type Address = {
+  formatted: string;
+  streetNumber?: string;
+  street?: string;
+  suburb?: string;
+  city?: string;
+  county?: string;
+  state?: {
+    short: string;
+    long: string;
+  };
+  country?: {
+    short: string;
+    long: string;
+  };
+  postcode?: string;
+  lat?: number;
+  lng?: number;
+  searchIndex?: string;
+};
+
 export type Accommodation = {
   id: string;
   slug: string;
   name: string;
-  city: string;
-  state: string;
-  country: string;
+  address: Address;
   price: number; // This will be dynamically calculated from units
   currency: Currency;
   rating: number; // User review rating
@@ -67,13 +86,11 @@ export type Accommodation = {
   reviewsCount: number;
   image: string; // Legacy cover image, will be first item in images array
   images: string[];
-  amenities: string[]; // Changed from Amenity[] to string[] to support dynamic tags
-  chargeableAmenities?: string[]; // Array of amenity IDs that have fees
-  type: string; // Now a string to be dynamic
+  amenities: string[];
+  chargeableAmenities?: string[];
+  type: string;
   bookingType: 'room' | 'bed' | 'hybrid';
   imageHint: string;
-  lat: number;
-  lng: number;
   lastModified: Date;
   status: 'Published' | 'Draft' | 'Archived';
   description?: string;
@@ -82,9 +99,15 @@ export type Accommodation = {
   houseRules?: string;
   units?: BookableUnit[];
   unitsCount?: number;
-  // Deprecating location in favor of structured address
-  location: string;
   maxGuests?: number;
+
+  // Deprecated fields (will be removed in a future migration)
+  city?: string;
+  state?: string;
+  country?: string;
+  lat?: number;
+  lng?: number;
+  location?: string;
 };
 
 export type Booking = {

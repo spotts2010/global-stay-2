@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { MapPin, CalendarDays, Users, Search } from '@/lib/icons';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
@@ -19,9 +19,14 @@ function toURLDateString(date: Date) {
   return format(date, 'yyyy-MM-dd');
 }
 
-export default function AccommodationSearchForm() {
+export default function AccommodationSearchForm({
+  searchParams,
+  onSearch,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+  onSearch?: () => void;
+}) {
   const router = useRouter();
-  const params = useSearchParams();
   const places = useMapsLibrary('places');
 
   const [location, setLocation] = React.useState('');
@@ -30,20 +35,25 @@ export default function AccommodationSearchForm() {
   const locationInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    setLocation(params.get('location') || '');
-    setGuests(Number(params.get('guests')) || 2);
-    const fromParam = params.get('from');
-    const toParam = params.get('to');
+    setLocation((searchParams?.location as string) || '');
+    setGuests(Number(searchParams?.guests) || 2);
+    const fromParam = searchParams?.from as string;
+    const toParam = searchParams?.to as string;
     if (fromParam) {
-      const fromDate = parseISO(fromParam);
-      const toDate = toParam ? parseISO(toParam) : undefined;
-      if (!isNaN(fromDate.getTime())) {
-        setRange({ from: fromDate, to: toDate });
+      try {
+        const fromDate = parseISO(fromParam);
+        const toDate = toParam ? parseISO(toParam) : undefined;
+        if (!isNaN(fromDate.getTime())) {
+          setRange({ from: fromDate, to: toDate });
+        }
+      } catch (error) {
+        console.error('Error parsing date from search params:', error);
+        setRange(undefined);
       }
     } else {
       setRange(undefined);
     }
-  }, [params]);
+  }, [searchParams]);
 
   React.useEffect(() => {
     if (!places || !locationInputRef.current) return;
@@ -88,6 +98,9 @@ export default function AccommodationSearchForm() {
     if (range?.to) search.set('to', toURLDateString(range.to));
     if (guests) search.set('guests', String(guests));
     router.push(`/results?${search.toString()}`);
+    if (onSearch) {
+      onSearch();
+    }
   }
 
   return (
@@ -98,7 +111,7 @@ export default function AccommodationSearchForm() {
     >
       <div className="flex flex-col md:flex-row md:items-stretch md:divide-x divide-y md:divide-y-0 divide-slate-200">
         {/* Location */}
-        <div className="flex-grow min-w-0 flex items-center gap-2 px-4 h-14 relative">
+        <div className="md:flex-[3] min-w-0 flex items-center gap-2 px-4 h-14 relative">
           <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
           <input
             ref={locationInputRef}
@@ -114,10 +127,7 @@ export default function AccommodationSearchForm() {
         </div>
 
         {/* Dates */}
-        <div
-          className="relative flex-shrink-0 flex items-center gap-2 px-4 h-14 w-full md:w-64"
-          ref={pickerRef}
-        >
+        <div className="relative md:flex-[2] flex items-center gap-2 px-4 h-14" ref={pickerRef}>
           <CalendarDays className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
           <button
             type="button"
@@ -161,7 +171,7 @@ export default function AccommodationSearchForm() {
         </div>
 
         {/* Guests */}
-        <div className="flex flex-shrink-0 items-center gap-2 px-4 h-14 w-full md:w-36">
+        <div className="md:flex-1 flex items-center gap-2 px-4 h-14">
           <Users className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
           <select
             value={guests}
@@ -183,7 +193,7 @@ export default function AccommodationSearchForm() {
             type="submit"
             className={cn(
               'inline-flex h-full min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-6 text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
-              'md:min-h-0 md:rounded-l-none md:rounded-r-md'
+              'md:min-h-0 md:rounded-l-none md:h-14'
             )}
           >
             <Search className="w-4 h-4" aria-hidden />

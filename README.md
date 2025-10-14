@@ -123,7 +123,7 @@ The action buttons displayed on the notification detail page change based on the
 
 ## In Progress / Future Features
 
-- **Search Results Data Mismatch**: The search results page (`/results`) does not correctly populate the search form with the criteria (location, dates, guests) from the URL parameters. Additionally, the list of accommodations is not being filtered based on these criteria, showing all available properties instead.
+- **Partial Search Implementation**: The search results page (`/results`) now correctly populates the search form and filters accommodations based on the `location` from the URL parameters. Filtering by `Dates` and `Guests` is not yet implemented and will be configured at a later date.
 - **Customizable User Dashboards**:
   - **Purpose**: To provide a personalized and efficient overview for each user type (Guest, Host, Admin).
   - **Implementation**:

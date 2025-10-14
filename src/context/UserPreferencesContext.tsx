@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { Currency } from '@/lib/data';
+import { logger } from '@/lib/logger';
 
 type Preferences = {
   language: string;
@@ -37,7 +38,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
         setPreferencesState({ ...initialPreferences, ...parsedPrefs });
       }
     } catch (error) {
-      console.error('Could not read user preferences from localStorage', error);
+      logger.error('Could not read user preferences from localStorage', error);
     }
   }, []);
 
@@ -47,7 +48,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       try {
         localStorage.setItem('global-stay-preferences', JSON.stringify(updatedPrefs));
       } catch (error) {
-        console.error('Could not save user preferences to localStorage', error);
+        logger.error('Could not save user preferences to localStorage', error);
       }
       return updatedPrefs;
     });
