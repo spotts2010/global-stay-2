@@ -15,7 +15,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
 
 function MobileAccountSheet() {
   const pathname = usePathname();
@@ -97,48 +96,20 @@ function MobileAccountSheet() {
   );
 }
 
-const SidebarSkeleton = ({ isCollapsed }: { isCollapsed: boolean }) => (
-  <aside
-    className={cn(
-      'fixed inset-y-0 left-0 z-10 hidden flex-col border-r bg-background sm:flex',
-      isCollapsed ? 'w-20' : 'w-64'
-    )}
-  >
-    <div className="flex h-16 items-center border-b px-6">
-      <Skeleton className="h-8 w-8 rounded-full" />
-      {!isCollapsed && <Skeleton className="ml-2 h-6 w-24" />}
-    </div>
-    <div className="flex flex-col gap-2 p-4">
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-10 w-full" />
-    </div>
-  </aside>
-);
-
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
-  const [hasMounted, setHasMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  const SidebarComponent = hasMounted ? (
-    <AccountSidebar isCollapsed={isCollapsed} toggleSidebar={() => setIsCollapsed(!isCollapsed)} />
-  ) : (
-    <SidebarSkeleton isCollapsed={isCollapsed} />
-  );
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      {SidebarComponent}
+      <AccountSidebar
+        isCollapsed={isCollapsed}
+        toggleSidebar={() => setIsCollapsed(!isCollapsed)}
+      />
       <div
         className={`flex flex-col sm:py-4 transition-all duration-300 ${isCollapsed ? 'sm:pl-20' : 'sm:pl-64'}`}
       >
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
-          {hasMounted && <MobileAccountSheet />}
+          <MobileAccountSheet />
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           {children}

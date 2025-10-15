@@ -7,6 +7,7 @@ import NewListingClient from '@/components/NewListingClient';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import { APIProvider } from '@vis.gl/react-google-maps';
 
 function BackButton() {
   const searchParams = useSearchParams();
@@ -35,7 +36,9 @@ export default function NewListingPageClient() {
           <BackButton />
         </Suspense>
       </div>
-      <NewListingClient />
+      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
+        <NewListingClient />
+      </APIProvider>
     </div>
   );
 }

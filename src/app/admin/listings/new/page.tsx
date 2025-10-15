@@ -3,7 +3,6 @@ import 'server-only';
 import { Suspense } from 'react';
 import NewListingPageClient from '@/components/NewListingPageClient';
 import { Skeleton } from '@/components/ui/skeleton';
-import { APIProvider } from '@vis.gl/react-google-maps';
 
 function NewListingSkeleton() {
   return (
@@ -23,9 +22,7 @@ function NewListingSkeleton() {
 export default function NewListingPage() {
   return (
     <Suspense fallback={<NewListingSkeleton />}>
-      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
-        <NewListingPageClient />
-      </APIProvider>
+      <NewListingPageClient />
     </Suspense>
   );
 }
