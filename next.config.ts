@@ -34,14 +34,6 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
     ],
   },
-
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.cache = true;
-      config.devtool = 'cheap-module-source-map';
-    }
-    return config;
-  },
 };
 
 export default nextConfig;
