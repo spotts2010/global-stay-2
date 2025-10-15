@@ -26,6 +26,8 @@ const defaultHeroImage: HeroImage = {
   hint: 'tropical resort',
 };
 
+const heroImages = placeholderImages.heroImages || [defaultHeroImage];
+
 export default function HomeContent({
   initialAccommodations,
   initialCollections,
@@ -38,8 +40,8 @@ export default function HomeContent({
   const [accommodations, setAccommodations] = useState<Accommodation[]>(initialAccommodations);
   const [collections, setCollections] = useState<Collection[]>(initialCollections);
   const [loading, setLoading] = useState(false); // Data is now pre-loaded
-  const [selectedHeroImage, setSelectedHeroImage] = useState<HeroImage | null>(null);
-  const heroImages = placeholderImages.heroImages;
+  // Initialize with the first image to ensure server and client have the same initial render.
+  const [selectedHeroImage, setSelectedHeroImage] = useState<HeroImage>(heroImages[0]);
 
   const plainSearchParams: { [key: string]: string } = {};
   if (searchParams) {
@@ -56,14 +58,13 @@ export default function HomeContent({
     setCollections(initialCollections);
     setLoading(false);
 
-    // This logic must be in useEffect to avoid hydration mismatch
-    if (heroImages && heroImages.length > 0) {
+    // This logic must be in useEffect to avoid hydration mismatch.
+    // It runs only on the client, after the initial render.
+    if (heroImages.length > 1) {
       const randomIndex = Math.floor(Math.random() * heroImages.length);
       setSelectedHeroImage(heroImages[randomIndex]);
-    } else {
-      setSelectedHeroImage(defaultHeroImage);
     }
-  }, [initialAccommodations, initialCollections, heroImages]);
+  }, [initialAccommodations, initialCollections]);
 
   const topRatedAccommodations: Accommodation[] = useMemo(() => {
     const published = accommodations.filter((a) => a.status === 'Published');
