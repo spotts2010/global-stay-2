@@ -40,8 +40,7 @@ export default function HomeContent({
   const [accommodations, setAccommodations] = useState<Accommodation[]>(initialAccommodations);
   const [collections, setCollections] = useState<Collection[]>(initialCollections);
   const [loading, setLoading] = useState(false); // Data is now pre-loaded
-  // Initialize with the first image to ensure server and client have the same initial render.
-  const [selectedHeroImage, setSelectedHeroImage] = useState<HeroImage>(heroImages[0]);
+  const [selectedHeroImage, setSelectedHeroImage] = useState<HeroImage | null>(null);
 
   const plainSearchParams: { [key: string]: string } = {};
   if (searchParams) {
@@ -53,16 +52,15 @@ export default function HomeContent({
   }
 
   useEffect(() => {
-    // Data is passed via props, so no need for client-side fetching on load
     setAccommodations(initialAccommodations);
     setCollections(initialCollections);
     setLoading(false);
 
-    // This logic must be in useEffect to avoid hydration mismatch.
-    // It runs only on the client, after the initial render.
-    if (heroImages.length > 1) {
+    if (heroImages.length > 0) {
       const randomIndex = Math.floor(Math.random() * heroImages.length);
       setSelectedHeroImage(heroImages[randomIndex]);
+    } else {
+      setSelectedHeroImage(defaultHeroImage);
     }
   }, [initialAccommodations, initialCollections]);
 
