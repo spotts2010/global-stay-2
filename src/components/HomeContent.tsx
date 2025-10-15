@@ -39,7 +39,6 @@ export default function HomeContent({
   const [collections, setCollections] = useState<Collection[]>(initialCollections);
   const [loading, setLoading] = useState(false); // Data is now pre-loaded
   const [selectedHeroImage, setSelectedHeroImage] = useState<HeroImage | null>(null);
-  const [hasMounted, setHasMounted] = useState(false);
   const heroImages = placeholderImages.heroImages;
 
   const plainSearchParams: { [key: string]: string } = {};
@@ -52,23 +51,19 @@ export default function HomeContent({
   }
 
   useEffect(() => {
-    setHasMounted(true);
     // Data is passed via props, so no need for client-side fetching on load
     setAccommodations(initialAccommodations);
     setCollections(initialCollections);
     setLoading(false);
-  }, [initialAccommodations, initialCollections]);
 
-  useEffect(() => {
-    if (hasMounted) {
-      if (heroImages && heroImages.length > 0) {
-        const randomIndex = Math.floor(Math.random() * heroImages.length);
-        setSelectedHeroImage(heroImages[randomIndex]);
-      } else {
-        setSelectedHeroImage(defaultHeroImage);
-      }
+    // This logic must be in useEffect to avoid hydration mismatch
+    if (heroImages && heroImages.length > 0) {
+      const randomIndex = Math.floor(Math.random() * heroImages.length);
+      setSelectedHeroImage(heroImages[randomIndex]);
+    } else {
+      setSelectedHeroImage(defaultHeroImage);
     }
-  }, [hasMounted, heroImages]);
+  }, [initialAccommodations, initialCollections, heroImages]);
 
   const topRatedAccommodations: Accommodation[] = useMemo(() => {
     const published = accommodations.filter((a) => a.status === 'Published');
@@ -82,7 +77,7 @@ export default function HomeContent({
         className="relative h-[60vh] md:h-[70vh] flex items-center justify-center text-center text-white bg-black"
         aria-labelledby="hero-heading"
       >
-        {hasMounted && selectedHeroImage ? (
+        {selectedHeroImage ? (
           <>
             <Image
               src={selectedHeroImage.url || defaultHeroImage.url}

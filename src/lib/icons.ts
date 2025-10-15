@@ -154,4 +154,6 @@ export {
   TbLayoutSidebarRightCollapse,
   HiOutlineLocationMarker,
   MdOutlineDoorFront,
+  MdForum as Forum,
+  MdCalendarMonth as Calendar,
 };
