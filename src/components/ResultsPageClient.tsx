@@ -34,6 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { convertCurrency, formatCurrency } from '@/lib/currency';
+import { cn } from '@/lib/utils';
 
 // ========================
 // SearchSummary Component
@@ -49,7 +50,7 @@ const SearchSummary = ({ onModify }: { onModify: () => void }) => {
     ? `${guests} ${Number(guests) === 1 ? 'guest' : 'guests'}`
     : 'Any guests';
 
-  let dateText = 'Any date';
+  let dateText = 'Pick a date range';
   try {
     if (from && to) {
       dateText = `${format(parseISO(from), 'LLL dd, yyyy')} - ${format(
@@ -66,30 +67,58 @@ const SearchSummary = ({ onModify }: { onModify: () => void }) => {
 
   return (
     <div className="mx-auto w-full max-w-4xl">
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex flex-col md:flex-row md:items-center md:gap-4 md:space-y-0 space-y-2 flex-1">
-              <div className="flex-1 flex items-center gap-2 text-sm text-slate-800 truncate">
+      <div className="rounded-lg shadow-md border border-slate-200 bg-white">
+        <div className="flex flex-col md:flex-row md:items-stretch md:divide-x divide-y md:divide-y-0 divide-slate-200">
+          {/* Mobile version */}
+          <div className="p-4 md:hidden">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-slate-800 truncate">
                 <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
                 <span>{location}</span>
               </div>
-              <div className="flex-1 flex items-center gap-2 text-sm text-slate-800 truncate">
+              <div className="flex items-center gap-2 text-sm text-slate-800 truncate">
                 <CalendarDays className="w-4 h-4 shrink-0 text-slate-500" />
                 <span>{dateText}</span>
               </div>
-              <div className="flex-1 flex items-center gap-2 text-sm text-slate-800 truncate">
+              <div className="flex items-center gap-2 text-sm text-slate-800 truncate">
                 <Users className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
                 <span>{guestsText}</span>
               </div>
+              <Button onClick={onModify} className="w-full rounded-md mt-2">
+                <Search className="mr-2 h-4 w-4" />
+                Modify Search
+              </Button>
             </div>
-            <Button onClick={onModify} className="w-full md:w-auto rounded-md">
-              <Search className="mr-2 h-4 w-4" />
-              Modify
-            </Button>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Desktop version */}
+          <div className="hidden md:flex md:flex-[2.5] min-w-0 items-center gap-2 px-4 h-14">
+            <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+            <span className="truncate text-sm">{location}</span>
+          </div>
+          <div className="hidden md:flex relative md:flex-[2] items-center gap-2 px-4 h-14">
+            <CalendarDays className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+            <span className="truncate text-sm">{dateText}</span>
+          </div>
+          <div className="hidden md:flex md:flex-1 items-center gap-2 px-4 h-14">
+            <Users className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+            <span className="truncate text-sm">{guestsText}</span>
+          </div>
+          <div className="hidden md:block p-0">
+            <button
+              type="button"
+              onClick={onModify}
+              className={cn(
+                'inline-flex h-full min-h-[44px] w-full items-center justify-center gap-2 rounded-r-md bg-primary px-6 text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'md:min-h-0 md:rounded-l-none md:h-14'
+              )}
+            >
+              <Search className="w-4 h-4" aria-hidden />
+              <span className="text-[15px] font-medium">Modify</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
