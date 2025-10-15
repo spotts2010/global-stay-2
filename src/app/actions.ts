@@ -124,7 +124,7 @@ export async function updateAccommodationAction(
       dataToUpdate.location = dataToUpdate.address.formatted;
     }
 
-    await accommodationRef.update({ ...dataToUpdate, lastModified: new Date() });
+    await accommodationRef.update({ ...dataToUpdate, lastModified: FieldValue.serverTimestamp() });
 
     // Revalidate all relevant paths
     revalidatePath(`/admin/listings/${id}/edit/about`);
@@ -248,7 +248,7 @@ export async function updateAccommodationPoliciesAction(
   try {
     await accommodationRef.update({
       ...policiesData,
-      lastModified: new Date(),
+      lastModified: FieldValue.serverTimestamp(),
     });
     revalidatePath(`/admin/listings/${id}/edit/property-policies`);
     return { success: true };
@@ -312,7 +312,7 @@ export async function updateAccommodationStatusAction(
   const accommodationRef = db.collection('accommodations').doc(id);
 
   try {
-    await accommodationRef.update({ status: status, lastModified: new Date() });
+    await accommodationRef.update({ status: status, lastModified: FieldValue.serverTimestamp() });
 
     // Revalidate paths to update cached data
     revalidatePath('/admin/listings');
@@ -484,7 +484,7 @@ export async function updateListingSharedAmenitiesAction(
     await listingRef.update({
       amenities: amenityIds,
       chargeableAmenities: chargeableAmenityIds,
-      lastModified: new Date(),
+      lastModified: FieldValue.serverTimestamp(),
     });
     revalidatePath(`/admin/listings/${listingId}/edit/amenities`);
     revalidatePath(`/accommodation/${listingId}`);
@@ -512,7 +512,7 @@ export async function updateListingAccessibilityFeaturesAction(
     await listingRef.update({
       accessibilityFeatures: featureIds,
       chargeableAccessibilityFeatures: chargeableFeatureIds,
-      lastModified: new Date(),
+      lastModified: FieldValue.serverTimestamp(),
     });
     revalidatePath(`/admin/listings/${listingId}/edit/accessibility-features`);
     revalidatePath(`/accommodation/${listingId}`);
