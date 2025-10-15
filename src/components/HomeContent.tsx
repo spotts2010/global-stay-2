@@ -56,6 +56,7 @@ export default function HomeContent({
     setCollections(initialCollections);
     setLoading(false);
 
+    // This now correctly runs only on the client, after the initial render.
     if (heroImages.length > 0) {
       const randomIndex = Math.floor(Math.random() * heroImages.length);
       setSelectedHeroImage(heroImages[randomIndex]);
