@@ -12,6 +12,7 @@ import type { Place, Accommodation, HeroImage, Currency, Address } from './lib/d
 import type { BookableUnit } from '@/components/UnitsPageClient';
 import { FieldValue, UpdateData } from 'firebase-admin/firestore';
 import { logger } from '@/lib/logger';
+import { z } from 'zod';
 
 interface ActionResult extends Partial<AccommodationRecommendationsOutput> {
   error?: string;
@@ -26,6 +27,69 @@ export async function handleGetRecommendations(
   } catch (error) {
     logger.error('Error getting recommendations:', error);
     return { error: 'An unexpected error occurred. Please try again.' };
+  }
+}
+
+const addressSchema = z.object({
+  formatted: z.string().optional(),
+  streetNumber: z.string().optional(),
+  street: z.string().optional(),
+  suburb: z.string().optional(),
+  city: z.string().optional(),
+  county: z.string().optional(),
+  state: z.object({ short: z.string(), long: z.string() }).optional(),
+  country: z.object({ short: z.string(), long: z.string() }).optional(),
+  postcode: z.string().optional(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
+  searchIndex: z.string().optional(),
+});
+
+const newPropertySchema = z.object({
+  name: z.string(),
+  type: z.string(),
+  starRating: z.number().optional(),
+  description: z.string().optional(),
+  address: addressSchema.optional(),
+});
+
+export async function createListingAction(
+  data: z.infer<typeof newPropertySchema>
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    const validatedData = newPropertySchema.parse(data);
+    const db = getAdminDb();
+    const newDocRef = db.collection('accommodations').doc();
+
+    const newListingData: Partial<Accommodation> = {
+      ...validatedData,
+      status: 'Draft',
+      slug: `${validatedData.name.toLowerCase().replace(/\s+/g, '-')}-${newDocRef.id.slice(0, 5)}`,
+      lastModified: new Date(),
+      rating: 0,
+      reviewsCount: 0,
+      images: [],
+      price: 0,
+      currency: 'USD', // Default currency
+      bookingType: 'room', // Default booking type
+    };
+
+    if (validatedData.address) {
+      newListingData.lat = validatedData.address.lat;
+      newListingData.lng = validatedData.address.lng;
+      newListingData.city = validatedData.address.city;
+      newListingData.state = validatedData.address.state?.long;
+      newListingData.country = validatedData.address.country?.long;
+      newListingData.location = validatedData.address.formatted;
+    }
+
+    await newDocRef.set(newListingData);
+    revalidatePath('/admin/listings');
+    return { success: true, id: newDocRef.id };
+  } catch (error) {
+    logger.error('Error creating new listing:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to create listing: ${errorMessage}` };
   }
 }
 
@@ -631,7 +695,7 @@ export async function duplicateUnitAction(
     const newUnitRef = unitsCollection.doc();
     const newUnitData = {
       ...sourceData,
-      name: '', // Blank name, to be filled in by user
+      name: `${sourceData.name || 'Unit'} (Copy)`, // Ensure there's a base name
       unitRef: '', // Blank ref, to be filled in by user
       status: 'Draft' as const,
     };

@@ -1,7 +1,6 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  devTools: true,
   turbopack: {
     root: process.cwd(),
   },
