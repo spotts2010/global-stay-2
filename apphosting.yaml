@@ -29,3 +29,8 @@ runConfig:
       secret: projects/global-stay-20/secrets/GEMINI_API_KEY/versions/latest
     - key: FIREBASE_ADMIN_KEY
       secret: projects/global-stay-20/secrets/FIREBASE_ADMIN_KEY/versions/latest
+
+# Add the required build steps for App Hosting.
+build:
+  - run: npm i
+  - run: npm run build
