@@ -1,33 +1,31 @@
 // src/app/admin/listings/new/page.tsx
-'use client';
+import 'server-only';
+import { Suspense } from 'react';
+import NewListingPageClient from '@/components/NewListingPageClient';
+import { Skeleton } from '@/components/ui/skeleton';
+import { APIProvider } from '@vis.gl/react-google-maps';
 
-import { ArrowLeft } from '@/lib/icons';
-import { Button } from '@/components/ui/button';
-import NewListingClient from '@/components/NewListingClient';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-
-export default function NewListingPage() {
-  const searchParams = useSearchParams();
-  const backLink = `/admin/listings?${searchParams.toString()}`;
-
+function NewListingSkeleton() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold">Create New Listing</h1>
-          <p className="text-sm text-muted-foreground">
-            Fill out the form to add a new accommodation to your listings.
-          </p>
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
         </div>
-        <Button asChild variant="outline">
-          <Link href={backLink}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Listings
-          </Link>
-        </Button>
+        <Skeleton className="h-10 w-36" />
       </div>
-      <NewListingClient />
+      <Skeleton className="h-96 w-full" />
     </div>
+  );
+}
+
+export default function NewListingPage() {
+  return (
+    <Suspense fallback={<NewListingSkeleton />}>
+      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
+        <NewListingPageClient />
+      </APIProvider>
+    </Suspense>
   );
 }

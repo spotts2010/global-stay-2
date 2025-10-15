@@ -34,7 +34,7 @@ import { Save, Loader2, MapPin, SquarePen } from '@/lib/icons';
 import React, { useState, useTransition, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createListingAction } from '@/app/actions';
-import { Map, AdvancedMarker, APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { Map, AdvancedMarker, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { formatPlaceResult } from '@/utils/formatPlaceResult';
 import { useRouter } from 'next/navigation';
 
@@ -200,150 +200,146 @@ export default function NewListingClient() {
   };
 
   return (
-    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSave)}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <SquarePen className="h-6 w-6 text-primary" />
-                Property Details
-              </CardTitle>
-              <CardDescription>
-                Enter the main details for your new property listing.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-grow-[3]">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Listing Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} className="bg-white" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="flex-grow-[2]">
-                  <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Property Type</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Apartment">Apartment</SelectItem>
-                            <SelectItem value="Villa">Villa</SelectItem>
-                            <SelectItem value="Hotel">Hotel</SelectItem>
-                            <SelectItem value="Loft">Loft</SelectItem>
-                            <SelectItem value="House">House</SelectItem>
-                            <SelectItem value="Hostel">Hostel</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="flex-grow-[1]">
-                  <FormField
-                    control={form.control}
-                    name="starRating"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Star Rating</FormLabel>
-                        <Select
-                          onValueChange={(value) =>
-                            field.onChange(value ? parseInt(value, 10) : undefined)
-                          }
-                          value={field.value?.toString() ?? ''}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="N/A" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="5">5 Stars</SelectItem>
-                            <SelectItem value="4">4 Stars</SelectItem>
-                            <SelectItem value="3">3 Stars</SelectItem>
-                            <SelectItem value="2">2 Stars</SelectItem>
-                            <SelectItem value="1">1 Star</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSave)}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <SquarePen className="h-6 w-6 text-primary" />
+              Property Details
+            </CardTitle>
+            <CardDescription>Enter the main details for your new property listing.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex-grow-[3]">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Listing Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="bg-white" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Property Description</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} rows={6} className="bg-white" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <FormLabel>Location</FormLabel>
-                  <FormField
-                    control={form.control}
-                    name="location"
-                    render={({ field }) => (
-                      <FormItem className="flex-grow">
+              <div className="flex-grow-[2]">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Property Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <AddressAutocomplete
-                            onPlaceSelected={handlePlaceSelected}
-                            initialValue={field.value}
-                          />
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <FormLabel>Map View</FormLabel>
-                  <MapView
-                    markerPosition={markerPosition}
-                    onMarkerDragEnd={handleMarkerDragEnd}
-                    mapKey={mapKey}
-                  />
-                </div>
+                        <SelectContent>
+                          <SelectItem value="Apartment">Apartment</SelectItem>
+                          <SelectItem value="Villa">Villa</SelectItem>
+                          <SelectItem value="Hotel">Hotel</SelectItem>
+                          <SelectItem value="Loft">Loft</SelectItem>
+                          <SelectItem value="House">House</SelectItem>
+                          <SelectItem value="Hostel">Hostel</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" disabled={isPending || !form.formState.isDirty}>
-                {isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Create Listing
-              </Button>
-            </CardFooter>
-          </Card>
-        </form>
-      </Form>
-    </APIProvider>
+              <div className="flex-grow-[1]">
+                <FormField
+                  control={form.control}
+                  name="starRating"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Star Rating</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value ? parseInt(value, 10) : undefined)
+                        }
+                        value={field.value?.toString() ?? ''}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="N/A" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="5">5 Stars</SelectItem>
+                          <SelectItem value="4">4 Stars</SelectItem>
+                          <SelectItem value="3">3 Stars</SelectItem>
+                          <SelectItem value="2">2 Stars</SelectItem>
+                          <SelectItem value="1">1 Star</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Property Description</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} rows={6} className="bg-white" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <FormLabel>Location</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem className="flex-grow">
+                      <FormControl>
+                        <AddressAutocomplete
+                          onPlaceSelected={handlePlaceSelected}
+                          initialValue={field.value}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <FormLabel>Map View</FormLabel>
+                <MapView
+                  markerPosition={markerPosition}
+                  onMarkerDragEnd={handleMarkerDragEnd}
+                  mapKey={mapKey}
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" disabled={isPending || !form.formState.isDirty}>
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              Create Listing
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
+    </Form>
   );
 }
