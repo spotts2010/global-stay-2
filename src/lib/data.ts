@@ -71,7 +71,6 @@ export type Address = {
   postcode?: string;
   lat?: number;
   lng?: number;
-  searchIndex?: string;
 };
 
 export type Accommodation = {
@@ -100,6 +99,7 @@ export type Accommodation = {
   units?: BookableUnit[];
   unitsCount?: number;
   maxGuests?: number;
+  searchIndex?: string;
 
   // Deprecated fields (will be removed in a future migration)
   city?: string;

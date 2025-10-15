@@ -121,7 +121,7 @@ export default function AccommodationSearchForm({
             placeholder="Where are you going?"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="min-w-0 flex-1 bg-transparent text-[15px] text-slate-800 placeholder:text-slate-400 outline-none h-14"
+            className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none h-14"
             aria-label="Location"
           />
         </div>
@@ -132,7 +132,7 @@ export default function AccommodationSearchForm({
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="truncate w-full text-left bg-transparent text-[15px] text-slate-800 placeholder:text-slate-400 outline-none"
+            className="truncate w-full text-left bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none"
             aria-haspopup="dialog"
             aria-expanded={open}
           >
@@ -177,7 +177,7 @@ export default function AccommodationSearchForm({
             value={guests}
             onChange={(e) => setGuests(parseInt(e.target.value, 10))}
             aria-label="Guests"
-            className="w-full bg-transparent text-[15px] text-slate-800 outline-none"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none"
           >
             {Array.from({ length: 8 }, (_, i) => i + 1).map((n) => (
               <option key={n} value={n}>
@@ -192,12 +192,12 @@ export default function AccommodationSearchForm({
           <button
             type="submit"
             className={cn(
-              'inline-flex h-full min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-6 text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+              'inline-flex h-full min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-primary px-6 text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               'md:min-h-0 md:rounded-l-none md:h-14'
             )}
           >
             <Search className="w-4 h-4" aria-hidden />
-            <span className="text-[15px] font-medium">Search</span>
+            <span className="text-sm font-medium">Search</span>
           </button>
         </div>
       </div>

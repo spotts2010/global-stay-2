@@ -84,21 +84,18 @@ export async function duplicateListingAction(
     return { success: false, error: 'Listing ID is missing.' };
   }
   const db = getAdminDb();
+  const sourceListingRef = db.collection('accommodations').doc(listingId);
 
   try {
-    const sourceListingRef = db.collection('accommodations').doc(listingId);
     const sourceListingSnap = await sourceListingRef.get();
-
     if (!sourceListingSnap.exists) {
       return { success: false, error: 'Source listing not found.' };
     }
 
     const sourceData = sourceListingSnap.data() as Accommodation;
-
-    // Create a new document with a new ID
     const newListingRef = db.collection('accommodations').doc();
 
-    const newListingData: Partial<Accommodation> = {
+    const newListingData: Omit<Accommodation, 'id' | 'units'> = {
       ...sourceData,
       name: `${sourceData.name} (Copy)`,
       status: 'Draft',
@@ -106,12 +103,27 @@ export async function duplicateListingAction(
       lastModified: new Date(),
     };
 
-    // Remove fields that should not be copied
-    delete newListingData.id;
-    delete newListingData.units;
-    delete newListingData.unitsCount;
+    // Explicitly delete any legacy fields that shouldn't be copied.
+    delete (newListingData as Partial<Accommodation>).id;
+    delete (newListingData as Partial<Accommodation>).units;
+    delete (newListingData as Partial<Accommodation>).unitsCount;
 
-    await newListingRef.set(newListingData);
+    // Start a batch write
+    const batch = db.batch();
+    batch.set(newListingRef, newListingData);
+
+    // Now, fetch and copy the units subcollection
+    const unitsSnapshot = await sourceListingRef.collection('units').get();
+    if (!unitsSnapshot.empty) {
+      const newUnitsCollectionRef = newListingRef.collection('units');
+      unitsSnapshot.forEach((unitDoc) => {
+        const newUnitRef = newUnitsCollectionRef.doc(); // Let Firestore generate new IDs for units
+        batch.set(newUnitRef, unitDoc.data());
+      });
+    }
+
+    // Commit the batch to save the new listing and all its units atomically
+    await batch.commit();
 
     // Revalidate the listings page to show the new draft
     revalidatePath('/admin/listings');
@@ -120,6 +132,7 @@ export async function duplicateListingAction(
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'An unknown server error occurred.';
+    logger.error('Failed to duplicate listing:', error);
     return { success: false, error: `Failed to duplicate listing: ${errorMessage}` };
   }
 }

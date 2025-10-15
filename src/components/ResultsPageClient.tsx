@@ -1,14 +1,13 @@
 // src/components/ResultsPageClient.tsx
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, Suspense, useEffect } from 'react';
 import Link from 'next/link';
-import { Button } from './ui/button';
 import {
   Users,
   MapPin,
   Search,
-  List,
+  Grid3x3,
   Map as MapIcon,
   CalendarDays,
   Star,
@@ -23,7 +22,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AccommodationCard from './AccommodationCard';
 import AccommodationSearchForm from './AccommodationSearchForm';
@@ -34,7 +33,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { convertCurrency, formatCurrency } from '@/lib/currency';
-import { cn } from '@/lib/utils';
 
 // ========================
 // SearchSummary Component
@@ -66,57 +64,36 @@ const SearchSummary = ({ onModify }: { onModify: () => void }) => {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
-      <div className="rounded-lg shadow-md border border-slate-200 bg-white">
-        <div className="flex flex-col md:flex-row md:items-stretch md:divide-x divide-y md:divide-y-0 divide-slate-200">
-          {/* Mobile version */}
-          <div className="p-4 md:hidden">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm text-slate-800 truncate">
-                <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
-                <span>{location}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-slate-800 truncate">
-                <CalendarDays className="w-4 h-4 shrink-0 text-slate-500" />
-                <span>{dateText}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-slate-800 truncate">
-                <Users className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
-                <span>{guestsText}</span>
-              </div>
-              <Button onClick={onModify} className="w-full rounded-md mt-2">
-                <Search className="mr-2 h-4 w-4" />
-                Modify Search
-              </Button>
-            </div>
-          </div>
+    <div className="mx-auto w-full max-w-4xl rounded-lg shadow-md border border-slate-200 bg-white">
+      <div className="flex flex-col md:flex-row md:items-stretch md:divide-x divide-y md:divide-y-0 divide-slate-200">
+        {/* Location */}
+        <div className="md:flex-[3] min-w-0 flex items-center gap-2 px-4 h-14 relative">
+          <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+          <span className="truncate text-sm">{location}</span>
+        </div>
 
-          {/* Desktop version */}
-          <div className="hidden md:flex md:flex-[2.5] min-w-0 items-center gap-2 px-4 h-14">
-            <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
-            <span className="truncate text-sm">{location}</span>
-          </div>
-          <div className="hidden md:flex relative md:flex-[2] items-center gap-2 px-4 h-14">
-            <CalendarDays className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
-            <span className="truncate text-sm">{dateText}</span>
-          </div>
-          <div className="hidden md:flex md:flex-1 items-center gap-2 px-4 h-14">
-            <Users className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
-            <span className="truncate text-sm">{guestsText}</span>
-          </div>
-          <div className="hidden md:block p-0">
-            <button
-              type="button"
-              onClick={onModify}
-              className={cn(
-                'inline-flex h-full min-h-[44px] w-full items-center justify-center gap-2 rounded-r-md bg-primary px-6 text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                'md:min-h-0 md:rounded-l-none md:h-14'
-              )}
-            >
-              <Search className="w-4 h-4" aria-hidden />
-              <span className="text-[15px] font-medium">Modify</span>
-            </button>
-          </div>
+        {/* Dates */}
+        <div className="relative md:flex-[2] flex items-center gap-2 px-4 h-14">
+          <CalendarDays className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+          <span className="truncate text-sm">{dateText}</span>
+        </div>
+
+        {/* Guests */}
+        <div className="md:flex-1 flex items-center gap-2 px-4 h-14">
+          <Users className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+          <span className="truncate text-sm">{guestsText}</span>
+        </div>
+
+        {/* Search Button */}
+        <div className="p-2 md:p-0">
+          <button
+            type="button"
+            onClick={onModify}
+            className="inline-flex h-full min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-primary px-6 text-white hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring md:min-h-0 md:rounded-l-none md:h-14"
+          >
+            <Search className="w-4 h-4" aria-hidden />
+            <span className="text-sm font-medium">Modify</span>
+          </button>
         </div>
       </div>
     </div>
@@ -181,21 +158,113 @@ const MapInfoWindowCard = ({
 };
 
 // ========================
+// Map View Logic
+// ========================
+const MapView = ({ accommodations }: { accommodations: Accommodation[] }) => {
+  const map = useMap();
+  const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+  const searchParams = useSearchParams();
+
+  const plainSearchParams: { [key: string]: string } = {};
+  for (const [key, value] of searchParams.entries()) {
+    if (value) plainSearchParams[key] = value;
+  }
+
+  const activeAccommodation = useMemo(
+    () => accommodations.find((a) => a.id === activeMarkerId),
+    [accommodations, activeMarkerId]
+  );
+
+  useEffect(() => {
+    if (!map || !window.google) return;
+    if (accommodations.length === 0) {
+      map.setCenter({ lat: -25.2744, lng: 133.7751 }); // Australia center
+      map.setZoom(4);
+      return;
+    }
+
+    if (accommodations.length === 1) {
+      const singleAcc = accommodations[0];
+      if (singleAcc.address?.lat && singleAcc.address?.lng) {
+        map.setCenter({ lat: singleAcc.address.lat, lng: singleAcc.address.lng });
+        map.setZoom(14);
+      }
+      return;
+    }
+
+    const bounds = new window.google.maps.LatLngBounds();
+    let validCoords = 0;
+    accommodations.forEach((acc) => {
+      if (acc.address?.lat && acc.address?.lng) {
+        bounds.extend(new window.google.maps.LatLng(acc.address.lat, acc.address.lng));
+        validCoords++;
+      }
+    });
+
+    if (validCoords > 0) {
+      map.fitBounds(bounds);
+    }
+  }, [accommodations, map]);
+
+  return (
+    <>
+      {accommodations.map(
+        (accommodation) =>
+          accommodation.address?.lat &&
+          accommodation.address?.lng && (
+            <AdvancedMarker
+              key={accommodation.id}
+              position={{ lat: accommodation.address.lat, lng: accommodation.address.lng }}
+              onClick={() => setActiveMarkerId(accommodation.id)}
+            />
+          )
+      )}
+
+      {activeAccommodation &&
+        activeAccommodation.address?.lat &&
+        activeAccommodation.address?.lng && (
+          <InfoWindow
+            position={{
+              lat: activeAccommodation.address.lat,
+              lng: activeAccommodation.address.lng,
+            }}
+            pixelOffset={[0, -50]}
+            onCloseClick={() => setActiveMarkerId(null)}
+            headerDisabled
+          >
+            {isMobile ? (
+              <MapInfoWindowCard
+                accommodation={activeAccommodation}
+                searchParams={plainSearchParams}
+              />
+            ) : (
+              <div className="w-80">
+                <AccommodationCard
+                  accommodation={activeAccommodation}
+                  disableHover
+                  searchParams={plainSearchParams}
+                />
+              </div>
+            )}
+          </InfoWindow>
+        )}
+    </>
+  );
+};
+
+// ========================
 // Main Page Content
 // ========================
 function ResultsPageContent({ initialAccommodations }: { initialAccommodations: Accommodation[] }) {
   const searchParams = useSearchParams();
   const [isEditingSearch, setIsEditingSearch] = useState(!searchParams.get('location'));
-  const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
-  const isMobile = useIsMobile();
 
   const accommodations = useMemo(() => {
     const locationQuery = searchParams.get('location');
-
     if (!locationQuery) {
       return initialAccommodations;
     }
-
     const searchTerms = locationQuery
       .toLowerCase()
       .split(/[\s,]+/)
@@ -206,46 +275,20 @@ function ResultsPageContent({ initialAccommodations }: { initialAccommodations: 
     }
 
     return initialAccommodations.filter((acc) => {
-      const searchableString = [
-        acc.name,
-        acc.city,
-        acc.state,
-        acc.country,
-        acc.location,
+      const locationSearchableString = [
         acc.address?.city,
         acc.address?.state?.long,
         acc.address?.country?.long,
         acc.address?.formatted,
+        acc.searchIndex,
       ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
 
-      return searchTerms.some((term) => searchableString.includes(term));
+      return searchTerms.every((term) => locationSearchableString.includes(term));
     });
   }, [initialAccommodations, searchParams]);
-
-  const mapCenter = useMemo(() => {
-    const validAccommodations = accommodations.filter(
-      (acc) => acc.address?.lat && acc.address?.lng
-    );
-
-    if (validAccommodations.length === 0) return { lat: -25.2744, lng: 133.7751 };
-
-    const { lat, lng } = validAccommodations.reduce(
-      (acc, curr) => ({
-        lat: acc.lat + (curr.address?.lat ?? 0),
-        lng: acc.lng + (curr.address?.lng ?? 0),
-      }),
-      { lat: 0, lng: 0 }
-    );
-    return { lat: lat / validAccommodations.length, lng: lng / validAccommodations.length };
-  }, [accommodations]);
-
-  const activeAccommodation = useMemo(
-    () => accommodations.find((a) => a.id === activeMarkerId),
-    [accommodations, activeMarkerId]
-  );
 
   const handleSearchSubmit = () => {
     setIsEditingSearch(false);
@@ -293,7 +336,7 @@ function ResultsPageContent({ initialAccommodations }: { initialAccommodations: 
             <div className="flex flex-col mb-4 gap-4">
               <TabsList className="w-full md:w-auto self-start">
                 <TabsTrigger value="card" className="w-full">
-                  <List className="mr-2 h-4 w-4" />
+                  <Grid3x3 className="mr-2 h-4 w-4" />
                   Card View
                 </TabsTrigger>
                 <TabsTrigger value="map" className="w-full">
@@ -336,55 +379,12 @@ function ResultsPageContent({ initialAccommodations }: { initialAccommodations: 
                 <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
                   <Map
                     mapId={process.env.NEXT_PUBLIC_GOOGLE_MAP_ID as string}
-                    defaultCenter={mapCenter}
-                    defaultZoom={accommodations.length > 1 ? 4 : 10}
+                    defaultCenter={{ lat: -25.2744, lng: 133.7751 }}
+                    defaultZoom={4}
                     gestureHandling="greedy"
                     disableDefaultUI={true}
-                    onClick={() => setActiveMarkerId(null)}
                   >
-                    {accommodations.map(
-                      (accommodation) =>
-                        accommodation.address?.lat &&
-                        accommodation.address?.lng && (
-                          <AdvancedMarker
-                            key={accommodation.id}
-                            position={{
-                              lat: accommodation.address.lat,
-                              lng: accommodation.address.lng,
-                            }}
-                            onClick={() => setActiveMarkerId(accommodation.id)}
-                          />
-                        )
-                    )}
-
-                    {activeAccommodation &&
-                      activeAccommodation.address.lat &&
-                      activeAccommodation.address.lng && (
-                        <InfoWindow
-                          position={{
-                            lat: activeAccommodation.address.lat,
-                            lng: activeAccommodation.address.lng,
-                          }}
-                          pixelOffset={[0, -50]}
-                          onCloseClick={() => setActiveMarkerId(null)}
-                          headerDisabled
-                        >
-                          {isMobile ? (
-                            <MapInfoWindowCard
-                              accommodation={activeAccommodation}
-                              searchParams={plainSearchParams}
-                            />
-                          ) : (
-                            <div className="w-80">
-                              <AccommodationCard
-                                accommodation={activeAccommodation}
-                                disableHover
-                                searchParams={plainSearchParams}
-                              />
-                            </div>
-                          )}
-                        </InfoWindow>
-                      )}
+                    <MapView accommodations={accommodations} />
                   </Map>
                 </APIProvider>
               </div>

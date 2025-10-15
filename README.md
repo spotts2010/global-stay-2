@@ -223,3 +223,4 @@ The action buttons displayed on the notification detail page change based on the
   - Modifying the Firestore data model to include separate fields for each address component.
   - Updating the admin interface to parse these components from the Google Places API response.
   - Enhancing the search feature to perform more precise, field-specific queries.
+- **Map View Default Location**: If a search yields no results, the map should default to the user's current location. This will require requesting location permissions from the user's browser.

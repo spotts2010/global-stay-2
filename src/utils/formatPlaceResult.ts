@@ -18,10 +18,11 @@ export interface StructuredAddress {
   postcode?: string;
   lat?: number;
   lng?: number;
-  searchIndex?: string;
 }
 
-export function formatPlaceResult(place: google.maps.places.PlaceResult): StructuredAddress {
+export function formatPlaceResult(
+  place: google.maps.places.PlaceResult
+): StructuredAddress & { searchIndex?: string } {
   if (!place.address_components || !place.geometry) {
     console.warn('Invalid place result');
     return { formatted: place.formatted_address || '' };
@@ -32,7 +33,7 @@ export function formatPlaceResult(place: google.maps.places.PlaceResult): Struct
     return component ? component[prop] : '';
   };
 
-  const structured: StructuredAddress = {
+  const structured: StructuredAddress & { searchIndex?: string } = {
     formatted: place.formatted_address || '',
     streetNumber: getComponent('street_number'),
     street: getComponent('route'),
