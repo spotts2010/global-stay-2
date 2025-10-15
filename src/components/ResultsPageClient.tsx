@@ -68,24 +68,26 @@ const SearchSummary = ({ onModify }: { onModify: () => void }) => {
     <div className="mx-auto w-full max-w-4xl">
       <Card>
         <CardContent className="p-4">
-          <div className="md:flex md:items-center md:gap-4 md:space-y-0 space-y-2">
-            <div className="flex-1 flex items-center gap-2 text-sm text-slate-800 truncate">
-              <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
-              <span>{location}</span>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:gap-4 md:space-y-0 space-y-2 flex-1">
+              <div className="flex-1 flex items-center gap-2 text-sm text-slate-800 truncate">
+                <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+                <span>{location}</span>
+              </div>
+              <div className="flex-1 flex items-center gap-2 text-sm text-slate-800 truncate">
+                <CalendarDays className="w-4 h-4 shrink-0 text-slate-500" />
+                <span>{dateText}</span>
+              </div>
+              <div className="flex-1 flex items-center gap-2 text-sm text-slate-800 truncate">
+                <Users className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
+                <span>{guestsText}</span>
+              </div>
             </div>
-            <div className="flex-1 flex items-center gap-2 text-sm text-slate-800 truncate">
-              <CalendarDays className="w-4 h-4 shrink-0 text-slate-500" />
-              <span>{dateText}</span>
-            </div>
-            <div className="flex-1 flex items-center gap-2 text-sm text-slate-800 truncate">
-              <Users className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
-              <span>{guestsText}</span>
-            </div>
+            <Button onClick={onModify} className="w-full md:w-auto rounded-md">
+              <Search className="mr-2 h-4 w-4" />
+              Modify
+            </Button>
           </div>
-          <Button onClick={onModify} className="w-full mt-4 rounded-md">
-            <Search className="mr-2 h-4 w-4" />
-            Modify
-          </Button>
         </CardContent>
       </Card>
     </div>
