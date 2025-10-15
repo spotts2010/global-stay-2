@@ -131,7 +131,7 @@ export { MdTrendingUp as TrendingUp } from 'react-icons/md';
 export { MdOutlineHotel as Hotel } from 'react-icons/md';
 export { MdOutlineEmojiEvents as Award } from 'react-icons/md';
 export { MdMap as Map } from 'react-icons/md';
-export { MdForum } from 'react-icons/md';
+export { MdForum, MdCalendarMonth as Calendar } from 'react-icons/md';
 
 // Ant Design Icons (for loaders)
 import {

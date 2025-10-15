@@ -3,8 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRight, Sparkles, Building, Loader2 } from '@/lib/icons';
-import { Suspense, useMemo, useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useMemo, useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import AccommodationSearchForm from '@/components/AccommodationSearchForm';
@@ -12,7 +11,6 @@ import CuratedCollectionCard from '@/components/CuratedCollectionCard';
 import AccommodationCard from '@/components/AccommodationCard';
 import AIRecommendations from '@/components/AIRecommendations';
 import type { Accommodation, HeroImage, Collection } from '@/lib/data';
-import { fetchAccommodations } from '@/lib/firestore'; // Use client-side fetch
 import placeholderImages from '@/lib/placeholder-images.json';
 import {
   Carousel,
@@ -21,7 +19,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { Card, CardContent } from '@/components/ui/card';
 
 const defaultHeroImage: HeroImage = {
   url: 'https://images.unsplash.com/photo-1460627390041-532a28402358',
@@ -29,18 +26,25 @@ const defaultHeroImage: HeroImage = {
   hint: 'tropical resort',
 };
 
-export default function HomeContent() {
-  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function HomeContent({
+  initialAccommodations,
+  initialCollections,
+  searchParams,
+}: {
+  initialAccommodations: Accommodation[];
+  initialCollections: Collection[];
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
+  const [accommodations, setAccommodations] = useState<Accommodation[]>(initialAccommodations);
+  const [collections, setCollections] = useState<Collection[]>(initialCollections);
+  const [loading, setLoading] = useState(false); // Data is now pre-loaded
   const [selectedHeroImage, setSelectedHeroImage] = useState<HeroImage | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
   const heroImages = placeholderImages.heroImages;
-  const collections: Collection[] = placeholderImages.collections;
-  const searchParams = useSearchParams();
 
   const plainSearchParams: { [key: string]: string } = {};
   if (searchParams) {
-    for (const [key, value] of searchParams.entries()) {
+    for (const [key, value] of Object.entries(searchParams)) {
       if (typeof value === 'string') {
         plainSearchParams[key] = value;
       }
@@ -49,14 +53,11 @@ export default function HomeContent() {
 
   useEffect(() => {
     setHasMounted(true);
-    const loadData = async () => {
-      setLoading(true);
-      const fetchedAccommodations = await fetchAccommodations();
-      setAccommodations(fetchedAccommodations);
-      setLoading(false);
-    };
-    loadData();
-  }, []);
+    // Data is passed via props, so no need for client-side fetching on load
+    setAccommodations(initialAccommodations);
+    setCollections(initialCollections);
+    setLoading(false);
+  }, [initialAccommodations, initialCollections]);
 
   useEffect(() => {
     if (hasMounted) {
@@ -69,10 +70,10 @@ export default function HomeContent() {
     }
   }, [hasMounted, heroImages]);
 
-  const topRatedAccommodations: Accommodation[] = useMemo(
-    () => [...accommodations].sort((a, b) => b.rating - a.rating),
-    [accommodations]
-  );
+  const topRatedAccommodations: Accommodation[] = useMemo(() => {
+    const published = accommodations.filter((a) => a.status === 'Published');
+    return [...published].sort((a, b) => b.rating - a.rating);
+  }, [accommodations]);
 
   return (
     <div className="flex flex-col gap-16 md:gap-24 pb-16">
@@ -106,9 +107,7 @@ export default function HomeContent() {
                 you&apos;ll love to stay.
               </p>
               <div className="w-full mt-4 shadow-lg rounded-lg">
-                <Suspense fallback={<div className="h-14 bg-white rounded-lg" />}>
-                  <AccommodationSearchForm searchParams={plainSearchParams} />
-                </Suspense>
+                <AccommodationSearchForm searchParams={plainSearchParams} />
               </div>
             </div>
           </>
@@ -235,7 +234,7 @@ export default function HomeContent() {
             <p className="text-muted-foreground">
               Turn your space into your next opportunity. Join our community of hosts today.
             </p>
-            <Card className="h-full overflow-hidden group transition-all duration-300 hover:shadow-xl">
+            <div className="h-full overflow-hidden group transition-all duration-300 hover:shadow-xl rounded-lg">
               <div className="relative h-full">
                 <div className="relative h-full w-full min-h-[400px]">
                   <Image
@@ -248,16 +247,16 @@ export default function HomeContent() {
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <CardContent className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                   <h3 className="font-headline text-2xl font-bold max-w-md">
                     Manage your listings with ease, so you can feel like you're on holiday too.
                   </h3>
                   <Button asChild className="mt-4">
                     <Link href="/admin/listings">List Your Property</Link>
                   </Button>
-                </CardContent>
+                </div>
               </div>
-            </Card>
+            </div>
           </div>
         </div>
       </section>
