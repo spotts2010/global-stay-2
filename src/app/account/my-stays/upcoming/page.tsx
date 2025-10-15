@@ -111,7 +111,7 @@ export default function UpcomingStaysPage() {
   const [bookings, setBookings] = useState<EnrichedBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<EnrichedBooking | null>(null);
-  const [month, setMonth] = useState<Date>(new Date());
+  const [month, setMonth] = useState<Date | undefined>(undefined);
   const [bookedDays, setBookedDays] = useState<({ from: Date; to: Date } | null)[]>([]);
   const [today, setToday] = useState<Date | null>(null);
 
@@ -140,6 +140,8 @@ export default function UpcomingStaysPage() {
       setBookings(enrichedBookings);
 
       // This logic is now inside useEffect to prevent hydration errors
+      setMonth(new Date());
+      setToday(new Date());
       setBookedDays(
         enrichedBookings
           .map((b) =>
@@ -149,7 +151,6 @@ export default function UpcomingStaysPage() {
           )
           .filter((d): d is { from: Date; to: Date } => d !== null)
       );
-      setToday(new Date());
 
       setLoading(false);
     };
@@ -196,7 +197,7 @@ export default function UpcomingStaysPage() {
             </TabsList>
             <TabsContent value="calendar" className="mt-4">
               <div className="rounded-lg border">
-                {loading ? (
+                {loading || !month ? (
                   <div className="flex justify-center items-center h-64">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
