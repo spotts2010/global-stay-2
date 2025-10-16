@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { handleGetRecommendations } from '@/app/actions/ai-actions';
 
 const AIRecommendations = () => {
   const [loading, setLoading] = useState(false);
@@ -23,15 +22,30 @@ const AIRecommendations = () => {
     const searchHistory = formData.get('searchHistory') as string;
     const preferences = formData.get('preferences') as string;
 
-    const result = await handleGetRecommendations({ searchHistory, preferences });
+    try {
+      const response = await fetch('/api/ai/recommendations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ searchHistory, preferences }),
+      });
 
-    if ('error' in result) {
-      setError(result.error);
-    } else if (result.recommendations) {
-      setRecommendation(result.recommendations);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'An API error occurred');
+      }
+
+      if (result.recommendations) {
+        setRecommendation(result.recommendations);
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
