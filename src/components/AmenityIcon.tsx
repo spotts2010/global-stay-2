@@ -1,4 +1,4 @@
-import { Wifi, Car, Utensils, Award, Waves, Dumbbell } from 'lucide-react';
+import { Wifi, Car, Utensils, Award, Waves, Dumbbell } from '@/lib/icons';
 import type { Amenity } from '@/lib/data';
 
 type AmenityIconProps = {
