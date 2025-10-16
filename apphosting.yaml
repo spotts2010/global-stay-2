@@ -32,5 +32,5 @@ runConfig:
 
 # Add the required build steps for App Hosting.
 build:
-  - run: npm i
+  - run: pnpm install
   - run: npm run build
