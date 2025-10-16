@@ -5,6 +5,7 @@ import { BsDatabaseFillLock } from 'react-icons/bs';
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapse } from 'react-icons/tb';
 import { HiOutlineLocationMarker } from 'react-icons/hi';
 import { MdOutlineDoorFront } from 'react-icons/md';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 // Material Design Icons
 export { MdKeyboardArrowDown as ChevronDown } from 'react-icons/md';
@@ -156,4 +157,5 @@ export {
   HiOutlineLocationMarker,
   MdOutlineDoorFront,
   MdForum as Forum,
+  BiLoaderAlt,
 };

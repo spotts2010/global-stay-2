@@ -5,8 +5,7 @@ import { fetchAccommodations } from '@/lib/firestore.server';
 import type { Accommodation } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import ListingsPageClient from '@/components/ListingsPageClient';
-import { BiLoaderAlt } from 'react-icons/bi';
-import { ListingsIcon } from '@/lib/icons';
+import { BiLoaderAlt, ListingsIcon } from '@/lib/icons';
 
 const LoadingSpinner = () => (
   <div className="flex h-64 items-center justify-center">
