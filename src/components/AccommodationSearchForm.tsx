@@ -8,6 +8,7 @@ import 'react-day-picker/dist/style.css';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
+import { Input } from './ui/input';
 
 function formatRangeUK(range: DateRange | undefined) {
   if (!range?.from) return 'Pick a date range';
@@ -64,14 +65,12 @@ export default function AccommodationSearchForm({
 
     const listener = autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace();
-      if (place && place.formatted_address) {
+      if (place.formatted_address) {
         setLocation(place.formatted_address);
       }
     });
 
-    return () => {
-      listener.remove();
-    };
+    return () => listener.remove();
   }, [places]);
 
   const pickerRef = React.useRef<HTMLDivElement | null>(null);
@@ -113,16 +112,12 @@ export default function AccommodationSearchForm({
         {/* Location */}
         <div className="md:flex-[3] min-w-0 flex items-center gap-2 px-4 h-14 relative">
           <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden />
-          <input
+          <Input
             ref={locationInputRef}
-            type="text"
-            inputMode="search"
-            autoComplete="off"
             placeholder="Where are you going?"
+            className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none h-14 border-0 focus-visible:ring-0"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none h-14"
-            aria-label="Location"
           />
         </div>
 
@@ -160,7 +155,7 @@ export default function AccommodationSearchForm({
                 </button>
                 <button
                   type="button"
-                  className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
+                  className="rounded-md bg-primary px-3 py-1.5 text-sm text-white hover:bg-primary/90"
                   onClick={() => setOpen(false)}
                 >
                   Done
@@ -187,7 +182,7 @@ export default function AccommodationSearchForm({
           </select>
         </div>
 
-        {/* Search Button - restructured for mobile */}
+        {/* Search Button */}
         <div className="p-2 md:p-0">
           <button
             type="submit"

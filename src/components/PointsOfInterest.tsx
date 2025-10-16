@@ -268,27 +268,29 @@ const PoiRow = ({
 
 function PlacesAutocomplete({
   onPlaceSelected,
-  inputRef,
 }: {
   onPlaceSelected: (place: google.maps.places.PlaceResult | null) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const places = useMapsLibrary('places');
 
   useEffect(() => {
     if (!places || !inputRef.current) return;
-
-    const autocomplete = new places.Autocomplete(inputRef.current, {
-      fields: ['place_id', 'name', 'formatted_address', 'geometry', 'types'],
+    const ac = new places.Autocomplete(inputRef.current, {
+      fields: [
+        'place_id',
+        'name',
+        'formatted_address',
+        'geometry.location',
+        'types',
+        'address_components',
+      ],
     });
-
-    const listener = autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
-      onPlaceSelected(place);
+    const listener = ac.addListener('place_changed', () => {
+      onPlaceSelected(ac.getPlace());
     });
-
     return () => listener.remove();
-  }, [places, onPlaceSelected, inputRef]);
+  }, [places, onPlaceSelected]);
 
   return (
     <div className="relative w-full">
@@ -297,7 +299,12 @@ function PlacesAutocomplete({
         ref={inputRef}
         className="pl-10 bg-white"
         placeholder="Search for a place on Google Maps..."
-        onChange={() => onPlaceSelected(null)} // Clear selection if user types
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.preventDefault();
+        }}
+        onChange={(e) => {
+          if (!e.target.value) onPlaceSelected(null);
+        }}
       />
     </div>
   );
@@ -321,9 +328,7 @@ export default function PointsOfInterest({
   });
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [tempCategory, setTempCategory] = useState<PoiCategory | null>(null);
-
   const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
-  const placesInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddPlace = () => {
     if (!selectedPlace || !selectedPlace.place_id) {
@@ -349,17 +354,17 @@ export default function PointsOfInterest({
     if (lat === undefined || lng === undefined) return;
 
     const newPlace: Place = {
-      id: selectedPlace.place_id!,
-      name: selectedPlace.name!,
-      address: selectedPlace.formatted_address!,
+      id: selectedPlace.place_id,
+      name: selectedPlace.name || 'Unnamed Place',
+      address: selectedPlace.formatted_address || '',
       category: getCategoryFromPlaceTypes(selectedPlace.types),
       source: 'Host',
       visible: true,
       lat,
       lng,
       distance: getDistance(
-        listing.address.lat,
-        listing.address.lng,
+        listing.address.lat!,
+        listing.address.lng!,
         lat,
         lng,
         preferences.distanceUnit
@@ -369,9 +374,6 @@ export default function PointsOfInterest({
 
     setPlaces((prev) => [newPlace, ...prev]);
     setSelectedPlace(null);
-    if (placesInputRef.current) {
-      placesInputRef.current.value = '';
-    }
   };
 
   const handleEditClick = (place: Place) => {
@@ -519,7 +521,7 @@ export default function PointsOfInterest({
         <CardContent>
           <div className="mb-8 flex w-full flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex w-full md:w-1/2 items-center gap-2">
-              <PlacesAutocomplete onPlaceSelected={setSelectedPlace} inputRef={placesInputRef} />
+              <PlacesAutocomplete onPlaceSelected={setSelectedPlace} />
               <Button onClick={handleAddPlace} disabled={!selectedPlace}>
                 Add Place
               </Button>

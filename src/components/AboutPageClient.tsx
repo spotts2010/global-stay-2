@@ -37,7 +37,6 @@ import { useToast } from '@/hooks/use-toast';
 import { updateAccommodationAction } from '@/app/actions';
 import { Map, AdvancedMarker, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Skeleton } from './ui/skeleton';
-import { formatPlaceResult } from '@/utils/formatPlaceResult';
 
 const addressSchema = z.object({
   formatted: z.string().min(1, 'Formatted address is required'),
@@ -76,15 +75,64 @@ const propertyFormSchema = z.object({
 type PropertyFormValues = z.infer<typeof propertyFormSchema>;
 type Position = { lat: number; lng: number };
 
+function formatPlaceResult(place: google.maps.places.PlaceResult) {
+  if (!place.address_components) {
+    return { formatted: place.formatted_address || '' };
+  }
+
+  const getComponent = (type: string, prop: 'long_name' | 'short_name' = 'long_name') => {
+    const component = place.address_components?.find((c) => c.types.includes(type));
+    return component ? component[prop] : '';
+  };
+
+  const structured = {
+    formatted: place.formatted_address || '',
+    streetNumber: getComponent('street_number'),
+    street: getComponent('route'),
+    suburb: getComponent('sublocality') || getComponent('neighborhood'),
+    city: getComponent('locality'),
+    county: getComponent('administrative_area_level_2'),
+    state: {
+      short: getComponent('administrative_area_level_1', 'short_name'),
+      long: getComponent('administrative_area_level_1', 'long_name'),
+    },
+    country: {
+      short: getComponent('country', 'short_name'),
+      long: getComponent('country', 'long_name'),
+    },
+    postcode: getComponent('postal_code'),
+    lat: place.geometry?.location?.lat(),
+    lng: place.geometry?.location?.lng(),
+  };
+
+  const searchIndex = [
+    structured.streetNumber,
+    structured.street,
+    structured.suburb,
+    structured.city,
+    structured.county,
+    structured.state?.short,
+    structured.state?.long,
+    structured.postcode,
+    structured.country?.long,
+    structured.country?.short,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  return { ...structured, searchIndex };
+}
+
 function AddressAutocomplete({
   onPlaceSelected,
   initialValue,
 }: {
-  onPlaceSelected: (place: google.maps.places.PlaceResult | null) => void;
+  onPlaceSelected: (place: google.maps.places.PlaceResult) => void;
   initialValue: string;
 }) {
-  const places = useMapsLibrary('places');
   const inputRef = useRef<HTMLInputElement>(null);
+  const places = useMapsLibrary('places');
 
   useEffect(() => {
     if (!places || !inputRef.current) return;
@@ -94,7 +142,10 @@ function AddressAutocomplete({
     });
 
     const listener = autocomplete.addListener('place_changed', () => {
-      onPlaceSelected(autocomplete.getPlace());
+      const place = autocomplete.getPlace();
+      if (place) {
+        onPlaceSelected(place);
+      }
     });
 
     return () => {
@@ -110,11 +161,6 @@ function AddressAutocomplete({
         defaultValue={initialValue}
         className="pl-10 bg-white"
         placeholder="Search for an address"
-        onChange={(e) => {
-          if (!e.target.value) {
-            onPlaceSelected(null);
-          }
-        }}
       />
     </div>
   );
