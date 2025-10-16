@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { handleGetRecommendations } from '@/app/actions';
+import { handleGetRecommendations } from '@/app/actions/ai-actions';
 
 const AIRecommendations = () => {
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ const AIRecommendations = () => {
 
     const result = await handleGetRecommendations({ searchHistory, preferences });
 
-    if (result.error) {
+    if ('error' in result) {
       setError(result.error);
     } else if (result.recommendations) {
       setRecommendation(result.recommendations);

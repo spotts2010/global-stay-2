@@ -2,33 +2,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import {
-  getAccommodationRecommendations,
-  type AccommodationRecommendationsInput,
-  type AccommodationRecommendationsOutput,
-} from '@/ai/flows/accommodation-recommendations';
 import { getAdminDb } from '@/lib/firebaseAdmin';
 import type { Place, Accommodation, HeroImage, Currency, Address } from './lib/data';
 import type { BookableUnit } from '@/components/UnitsPageClient';
 import { FieldValue, UpdateData } from 'firebase-admin/firestore';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
-
-interface ActionResult extends Partial<AccommodationRecommendationsOutput> {
-  error?: string;
-}
-
-export async function handleGetRecommendations(
-  input: AccommodationRecommendationsInput
-): Promise<ActionResult> {
-  try {
-    const result = await getAccommodationRecommendations(input);
-    return result;
-  } catch (error) {
-    logger.error('Error getting recommendations:', error);
-    return { error: 'An unexpected error occurred. Please try again.' };
-  }
-}
 
 const addressSchema = z.object({
   formatted: z.string().optional(),

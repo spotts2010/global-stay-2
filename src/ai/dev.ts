@@ -1,4 +1,6 @@
 import { config } from 'dotenv';
-config();
+config({ path: '.env' });
+config({ path: '.env.local' });
 
-import '@/ai/flows/accommodation-recommendations.ts';
+// This now imports all flows and sets up Genkit
+import '@/ai/flows/accommodation-recommendations';
