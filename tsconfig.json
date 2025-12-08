@@ -30,6 +30,6 @@
     "src/types/**/*.d.ts",
     ".next/types/**/*.ts",
     "jest.setup.mjs"
-  ],
+, "next.config.js"  ],
   "exclude": ["node_modules"]
 }

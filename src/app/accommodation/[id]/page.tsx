@@ -12,8 +12,8 @@ import { BookableUnit } from '@/components/UnitsPageClient';
 import { use } from 'react';
 
 // This is now a SERVER component responsible for data fetching
-export default function AccommodationDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function AccommodationDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
 
   if (!id) {
     return <div>Error: Accommodation ID is missing.</div>;

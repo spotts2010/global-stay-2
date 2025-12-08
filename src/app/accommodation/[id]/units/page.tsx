@@ -16,10 +16,10 @@ export default function SelectUnitPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const { id } = use(params);
+  const { id } = params;
 
   if (!id) {
     return (

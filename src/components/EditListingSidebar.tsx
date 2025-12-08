@@ -21,7 +21,7 @@ import {
 } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { fetchAccommodationById } from '@/lib/firestore';
 import {
   Accordion,
@@ -59,7 +59,7 @@ export function EditListingSidebar({
   isCollapsed: boolean;
   toggleSidebar: () => void;
 }) {
-  const { id: listingId } = use(params);
+  const { id: listingId } = params;
   const searchParams = useSearchParams();
   const [listingName, setListingName] = useState('Edit Listing');
 

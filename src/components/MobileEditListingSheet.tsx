@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { PanelLeft, Package2, ArrowLeft } from '@/lib/icons';
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
@@ -20,7 +20,7 @@ import {
 export default function MobileEditListingSheet({ params }: { params: { id: string } }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { id: listingId } = use(params);
+  const { id: listingId } = params;
   const [isOpen, setIsOpen] = useState(false);
   const [_listingName, setListingName] = useState('Edit Listing');
   const [activeAccordion, setActiveAccordion] = useState<string[]>([]);

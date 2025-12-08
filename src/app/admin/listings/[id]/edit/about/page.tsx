@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { use } from 'react';
 
 // This is now a SERVER component responsible for data fetching
-export default function AboutPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function AboutPage({ params }: { params: { id: string } }) {
+  const { id } = params;
 
   if (!id) {
     return (

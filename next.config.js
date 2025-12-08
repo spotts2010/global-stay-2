@@ -1,9 +1,9 @@
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
-  turbopack: {
-    root: process.cwd(),
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    // TurboPack options removed because Next 14 handles this automatically
   },
+
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
 
@@ -15,10 +15,6 @@ const nextConfig: NextConfig = {
     'http://6000-firebase-studio-1753950960099.cluster-m7dwy2bmizezqukxkuxd55k5ka.cloudworkstations.dev',
     'https://6000-firebase-studio-1753950960099.cluster-m7dwy2bmizezqukxkuxd55k5ka.cloudworkstations.dev',
   ],
-
-  experimental: {
-    // devTools is no longer an experimental feature, so it is moved to the top level.
-  },
 
   images: {
     remotePatterns: [
@@ -38,4 +34,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
