@@ -55,3 +55,4 @@ firebase-emulators.log
 database_export/
 firestore.rules
 storage.rules
+.eslintcache
