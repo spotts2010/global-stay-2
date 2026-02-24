@@ -10,9 +10,10 @@ import type { BookableUnit } from '@/components/UnitsPageClient';
 export default async function OccupancyLayoutPage({
   params,
 }: {
-  params: { id: string; unitId: string };
+  params: Promise<{ id: string; unitId: string }>;
 }) {
-  const { id: listingId, unitId } = params;
+  const { id: listingId, unitId } = await params;
+
   if (!listingId || !unitId) {
     return (
       <Card>

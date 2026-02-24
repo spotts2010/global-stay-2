@@ -14,7 +14,7 @@ import {
   Accessibility,
 } from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
-import { Accommodation } from '@/lib/data';
+import type { Accommodation } from '@/lib/data';
 import {
   updateListingAccessibilityFeaturesAction,
   updateUnitAccessibilityFeaturesAction,
@@ -39,6 +39,13 @@ type AccessibilityFeatureItem = {
   category: string;
 };
 
+// ✅ Accommodation type currently doesn't declare these fields, but your Firestore data clearly has them.
+// Narrow locally (keeps blast radius small vs changing the global Accommodation type right now).
+type AccommodationWithAccessibility = Accommodation & {
+  accessibilityFeatures?: string[];
+  chargeableAccessibilityFeatures?: string[];
+};
+
 export default function AccessibilityPageClient({
   listing,
   unit,
@@ -56,12 +63,15 @@ export default function AccessibilityPageClient({
   const [searchTerm, setSearchTerm] = useState('');
   const isUnitPage = !!unit || unitId === 'new';
 
+  const listingAcc = listing as AccommodationWithAccessibility;
+
   const initialSelected = isUnitPage
     ? unit?.accessibilityFeatures || []
-    : listing.accessibilityFeatures || [];
+    : listingAcc.accessibilityFeatures || [];
+
   const initialChargeable = isUnitPage
     ? unit?.chargeableAccessibilityFeatures || []
-    : listing.chargeableAccessibilityFeatures || [];
+    : listingAcc.chargeableAccessibilityFeatures || [];
 
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>(initialSelected);
   const [chargeableFeatures, setChargeableFeatures] = useState<string[]>(initialChargeable);
@@ -109,15 +119,18 @@ export default function AccessibilityPageClient({
       if (result.success) {
         toast({
           title: 'Changes Saved',
-          description: `The accessibility features for the ${isUnitPage ? 'unit' : 'property'} have been updated.`,
+          description: `The accessibility features for the ${
+            isUnitPage ? 'unit' : 'property'
+          } have been updated.`,
         });
+
         // Update local state to match saved state
         if (isUnitPage && unit) {
           unit.accessibilityFeatures = selectedFeatures;
           unit.chargeableAccessibilityFeatures = chargeableFeatures;
         } else {
-          listing.accessibilityFeatures = selectedFeatures;
-          listing.chargeableAccessibilityFeatures = chargeableFeatures;
+          listingAcc.accessibilityFeatures = selectedFeatures;
+          listingAcc.chargeableAccessibilityFeatures = chargeableFeatures;
         }
       } else {
         toast({
@@ -155,7 +168,8 @@ export default function AccessibilityPageClient({
         <CardHeader>
           <CardTitle>Save Required</CardTitle>
           <CardDescription>
-            You must first save the unit's basic info before you can configure its accessibility.
+            You must first save the unit&apos;s basic info before you can configure its
+            accessibility.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -203,6 +217,7 @@ export default function AccessibilityPageClient({
           </Button>
         </div>
       </CardHeader>
+
       <CardContent>
         <div className="flex flex-col md:flex-row items-center gap-4">
           <div className="relative w-full md:w-auto md:flex-grow">

@@ -63,7 +63,11 @@ export default function UnitAccessibilityPage({
   }
 
   const allFeatures = use(fetchAccessibilityFeatures());
-  const privateFeatures = allFeatures.filter((feature) => feature.isPrivate);
+
+  type FeatureWithPrivateFlag = { isPrivate?: boolean };
+  const privateFeatures = allFeatures.filter(
+    (feature) => (feature as FeatureWithPrivateFlag).isPrivate === true
+  );
   const unitName = unit ? unit.name : unitId === 'new' ? 'New Unit' : 'Unit';
 
   return (

@@ -1,3 +1,4 @@
+// src/app/admin/listings/[id]/edit/units/[unitId]/layout.tsx
 'use client';
 
 import React from 'react';
@@ -6,14 +7,11 @@ import { EditUnitSidebar } from '@/components/EditUnitSidebar';
 import MobileEditUnitSheet from '@/components/MobileEditUnitSheet';
 import { useParams } from 'next/navigation';
 
-export default function EditUnitLayout({
-  children,
-}: {
-  children: React.ReactNode;
-  params: { id: string; unitId: string };
-}) {
+export default function EditUnitLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
-  // Use useParams hook which is stable in client components
+
+  // In a Client Component layout, useParams is the correct way to read dynamic segments.
+  // Do NOT type props.params here (Next 15 expects Promise params for server layouts/pages).
   const params = useParams<{ id: string; unitId: string }>();
 
   const unitName = params.unitId === 'new' ? 'New Unit' : `Edit Unit`;

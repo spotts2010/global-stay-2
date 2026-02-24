@@ -183,15 +183,11 @@ function MapView({
         style={{ width: '100%', height: '100%' }}
         defaultCenter={markerPosition || { lat: -26.65, lng: 153.09 }}
         defaultZoom={markerPosition ? 15 : 12}
-        gestureHandling={'auto'}
+        gestureHandling="auto"
         disableDefaultUI={false}
       >
         {markerPosition && (
-          <AdvancedMarker
-            position={markerPosition}
-            gmpDraggable
-            onDragEnd={onMarkerDragEnd}
-          ></AdvancedMarker>
+          <AdvancedMarker position={markerPosition} draggable onDragEnd={onMarkerDragEnd} />
         )}
       </Map>
     </div>
@@ -274,11 +270,24 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
     },
   });
 
-  const [markerPosition, setMarkerPosition] = useState<Position | null>(
-    listing.address?.lat && listing.address?.lng
-      ? { lat: listing.address.lat, lng: listing.address.lng }
-      : null
-  );
+  // ✅ listing.address is a union; one branch only has { formatted }.
+  // Narrow safely before reading lat/lng.
+  const [markerPosition, setMarkerPosition] = useState<Position | null>(() => {
+    const addr = listing?.address as unknown;
+
+    if (
+      addr &&
+      typeof addr === 'object' &&
+      'lat' in addr &&
+      'lng' in addr &&
+      typeof (addr as any).lat === 'number' &&
+      typeof (addr as any).lng === 'number'
+    ) {
+      return { lat: (addr as any).lat, lng: (addr as any).lng };
+    }
+
+    return null;
+  });
 
   const [tempMarkerPosition, setTempMarkerPosition] = useState<Position | null>(markerPosition);
 
@@ -286,13 +295,27 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
     if (!place) return;
 
     const structuredAddress = formatPlaceResult(place);
-    const { lat, lng, formatted } = structuredAddress;
 
-    if (lat && lng) {
-      const newPosition = { lat, lng };
+    const formatted =
+      structuredAddress && typeof structuredAddress === 'object' && 'formatted' in structuredAddress
+        ? (structuredAddress as any).formatted
+        : '';
+
+    const lat =
+      structuredAddress && typeof structuredAddress === 'object' && 'lat' in structuredAddress
+        ? (structuredAddress as any).lat
+        : undefined;
+
+    const lng =
+      structuredAddress && typeof structuredAddress === 'object' && 'lng' in structuredAddress
+        ? (structuredAddress as any).lng
+        : undefined;
+
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      const newPosition: Position = { lat, lng };
       setTempMarkerPosition(newPosition);
 
-      form.setValue('address', structuredAddress, { shouldDirty: true });
+      form.setValue('address', structuredAddress as any, { shouldDirty: true });
       form.setValue('location', formatted || '', { shouldDirty: true });
 
       setMapKey((prevKey) => prevKey + 1);
@@ -300,15 +323,17 @@ export default function AboutPageClient({ listing }: { listing: Accommodation })
   };
 
   const handleMarkerDragEnd = (e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
-      const newPosition = {
-        lat: e.latLng.lat(),
-        lng: e.latLng.lng(),
-      };
-      setTempMarkerPosition(newPosition);
-      form.setValue('address.lat', newPosition.lat, { shouldDirty: true });
-      form.setValue('address.lng', newPosition.lng, { shouldDirty: true });
-    }
+    const latLng = e.latLng;
+    if (!latLng) return;
+
+    const newPosition: Position = {
+      lat: latLng.lat(),
+      lng: latLng.lng(),
+    };
+
+    setTempMarkerPosition(newPosition);
+    form.setValue('address.lat', newPosition.lat, { shouldDirty: true });
+    form.setValue('address.lng', newPosition.lng, { shouldDirty: true });
   };
 
   const handleSave = (formData: PropertyFormValues) => {

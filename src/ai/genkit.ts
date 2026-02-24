@@ -1,4 +1,6 @@
-'use server';
+// src/ai/genkit.ts
+
+import 'server-only';
 
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';

@@ -1,8 +1,10 @@
+//src/lib/seedFirestore.ts
+
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' }); // Load .env variables
 
 import { getAdminDb } from './firebaseAdmin';
-import { collections as curatedCollectionsData } from './data';
+import { curatedCollectionsData } from './curated-collections';
 import type { Amenity, Currency, BedType, PropertyType } from './data';
 import placeholderImages from './placeholder-images.json';
 
@@ -726,13 +728,22 @@ async function clearCollection(db: FirebaseFirestore.Firestore, collectionName: 
  * @param destructive - If true, clears the collection before seeding.
  * @param idField - The field to use as the document ID. If not provided, Firestore auto-generates IDs.
  */
+
+function requireAdminDb() {
+  const db = getAdminDb();
+  if (!db) {
+    throw new Error('Firebase Admin DB not initialised (getAdminDb() returned null)');
+  }
+  return db;
+}
+
 async function seedCollection(
   collectionName: string,
   data: Record<string, unknown>[],
   destructive: boolean = false,
   idField?: string
 ) {
-  const db = getAdminDb();
+  const db = requireAdminDb();
   const collectionRef = db.collection(collectionName);
 
   if (destructive) {
@@ -746,6 +757,7 @@ async function seedCollection(
 
   for (const item of data) {
     let docRef;
+
     if (idField && item[idField]) {
       docRef = collectionRef.doc(item[idField] as string);
     } else if (item.id) {
@@ -757,6 +769,7 @@ async function seedCollection(
       console.warn('Skipping item without an ID:', item);
       continue;
     }
+
     batch.set(docRef, item, { merge: true });
     count++;
   }
@@ -769,7 +782,8 @@ async function seedCollection(
  * Main function to run all seeding operations.
  */
 async function seedAll() {
-  const db = getAdminDb();
+  const db = requireAdminDb();
+
   try {
     // Accommodations will be merged, not destroyed. This preserves manually uploaded images.
     await seedCollection('accommodations', accommodationsData, false, 'id');

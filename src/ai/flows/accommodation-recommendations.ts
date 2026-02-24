@@ -1,5 +1,6 @@
-'use server';
+// src/ai/flows/accommodation-recommendations.ts
 
+import 'server-only';
 /**
  * @fileOverview A personalized accommodation recommendation AI agent.
  *

@@ -1,12 +1,18 @@
 // src/app/admin/listings/[id]/edit/amenities/page.tsx
 import 'server-only';
+
 import AmenitiesPageClient from '@/components/AmenitiesPageClient';
 import { fetchAccommodationById, fetchSharedAmenities } from '@/lib/firestore.server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 
-export default async function AmenitiesPage({ params }: { params: { id: string } }) {
-  const listing = await fetchAccommodationById(params.id);
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function AmenitiesPage({ params }: PageProps) {
+  const { id } = await params;
+  const listing = await fetchAccommodationById(id);
 
   if (!listing) {
     return (

@@ -1,11 +1,18 @@
 // src/app/admin/listings/[id]/edit/units/page.tsx
 import 'server-only';
-import { fetchAccommodationById, fetchUnitsForAccommodation } from '@/lib/firestore.server';
+
 import UnitsPageClient from '@/components/UnitsPageClient';
+import { fetchAccommodationById, fetchUnitsForAccommodation } from '@/lib/firestore.server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default async function UnitsPage({ params }: { params: { id: string } }) {
-  if (!params.id) {
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function UnitsPage({ params }: PageProps) {
+  const { id } = await params;
+
+  if (!id) {
     return (
       <Card>
         <CardHeader>
@@ -18,7 +25,7 @@ export default async function UnitsPage({ params }: { params: { id: string } }) 
     );
   }
 
-  const listing = await fetchAccommodationById(params.id);
+  const listing = await fetchAccommodationById(id);
 
   if (!listing) {
     return (
@@ -34,7 +41,7 @@ export default async function UnitsPage({ params }: { params: { id: string } }) 
   }
 
   // Fetch the units from the subcollection
-  const units = await fetchUnitsForAccommodation(params.id);
+  const units = await fetchUnitsForAccommodation(id);
 
   return <UnitsPageClient listing={listing} initialUnits={units} />;
 }

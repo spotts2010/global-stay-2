@@ -1,13 +1,20 @@
 // src/app/admin/listings/[id]/edit/units/[unitId]/pricing/page.tsx
 import 'server-only';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { fetchAccommodationById, fetchUnitsForAccommodation } from '@/lib/firestore.server';
+
 import PricingPageClient from '@/components/PricingPageClient';
 import { BookableUnit } from '@/components/UnitsPageClient';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { fetchAccommodationById, fetchUnitsForAccommodation } from '@/lib/firestore.server';
 
-// This is now a SERVER component responsible for data fetching
-export default async function PricingPage({ params }: { params: { id: string; unitId: string } }) {
-  if (!params.id || !params.unitId) {
+type PageProps = {
+  params: Promise<{ id: string; unitId: string }>;
+};
+
+// SERVER component responsible for data fetching
+export default async function PricingPage({ params }: PageProps) {
+  const { id, unitId } = await params;
+
+  if (!id || !unitId) {
     return (
       <Card>
         <CardHeader>
@@ -20,7 +27,7 @@ export default async function PricingPage({ params }: { params: { id: string; un
     );
   }
 
-  const listing = await fetchAccommodationById(params.id);
+  const listing = await fetchAccommodationById(id);
 
   if (!listing) {
     return (
@@ -35,8 +42,8 @@ export default async function PricingPage({ params }: { params: { id: string; un
     );
   }
 
-  const units = await fetchUnitsForAccommodation(params.id);
-  const unit = units.find((u) => u.id === params.unitId);
+  const units = await fetchUnitsForAccommodation(id);
+  const unit = units.find((u) => u.id === unitId);
 
   if (!unit) {
     return (

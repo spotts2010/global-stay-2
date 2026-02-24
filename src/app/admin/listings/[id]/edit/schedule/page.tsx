@@ -1,11 +1,17 @@
 // src/app/admin/listings/[id]/edit/schedule/page.tsx
 import 'server-only';
+
 import SchedulePageClient from '@/components/SchedulePageClient';
 import { fetchAccommodationById } from '@/lib/firestore.server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default async function SchedulePage({ params }: { params: { id: string } }) {
-  const listing = await fetchAccommodationById(params.id);
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function SchedulePage({ params }: PageProps) {
+  const { id } = await params;
+  const listing = await fetchAccommodationById(id);
 
   if (!listing) {
     return (

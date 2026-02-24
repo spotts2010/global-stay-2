@@ -112,7 +112,7 @@ export default function UpcomingStaysPage() {
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<EnrichedBooking | null>(null);
   const [month, setMonth] = useState<Date | undefined>(undefined);
-  const [bookedDays, setBookedDays] = useState<({ from: Date; to: Date } | null)[]>([]);
+  const [bookedDays, setBookedDays] = useState<{ from: Date; to: Date }[]>([]);
   const [today, setToday] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -171,8 +171,10 @@ export default function UpcomingStaysPage() {
     }
   };
 
-  const bookedDaysModifier = { booked: bookedDays };
-  const todayModifier = today ? { today: today } : {};
+  const modifiers = {
+    booked: bookedDays,
+    ...(today ? { today } : {}),
+  };
 
   return (
     <>
@@ -212,10 +214,7 @@ export default function UpcomingStaysPage() {
                       onDayClick={handleDayClick}
                       month={month}
                       onMonthChange={setMonth}
-                      modifiers={{
-                        ...bookedDaysModifier,
-                        ...todayModifier,
-                      }}
+                      modifiers={modifiers}
                       modifiersClassNames={{
                         booked:
                           'bg-primary/90 text-primary-foreground rounded-md [&:not(.day-outside)]:bg-primary/90',

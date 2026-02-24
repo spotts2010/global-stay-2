@@ -1,14 +1,18 @@
 // src/app/admin/listings/[id]/edit/accessibility-features/page.tsx
 import 'server-only';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { fetchAccommodationById, fetchAccessibilityFeatures } from '@/lib/firestore.server';
+
 import AccessibilityPageClient from '@/components/AccessibilityPageClient';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { use } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { fetchAccessibilityFeatures, fetchAccommodationById } from '@/lib/firestore.server';
 
-export default function AccessibilityPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const listing = use(fetchAccommodationById(id));
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function AccessibilityPage({ params }: PageProps) {
+  const { id } = await params;
+  const listing = await fetchAccommodationById(id);
 
   if (!listing) {
     return (
@@ -24,8 +28,12 @@ export default function AccessibilityPage({ params }: { params: Promise<{ id: st
   }
 
   // Fetch master list and filter for ONLY shared features
-  const allFeatures = use(fetchAccessibilityFeatures());
-  const sharedFeatures = allFeatures.filter((feature) => feature.isShared);
+  const allFeatures = await fetchAccessibilityFeatures();
+
+  const sharedFeatures = allFeatures.filter(
+    (feature): feature is typeof feature & { isShared: boolean } =>
+      'isShared' in feature && feature.isShared === true
+  );
 
   return (
     <div className="space-y-6">

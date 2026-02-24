@@ -408,24 +408,43 @@ export default function AccommodationDetailClient({
             </div>
           </div>
 
-          {/* Location Section Separator */}
-          <Separator ref={mapRef} id="map-section" className="my-6 scroll-mt-20" />
-
           {/* Location & Map Section */}
           <div>
             <h2 className="font-headline text-2xl font-bold mb-4">Location</h2>
-            <div className="aspect-video rounded-lg overflow-hidden border">
-              <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
-                <GoogleMap
-                  mapId="DEMO_MAP_ID"
-                  defaultCenter={position}
-                  defaultZoom={15}
-                  gestureHandling="greedy"
-                >
-                  <AdvancedMarker position={position} />
-                </GoogleMap>
-              </APIProvider>
-            </div>
+
+            {/*
+              Create a narrowed center object so TS knows lat/lng are definitely numbers.
+              (TS will not reliably narrow the original `position` object inside JSX.)
+            */}
+            {(() => {
+              const hasKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
+              const center =
+                typeof position?.lat === 'number' && typeof position?.lng === 'number'
+                  ? ({ lat: position.lat, lng: position.lng } as const)
+                  : null;
+
+              return (
+                <div className="aspect-video rounded-lg overflow-hidden border">
+                  {hasKey && center ? (
+                    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
+                      <GoogleMap
+                        mapId="DEMO_MAP_ID"
+                        defaultCenter={center}
+                        defaultZoom={15}
+                        gestureHandling="greedy"
+                      >
+                        <AdvancedMarker position={center} />
+                      </GoogleMap>
+                    </APIProvider>
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">
+                      Map unavailable
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             <p className="text-sm text-muted-foreground mt-2">{fullLocation}</p>
           </div>
 

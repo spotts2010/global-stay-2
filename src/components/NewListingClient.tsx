@@ -153,6 +153,18 @@ function AddressAutocomplete({
   );
 }
 
+function hasLatLng(value: unknown): value is { formatted: string; lat: number; lng: number } {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    'formatted' in value &&
+    'lat' in value &&
+    'lng' in value &&
+    typeof (value as any).lat === 'number' &&
+    typeof (value as any).lng === 'number'
+  );
+}
+
 function MapView({
   markerPosition,
   onMarkerDragEnd,
@@ -170,15 +182,11 @@ function MapView({
         style={{ width: '100%', height: '100%' }}
         defaultCenter={markerPosition || { lat: -25.2744, lng: 133.7751 }}
         defaultZoom={markerPosition ? 15 : 4}
-        gestureHandling={'auto'}
+        gestureHandling="auto"
         disableDefaultUI={false}
       >
         {markerPosition && (
-          <AdvancedMarker
-            position={markerPosition}
-            gmpDraggable
-            onDragEnd={onMarkerDragEnd}
-          ></AdvancedMarker>
+          <AdvancedMarker position={markerPosition} draggable onDragEnd={onMarkerDragEnd} />
         )}
       </Map>
     </div>
@@ -207,15 +215,32 @@ export default function NewListingClient() {
 
   const handlePlaceSelected = (place: google.maps.places.PlaceResult | null) => {
     if (!place) return;
+
     const structuredAddress = formatPlaceResult(place);
-    const { lat, lng, formatted } = structuredAddress;
-    if (lat && lng) {
-      const newPosition = { lat, lng };
-      setMarkerPosition(newPosition);
-      form.setValue('address', structuredAddress, { shouldDirty: true });
-      form.setValue('location', formatted || '', { shouldDirty: true });
-      setMapKey((prevKey) => prevKey + 1);
+
+    // ✅ Narrow before reading lat/lng (formatPlaceResult returns a union)
+    if (!hasLatLng(structuredAddress)) {
+      // still set the formatted location if available
+      const formatted =
+        structuredAddress &&
+        typeof structuredAddress === 'object' &&
+        'formatted' in structuredAddress
+          ? String((structuredAddress as any).formatted ?? '')
+          : '';
+      form.setValue('location', formatted, { shouldDirty: true });
+      form.setValue('address', structuredAddress as any, { shouldDirty: true });
+      return;
     }
+
+    const { lat, lng, formatted } = structuredAddress;
+
+    const newPosition: Position = { lat, lng };
+    setMarkerPosition(newPosition);
+
+    form.setValue('address', structuredAddress as any, { shouldDirty: true });
+    form.setValue('location', formatted || '', { shouldDirty: true });
+
+    setMapKey((prevKey) => prevKey + 1);
   };
 
   const handleMarkerDragEnd = (e: google.maps.MapMouseEvent) => {

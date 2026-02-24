@@ -1,14 +1,18 @@
 // src/app/admin/listings/[id]/edit/about/page.tsx
 import 'server-only';
-import { fetchAccommodationById } from '@/lib/firestore.server';
-import AboutPageClient from '@/components/AboutPageClient';
-import type { Accommodation } from '@/lib/data';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { use } from 'react';
 
-// This is now a SERVER component responsible for data fetching
-export default function AboutPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+import AboutPageClient from '@/components/AboutPageClient';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Accommodation } from '@/lib/data';
+import { fetchAccommodationById } from '@/lib/firestore.server';
+
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+// SERVER component responsible for data fetching
+export default async function AboutPage({ params }: PageProps) {
+  const { id } = await params;
 
   if (!id) {
     return (
@@ -23,8 +27,7 @@ export default function AboutPage({ params }: { params: { id: string } }) {
     );
   }
 
-  // We need to await the fetch inside the component body now
-  const accommodationData = use(fetchAccommodationById(id));
+  const accommodationData = await fetchAccommodationById(id);
 
   if (!accommodationData) {
     return (

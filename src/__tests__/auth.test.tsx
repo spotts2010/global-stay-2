@@ -57,7 +57,11 @@ describe('Authentication Pages', () => {
         code: 'auth/wrong-password',
         message: 'Invalid credentials.',
         name: 'FirebaseError',
+        customData: {
+          appName: 'test', // ✅ required
+        },
       };
+
       mockSignInWithEmailAndPassword.mockRejectedValue(error);
 
       render(<LoginPage />);
@@ -115,6 +119,9 @@ describe('Authentication Pages', () => {
         code: 'auth/email-already-in-use',
         message: 'Email already exists.',
         name: 'FirebaseError',
+        customData: {
+          appName: 'test', // ✅ required
+        },
       };
       mockCreateUserWithEmailAndPassword.mockRejectedValue(error);
 

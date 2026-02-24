@@ -9,9 +9,11 @@ import { BookableUnit } from '@/components/UnitsPageClient';
 export default async function BasicInfoPage({
   params,
 }: {
-  params: { id: string; unitId: string };
+  params: Promise<{ id: string; unitId: string }>;
 }) {
-  if (!params.id || !params.unitId) {
+  const { id, unitId } = await params;
+
+  if (!id || !unitId) {
     return (
       <Card>
         <CardHeader>
@@ -24,7 +26,7 @@ export default async function BasicInfoPage({
     );
   }
 
-  const listing = await fetchAccommodationById(params.id);
+  const listing = await fetchAccommodationById(id);
 
   if (!listing) {
     return (
@@ -40,9 +42,9 @@ export default async function BasicInfoPage({
   }
 
   let unit: BookableUnit | undefined = undefined;
-  if (params.unitId !== 'new') {
-    const units = await fetchUnitsForAccommodation(params.id);
-    unit = units.find((u) => u.id === params.unitId);
+  if (unitId !== 'new') {
+    const units = await fetchUnitsForAccommodation(id);
+    unit = units.find((u) => u.id === unitId);
   }
 
   return <BasicInfoClient listing={listing} unit={unit} />;

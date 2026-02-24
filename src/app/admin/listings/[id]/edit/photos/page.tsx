@@ -7,13 +7,13 @@ import PhotosPageClient from '@/components/PhotosPageClient';
 import React from 'react';
 
 interface PhotosPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function PhotosPage({ params }: PhotosPageProps) {
-  const { id } = params;
+  const { id } = await params;
 
   // Early return if no ID
   if (!id) {

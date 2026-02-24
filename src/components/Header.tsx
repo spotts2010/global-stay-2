@@ -1,31 +1,32 @@
+// src/components/Header.tsx
 'use client';
 
 import Link from 'next/link';
+import React, { useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
+
 import {
-  Heart,
-  Hotel,
-  User,
-  Settings,
-  Dashboard,
-  LogOut,
-  Briefcase,
   ArrowLeft,
-  MailWarning,
-  Ticket,
+  Briefcase,
+  Dashboard,
+  Heart,
   Home,
+  Hotel,
   ListingsIcon,
+  LogOut,
+  Settings,
+  Ticket,
+  User,
 } from '@/lib/icons';
-import { Button } from './ui/button';
+
 import { useFavorites } from '@/context/FavoritesContext';
+import { useNotifications } from '@/context/NotificationsContext';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
+
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Button } from './ui/button';
+
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 import {
   Select,
   SelectContent,
@@ -43,17 +54,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { usePathname } from 'next/navigation';
-import { useNotifications } from '@/context/NotificationsContext';
-import { useUserPreferences } from '@/context/UserPreferencesContext';
-import React, { useState, useEffect } from 'react';
 
 const Header = () => {
   const { favorites } = useFavorites();
   const { unreadCount } = useNotifications();
   const { preferences, setPreferences } = useUserPreferences();
   const pathname = usePathname();
+
   // Placeholder for auth state
   const isLoggedIn = true;
   const user = {
@@ -62,12 +69,20 @@ const Header = () => {
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // ✅ Keep currency in sync with context
   const [tempCurrency, setTempCurrency] = useState(preferences.currency);
 
-  // Sync tempCurrency with context preferences when they change
   useEffect(() => {
     setTempCurrency(preferences.currency);
   }, [preferences.currency]);
+
+  // ✅ Keep Header aligned with app currency union (AUD/USD/GBP)
+  const HEADER_CURRENCIES = useMemo(() => ['AUD', 'USD', 'GBP'] as const, []);
+  type HeaderCurrency = (typeof HEADER_CURRENCIES)[number];
+
+  const isHeaderCurrency = (v: string): v is HeaderCurrency =>
+    (HEADER_CURRENCIES as readonly string[]).includes(v);
 
   const handleSettingsUpdate = () => {
     setPreferences({ currency: tempCurrency });
@@ -76,15 +91,13 @@ const Header = () => {
 
   // Mocked support ticket count for demonstration
   const supportTicketCount = 2;
-
   const totalUnreadCount = unreadCount + supportTicketCount;
 
-  const getInitials = (name: string) => {
-    return name
+  const getInitials = (name: string) =>
+    name
       .split(' ')
       .map((n) => n[0])
       .join('');
-  };
 
   const isAdminPage = pathname.startsWith('/admin');
   const isAccountPage = pathname.startsWith('/account');
@@ -101,9 +114,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-card">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-4">
-          <div className="sm:hidden">
-            {/* Mobile menu trigger for account pages will be injected here by the layout */}
-          </div>
+          <div className="sm:hidden">{/* Mobile menu injected by layout */}</div>
           <Link href="/" className="hidden sm:flex items-center gap-2">
             <Logo />
           </Link>
@@ -118,7 +129,7 @@ const Header = () => {
 
         <div className="flex flex-1 items-center justify-end gap-4">
           {isLoggedIn ? (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               {!isHomePage && !isAdminPage && !isAccountPage && (
                 <Button asChild variant="outline" size="sm" className="hidden sm:flex">
                   <Link href="/">
@@ -127,13 +138,9 @@ const Header = () => {
                   </Link>
                 </Button>
               )}
+
               {(isAdminPage || isAccountPage) && (
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-primary hover:text-black hidden sm:flex"
-                >
+                <Button asChild variant="outline" size="sm" className="hidden sm:flex">
                   <Link href="/">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Return to Site
@@ -150,6 +157,7 @@ const Header = () => {
                     <span>{preferences.currency}</span>
                   </div>
                 </DialogTrigger>
+
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Regional Settings</DialogTitle>
@@ -158,6 +166,7 @@ const Header = () => {
                       in your profile settings.
                     </DialogDescription>
                   </DialogHeader>
+
                   <div className="space-y-6 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="location" className="text-left col-span-1">
@@ -176,6 +185,7 @@ const Header = () => {
                         </Select>
                       </div>
                     </div>
+
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="language" className="text-left col-span-1">
                         Language
@@ -186,13 +196,12 @@ const Header = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="en-US">
-                              <div className="flex items-center gap-2">English - United States</div>
-                            </SelectItem>
+                            <SelectItem value="en-US">English - United States</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
+
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="currency" className="text-left col-span-1">
                         Currency
@@ -200,7 +209,9 @@ const Header = () => {
                       <div className="col-span-3">
                         <Select
                           value={tempCurrency}
-                          onValueChange={setTempCurrency}
+                          onValueChange={(v) => {
+                            if (isHeaderCurrency(v)) setTempCurrency(v);
+                          }}
                           name="currency"
                         >
                           <SelectTrigger>
@@ -210,135 +221,123 @@ const Header = () => {
                             <SelectItem value="AUD">AUD - Australia</SelectItem>
                             <SelectItem value="USD">USD - United States</SelectItem>
                             <SelectItem value="GBP">GBP - Great Britain</SelectItem>
-                            <SelectItem value="EUR">EUR - Euro</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
                   </div>
+
                   <DialogFooter className="sm:justify-start">
-                    <Button type="button" onClick={handleSettingsUpdate}>
-                      Update Settings
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                    <Button variant="outline" type="button" onClick={() => setIsModalOpen(false)}>
                       Cancel
+                    </Button>
+                    <Button type="button" onClick={handleSettingsUpdate}>
+                      Save
                     </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
 
+              {/* Favorites */}
+              <Button asChild variant="outline" size="sm" className="hidden sm:flex">
+                <Link href="/favorites" className="relative">
+                  <Heart className="mr-2 h-4 w-4" />
+                  Favorites
+                  {favorites?.length > 0 ? (
+                    <Badge className="ml-2" variant="secondary">
+                      {favorites.length}
+                    </Badge>
+                  ) : null}
+                </Link>
+              </Button>
+
+              {/* Notifications / Support */}
+              <Button asChild variant="outline" size="sm" className="hidden sm:flex">
+                <Link href="/account/notifications" className="relative">
+                  <Ticket className="mr-2 h-4 w-4" />
+                  Inbox
+                  {totalUnreadCount > 0 ? (
+                    <Badge className="ml-2" variant="secondary">
+                      {totalUnreadCount}
+                    </Badge>
+                  ) : null}
+                </Link>
+              </Button>
+
+              {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-10 w-10 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0"
-                  >
-                    <Avatar>
-                      <AvatarImage src={undefined} alt={user.name} />
+                  <Button variant="ghost" className="h-10 px-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="" alt={user.name} />
                       <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                     </Avatar>
-                    {totalUnreadCount > 0 && (
-                      <span className="absolute top-0 right-0 flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
-                      </span>
-                    )}
                   </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                    </div>
+                  <DropdownMenuLabel className="space-y-1">
+                    <div className="text-sm font-medium">{user.name}</div>
+                    <div className="text-xs text-muted-foreground">{user.email}</div>
                   </DropdownMenuLabel>
+
                   <DropdownMenuSeparator />
+
                   <DropdownMenuItem asChild>
                     <Link href="/account/profile">
                       <User className="mr-2 h-4 w-4" />
-                      <span>My Account</span>
+                      My Profile
                     </Link>
                   </DropdownMenuItem>
+
                   <DropdownMenuItem asChild>
-                    <Link href="/account/notifications/view">
-                      <MailWarning className="mr-2 h-4 w-4" />
-                      <span>Notifications</span>
-                      {unreadCount > 0 && (
-                        <Badge
-                          variant="destructive"
-                          className="ml-auto flex h-5 w-5 items-center justify-center p-0"
-                        >
-                          {unreadCount}
-                        </Badge>
-                      )}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/account/my-stays/upcoming">
-                      <Briefcase className="mr-2 h-4 w-4" />
-                      <span>My Stays</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/account/my-stays/favorites">
-                      <Heart className="mr-2 h-4 w-4" />
-                      <span>Saved Places</span>
-                      {favorites.length > 0 && (
-                        <Badge
-                          variant="destructive"
-                          className="ml-auto flex h-5 w-5 items-center justify-center p-0"
-                        >
-                          {favorites.length}
-                        </Badge>
-                      )}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/account/support/tickets">
-                      <Ticket className="mr-2 h-4 w-4" />
-                      <span>Support Tickets</span>
-                      {supportTicketCount > 0 && (
-                        <Badge
-                          variant="destructive"
-                          className="ml-auto flex h-5 w-5 items-center justify-center p-0"
-                        >
-                          {supportTicketCount}
-                        </Badge>
-                      )}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/account/settings">
+                    <Link href="/account/preferences/currency-language">
                       <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
+                      Preferences
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Creator & Admin</DropdownMenuLabel>
+
                   <DropdownMenuItem asChild>
-                    <Link href="/admin/dashboard">
+                    <Link href="/account">
                       <Dashboard className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
+                      Dashboard
                     </Link>
                   </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin">
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      Admin
+                    </Link>
+                  </DropdownMenuItem>
+
                   <DropdownMenuItem asChild>
                     <Link href="/admin/listings">
                       <ListingsIcon className="mr-2 h-4 w-4" />
-                      <span>Manage Listings</span>
+                      Listings
                     </Link>
                   </DropdownMenuItem>
+
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
+                    Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           ) : (
-            <Button asChild>
-              <Link href="/login">Login</Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline">
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/signup">Sign up</Link>
+              </Button>
+            </div>
           )}
         </div>
       </div>

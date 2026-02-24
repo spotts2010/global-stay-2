@@ -1,4 +1,7 @@
+// src/app/account/settings/page.tsx
 'use client';
+
+import React from 'react';
 
 import {
   Accordion,
@@ -30,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   MessageSquareWarning,
   CheckCircle2,
@@ -45,8 +49,6 @@ import {
   FaApple,
   FaFacebook,
 } from '@/lib/icons';
-import React from 'react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Provider = {
   name: string;
@@ -68,6 +70,7 @@ type Device = {
   location: string;
   lastSeen: string;
 };
+
 const devices: Device[] = [
   {
     id: '1',
@@ -85,24 +88,25 @@ const devices: Device[] = [
   },
 ];
 
-type LoginEvent = {
+type LoginEntry = {
   id: string;
   date: string;
   ip: string;
   location: string;
   device: string;
 };
-const loginHistory: LoginEvent[] = [
+
+const loginHistory: LoginEntry[] = [
   {
     id: '1',
-    date: '24/05/2024 10:30 AM',
+    date: '2024-07-25 14:30',
     ip: '192.168.1.1',
     location: 'Maroochydore, QLD',
     device: 'Chrome on macOS',
   },
   {
     id: '2',
-    date: '22/05/2024 08:15 PM',
+    date: '2024-07-24 21:15',
     ip: '203.0.113.25',
     location: 'Sydney, NSW',
     device: 'iPhone 15 Pro',
@@ -125,6 +129,7 @@ const ProviderRow = ({ provider }: { provider: Provider }) => (
         )}
       </div>
     </div>
+
     {provider.connected ? (
       <Button variant="outline">
         <LinkIcon className="mr-2 h-4 w-4" />
@@ -142,6 +147,7 @@ const ProviderRow = ({ provider }: { provider: Provider }) => (
 const DeviceRow = ({ device }: { device: Device }) => {
   const DeviceIcon =
     device.type === 'laptop' ? Laptop : device.type === 'phone' ? Smartphone : Tablet;
+
   return (
     <div className="flex items-center justify-between rounded-lg border bg-card p-4">
       <div className="flex items-center gap-4">
@@ -165,7 +171,7 @@ export default function SecuritySettingsPage() {
     <Card>
       <CardHeader>
         <div className="space-y-1.5">
-          <CardTitle className="font-headline text-2xl flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 font-headline text-2xl">
             <Shield className="h-6 w-6 text-primary" />
             Security Settings
           </CardTitle>
@@ -174,32 +180,37 @@ export default function SecuritySettingsPage() {
           </CardDescription>
         </div>
       </CardHeader>
+
       <CardContent>
         <Accordion type="single" collapsible className="w-full space-y-4">
           {/* Change Password */}
           <AccordionItem
             value="item-1"
-            className="p-4 bg-background border rounded-lg hover:bg-accent/50"
+            className="rounded-lg border bg-background p-4 hover:bg-accent/50"
           >
             <AccordionTrigger className="text-lg font-semibold hover:no-underline">
               Change Password
             </AccordionTrigger>
             <AccordionContent className="space-y-4 pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="current-password">Current Password</Label>
                   <Input id="current-password" type="password" className="bg-card" />
                 </div>
+
                 <div />
+
                 <div className="space-y-2">
                   <Label htmlFor="new-password">New Password</Label>
                   <Input id="new-password" type="password" className="bg-card" />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password">Confirm New Password</Label>
                   <Input id="confirm-password" type="password" className="bg-card" />
                 </div>
               </div>
+
               <Button>
                 <Lock className="mr-2 h-4 w-4" />
                 Change Password
@@ -210,15 +221,16 @@ export default function SecuritySettingsPage() {
           {/* Sign-in Methods */}
           <AccordionItem
             value="item-2"
-            className="p-4 bg-background border rounded-lg hover:bg-accent/50"
+            className="rounded-lg border bg-background p-4 hover:bg-accent/50"
           >
             <AccordionTrigger className="text-lg font-semibold hover:no-underline">
               Sign-in Methods
             </AccordionTrigger>
             <AccordionContent className="space-y-4 pt-4">
-              <p className="text-sm text-muted-foreground -mt-2">
+              <p className="-mt-2 text-sm text-muted-foreground">
                 Manage the accounts you use to sign in. You must have at least one sign-in method.
               </p>
+
               {providers.map((p) => (
                 <ProviderRow key={p.name} provider={p} />
               ))}
@@ -228,7 +240,7 @@ export default function SecuritySettingsPage() {
           {/* Two-Factor Authentication */}
           <AccordionItem
             value="item-3"
-            className="p-4 bg-background border rounded-lg hover:bg-accent/50"
+            className="rounded-lg border bg-background p-4 hover:bg-accent/50"
           >
             <AccordionTrigger className="text-lg font-semibold hover:no-underline">
               Two-Factor Authentication (2FA)
@@ -243,6 +255,7 @@ export default function SecuritySettingsPage() {
                 </div>
                 <Switch disabled />
               </div>
+
               <div className="flex items-center justify-between rounded-lg border bg-card p-4">
                 <div>
                   <p className="font-semibold">Enable SMS Verification</p>
@@ -252,11 +265,12 @@ export default function SecuritySettingsPage() {
                 </div>
                 <Switch />
               </div>
+
               <div className="flex items-center justify-between rounded-lg border bg-card p-4">
                 <div>
                   <p className="font-semibold">Enable Email Verification</p>
                   <p className="text-sm text-muted-foreground">
-                    Receive a code to your email to verify it's you.
+                    Receive a code to your email to verify it&apos;s you.
                   </p>
                 </div>
                 <Switch />
@@ -267,7 +281,7 @@ export default function SecuritySettingsPage() {
           {/* Connected Devices */}
           <AccordionItem
             value="item-4"
-            className="p-4 bg-background border rounded-lg hover:bg-accent/50"
+            className="rounded-lg border bg-background p-4 hover:bg-accent/50"
           >
             <AccordionTrigger className="text-lg font-semibold hover:no-underline">
               Connected Devices
@@ -276,12 +290,14 @@ export default function SecuritySettingsPage() {
               {devices.map((d) => (
                 <DeviceRow key={d.id} device={d} />
               ))}
+
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button>
                     Log out of all devices <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
                 </AlertDialogTrigger>
+
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -290,6 +306,7 @@ export default function SecuritySettingsPage() {
                       will need to sign in again on each device.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
+
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction>Confirm</AlertDialogAction>
@@ -302,23 +319,25 @@ export default function SecuritySettingsPage() {
           {/* Login History */}
           <AccordionItem
             value="item-5"
-            className="p-4 bg-background border rounded-lg hover:bg-accent/50"
+            className="rounded-lg border bg-background p-4 hover:bg-accent/50"
           >
             <AccordionTrigger className="text-lg font-semibold hover:no-underline">
               Login History
             </AccordionTrigger>
+
             <AccordionContent className="pt-4">
-              <div className="border rounded-lg bg-card">
+              <div className="rounded-lg border bg-card">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="font-bold">Date</TableHead>
                       <TableHead className="font-bold">IP Address</TableHead>
-                      <TableHead className="hidden md:table-cell font-bold">Location</TableHead>
+                      <TableHead className="hidden font-bold md:table-cell">Location</TableHead>
                       <TableHead className="font-bold">Device</TableHead>
                       <TableHead className="text-right font-bold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
+
                   <TableBody>
                     {loginHistory.map((login) => (
                       <TableRow key={login.id}>

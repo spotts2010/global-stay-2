@@ -2,8 +2,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getAdminDb } from '@/lib/firebaseAdmin';
-import type { Place, Accommodation, HeroImage, Currency, Address } from './lib/data';
+import { requireAdminDb } from '@/lib/firebaseAdmin';
+import type { Place, Accommodation, HeroImage, Currency, Address } from '@/lib/data';
 import type { BookableUnit } from '@/components/UnitsPageClient';
 import { FieldValue, UpdateData } from 'firebase-admin/firestore';
 import { logger } from '@/lib/logger';
@@ -37,11 +37,15 @@ export async function createListingAction(
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
     const validatedData = newPropertySchema.parse(data);
-    const db = getAdminDb();
+
+    const db = requireAdminDb();
     const newDocRef = db.collection('accommodations').doc();
 
+    // ✅ Omit `address` from the object we write (it doesn't match your strict `Address` type)
+    const { address, ...rest } = validatedData;
+
     const newListingData: Partial<Accommodation> = {
-      ...validatedData,
+      ...rest,
       status: 'Draft',
       slug: `${validatedData.name.toLowerCase().replace(/\s+/g, '-')}-${newDocRef.id.slice(0, 5)}`,
       lastModified: new Date(),
@@ -49,20 +53,21 @@ export async function createListingAction(
       reviewsCount: 0,
       images: [],
       price: 0,
-      currency: 'USD', // Default currency
-      bookingType: 'room', // Default booking type
+      currency: 'USD',
+      bookingType: 'room',
     };
 
-    if (validatedData.address) {
-      newListingData.lat = validatedData.address.lat;
-      newListingData.lng = validatedData.address.lng;
-      newListingData.city = validatedData.address.city;
-      newListingData.state = validatedData.address.state?.long;
-      newListingData.country = validatedData.address.country?.long;
-      newListingData.location = validatedData.address.formatted;
+    if (address) {
+      newListingData.lat = address.lat;
+      newListingData.lng = address.lng;
+      newListingData.city = address.city;
+      newListingData.state = address.state?.long;
+      newListingData.country = address.country?.long;
+      newListingData.location = address.formatted;
     }
 
     await newDocRef.set(newListingData);
+
     revalidatePath('/admin/listings');
     return { success: true, id: newDocRef.id };
   } catch (error) {
@@ -80,37 +85,44 @@ export async function updateAccommodationAction(
   if (!id) {
     return { success: false, error: 'Accommodation ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const accommodationRef = db.collection('accommodations').doc(id);
 
   try {
-    const dataToUpdate: UpdateData = { ...accommodationData };
+    // ✅ Keep patch as plain Accommodation fields only (no FieldValue on typed fields)
+    const patch: Partial<Accommodation> = {
+      ...accommodationData,
+    };
 
     // Ensure image is set to the first of the images array, or empty string
-    if (dataToUpdate.images) {
-      dataToUpdate.image = dataToUpdate.images[0] || '';
+    if (Array.isArray(patch.images)) {
+      patch.image = patch.images[0] ?? '';
     }
 
     // Handle nested address object
-    if (dataToUpdate.address) {
-      // The address object is now saved directly, no need to flatten.
-      // But we will still flatten some top-level fields for backwards compatibility and easy querying.
-      dataToUpdate.lat = dataToUpdate.address.lat;
-      dataToUpdate.lng = dataToUpdate.address.lng;
-      dataToUpdate.city = dataToUpdate.address.city;
-      dataToUpdate.state = dataToUpdate.address.state?.long; // Use long name
-      dataToUpdate.country = dataToUpdate.address.country?.long; // Use long name
-      dataToUpdate.location = dataToUpdate.address.formatted;
+    if (patch.address) {
+      patch.lat = patch.address.lat;
+      patch.lng = patch.address.lng;
+      patch.city = patch.address.city;
+      patch.state = patch.address.state?.long;
+      patch.country = patch.address.country?.long;
+      patch.location = patch.address.formatted;
     }
 
-    await accommodationRef.update({ ...dataToUpdate, lastModified: FieldValue.serverTimestamp() });
+    // ✅ Apply server timestamp separately so it doesn't conflict with `lastModified: Date`
+    const updatePayload: UpdateData<Accommodation> = {
+      ...(patch as UpdateData<Accommodation>),
+      lastModified: FieldValue.serverTimestamp(),
+    };
 
-    // Revalidate all relevant paths
+    await accommodationRef.update(updatePayload);
+
     revalidatePath(`/admin/listings/${id}/edit/about`);
     revalidatePath(`/admin/listings/${id}/edit/photos`);
     revalidatePath(`/admin/listings`);
     revalidatePath(`/accommodation/${id}`);
-    revalidatePath('/'); // Revalidate home page in case it's featured
+    revalidatePath(`/`);
 
     return { success: true };
   } catch (error) {
@@ -126,7 +138,8 @@ export async function duplicateListingAction(
   if (!listingId) {
     return { success: false, error: 'Listing ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const sourceListingRef = db.collection('accommodations').doc(listingId);
 
   try {
@@ -151,24 +164,20 @@ export async function duplicateListingAction(
     delete (newListingData as Partial<Accommodation>).units;
     delete (newListingData as Partial<Accommodation>).unitsCount;
 
-    // Start a batch write
     const batch = db.batch();
     batch.set(newListingRef, newListingData);
 
-    // Now, fetch and copy the units subcollection
     const unitsSnapshot = await sourceListingRef.collection('units').get();
     if (!unitsSnapshot.empty) {
       const newUnitsCollectionRef = newListingRef.collection('units');
       unitsSnapshot.forEach((unitDoc) => {
-        const newUnitRef = newUnitsCollectionRef.doc(); // Let Firestore generate new IDs for units
+        const newUnitRef = newUnitsCollectionRef.doc();
         batch.set(newUnitRef, unitDoc.data());
       });
     }
 
-    // Commit the batch to save the new listing and all its units atomically
     await batch.commit();
 
-    // Revalidate the listings page to show the new draft
     revalidatePath('/admin/listings');
 
     return { success: true };
@@ -187,7 +196,7 @@ export async function deleteListingAction(
     return { success: false, error: 'Listing ID is missing.' };
   }
 
-  const db = getAdminDb();
+  const db = requireAdminDb();
   const listingRef = db.collection('accommodations').doc(listingId);
 
   try {
@@ -196,12 +205,8 @@ export async function deleteListingAction(
       return { success: false, error: 'Listing not found.' };
     }
 
-    // The status check was removed to allow deletion of draft listings.
-    // In a real app, you'd also check if it has any associated booking history.
-
     await listingRef.delete();
 
-    // Revalidate paths to reflect the deletion
     revalidatePath('/admin/listings');
     revalidatePath('/');
 
@@ -221,15 +226,23 @@ export async function updateAccommodationPoliciesAction(
   if (!id) {
     return { success: false, error: 'Accommodation ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const accommodationRef = db.collection('accommodations').doc(id);
 
   try {
-    await accommodationRef.update({
+    const patch: Pick<Accommodation, 'paymentTerms' | 'cancellationPolicy' | 'houseRules'> & {
+      lastModified: unknown;
+    } = {
       ...policiesData,
       lastModified: FieldValue.serverTimestamp(),
-    });
+    };
+
+    await accommodationRef.update(patch as UpdateData<Accommodation>);
+
     revalidatePath(`/admin/listings/${id}/edit/property-policies`);
+    revalidatePath(`/accommodation/${id}`);
+
     return { success: true };
   } catch (error) {
     logger.error(`Error updating policies for accommodation ${id}:`, error);
@@ -246,7 +259,8 @@ export async function updatePointsOfInterestAction(
   if (!accommodationId) {
     return { success: false, error: 'Accommodation ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const accommodationRef = db.collection('accommodations').doc(accommodationId);
   const poiCollectionRef = accommodationRef.collection('pointsOfInterest');
 
@@ -254,17 +268,30 @@ export async function updatePointsOfInterestAction(
     const batch = db.batch();
     const existingPoisSnapshot = await poiCollectionRef.get();
 
-    // Delete old POIs
     existingPoisSnapshot.docs.forEach((doc) => batch.delete(doc.ref));
 
-    // Add new POIs
     pointsOfInterestData.forEach((place) => {
-      // Create a plain object without any complex types (like geometry)
+      // Keep POI docs "plain" for Firestore writes (avoid complex nested types)
       const { id, name, address, category, source, visible, distance, lat, lng } = place;
-      const newPoiData = { name, address, category, source, visible, distance, lat, lng };
+
+      const newPoiData: Partial<Place> = {
+        name,
+        address,
+        category,
+        source,
+        visible,
+        distance,
+        lat,
+        lng,
+      };
 
       const newPoiDocRef = poiCollectionRef.doc(id);
       batch.set(newPoiDocRef, newPoiData);
+    });
+
+    // Also bump parent lastModified so list/detail views update predictably
+    batch.update(accommodationRef, {
+      lastModified: FieldValue.serverTimestamp(),
     });
 
     await batch.commit();
@@ -287,13 +314,16 @@ export async function updateAccommodationStatusAction(
   if (!id) {
     return { success: false, error: 'Accommodation ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const accommodationRef = db.collection('accommodations').doc(id);
 
   try {
-    await accommodationRef.update({ status: status, lastModified: FieldValue.serverTimestamp() });
+    await accommodationRef.update({
+      status,
+      lastModified: FieldValue.serverTimestamp(),
+    } as UpdateData<Accommodation>);
 
-    // Revalidate paths to update cached data
     revalidatePath('/admin/listings');
     revalidatePath(`/admin/listings/${id}`);
     revalidatePath(`/accommodation/${id}`);
@@ -313,13 +343,14 @@ export async function addBedTypeAction(bedType: {
   systemId: string;
   sleeps: number | null;
 }): Promise<{ success: boolean; id?: string; error?: string }> {
-  const db = getAdminDb();
+  const db = requireAdminDb();
+
   try {
-    // Check for duplicates by name or systemId
     const nameQuery = await db.collection('bedTypes').where('name', '==', bedType.name).get();
     if (!nameQuery.empty) {
       return { success: false, error: 'A bed type with this name already exists.' };
     }
+
     const systemIdQuery = await db
       .collection('bedTypes')
       .where('systemId', '==', bedType.systemId)
@@ -343,7 +374,9 @@ export async function deleteBedTypeAction(
   if (!id) {
     return { success: false, error: 'Bed type ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
+
   try {
     await db.collection('bedTypes').doc(id).delete();
     revalidatePath('/admin/bed-types');
@@ -358,7 +391,8 @@ export async function deleteBedTypeAction(
 export async function updateHeroImagesAction(
   images: HeroImage[]
 ): Promise<{ success: boolean; error?: string }> {
-  const db = getAdminDb();
+  const db = requireAdminDb();
+
   try {
     const settingsRef = db.collection('siteSettings').doc('homePage');
     await settingsRef.set({ heroImages: images }, { merge: true });
@@ -387,7 +421,7 @@ async function updateMasterList(
   collectionName: 'sharedAmenities' | 'privateInclusions' | 'accessibilityFeatures',
   items: AmenityItem[] | AccessibilityItem[]
 ): Promise<{ success: boolean; error?: string }> {
-  const db = getAdminDb();
+  const db = requireAdminDb();
   const collectionRef = db.collection(collectionName);
 
   try {
@@ -400,18 +434,20 @@ async function updateMasterList(
         logger.warn('Skipping item with empty systemTag:', item);
         return;
       }
+
       const docRef = collectionRef.doc(item.systemTag);
 
-      // Use a type assertion to satisfy TypeScript
-      const dataToSet: { [key: string]: string | boolean } = {
+      // Shared base fields
+      const dataToSet: Record<string, string | boolean> = {
         label: item.label,
         category: item.category,
       };
 
       // Specific handling for accessibility features
-      if (collectionName === 'accessibilityFeatures' && 'isShared' in item && 'isPrivate' in item) {
-        dataToSet.isShared = item.isShared ?? false;
-        dataToSet.isPrivate = item.isPrivate ?? true;
+      if (collectionName === 'accessibilityFeatures') {
+        const accItem = item as AccessibilityItem;
+        dataToSet.isShared = accItem.isShared ?? false;
+        dataToSet.isPrivate = accItem.isPrivate ?? true;
       }
 
       batch.set(docRef, dataToSet);
@@ -421,6 +457,7 @@ async function updateMasterList(
 
     revalidatePath('/admin/amenities');
     revalidatePath('/admin/accessibility-features');
+
     return { success: true };
   } catch (error) {
     logger.error(`Error updating ${collectionName} with Admin SDK:`, error);
@@ -456,7 +493,8 @@ export async function updateListingSharedAmenitiesAction(
   if (!listingId) {
     return { success: false, error: 'Listing ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const listingRef = db.collection('accommodations').doc(listingId);
 
   try {
@@ -464,9 +502,11 @@ export async function updateListingSharedAmenitiesAction(
       amenities: amenityIds,
       chargeableAmenities: chargeableAmenityIds,
       lastModified: FieldValue.serverTimestamp(),
-    });
+    } as UpdateData<Accommodation>);
+
     revalidatePath(`/admin/listings/${listingId}/edit/amenities`);
     revalidatePath(`/accommodation/${listingId}`);
+
     return { success: true };
   } catch (error) {
     logger.error(`Error updating shared amenities for listing ${listingId}:`, error);
@@ -484,7 +524,8 @@ export async function updateListingAccessibilityFeaturesAction(
   if (!listingId) {
     return { success: false, error: 'Listing ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const listingRef = db.collection('accommodations').doc(listingId);
 
   try {
@@ -492,9 +533,11 @@ export async function updateListingAccessibilityFeaturesAction(
       accessibilityFeatures: featureIds,
       chargeableAccessibilityFeatures: chargeableFeatureIds,
       lastModified: FieldValue.serverTimestamp(),
-    });
+    } as UpdateData<Accommodation>);
+
     revalidatePath(`/admin/listings/${listingId}/edit/accessibility-features`);
     revalidatePath(`/accommodation/${listingId}`);
+
     return { success: true };
   } catch (error) {
     logger.error(`Error updating accessibility features for listing ${listingId}:`, error);
@@ -513,7 +556,8 @@ export async function updateUnitInclusionsAction(
   if (!listingId || !unitId) {
     return { success: false, error: 'Listing ID or Unit ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const unitRef = db.collection('accommodations').doc(listingId).collection('units').doc(unitId);
 
   try {
@@ -521,8 +565,10 @@ export async function updateUnitInclusionsAction(
       inclusions: inclusionIds,
       chargeableInclusions: chargeableInclusionIds,
     });
+
     revalidatePath(`/admin/listings/${listingId}/edit/units/${unitId}/inclusions`);
     revalidatePath(`/accommodation/${listingId}`);
+
     return { success: true };
   } catch (error) {
     logger.error(`Error updating inclusions for unit ${unitId}:`, error);
@@ -541,15 +587,19 @@ export async function updateUnitAccessibilityFeaturesAction(
   if (!listingId || !unitId) {
     return { success: false, error: 'Listing or Unit ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const unitRef = db.collection('accommodations').doc(listingId).collection('units').doc(unitId);
+
   try {
     await unitRef.update({
       accessibilityFeatures: featureIds,
       chargeableAccessibilityFeatures: chargeableFeatureIds,
     });
+
     revalidatePath(`/admin/listings/${listingId}/edit/units/${unitId}/accessibility-features`);
     revalidatePath(`/accommodation/${listingId}`);
+
     return { success: true };
   } catch (error) {
     logger.error(`Error updating accessibility features for unit ${unitId}:`, error);
@@ -563,14 +613,17 @@ export async function updateUnitAccessibilityFeaturesAction(
 export async function addPropertyTypeAction(
   name: string
 ): Promise<{ success: boolean; id?: string; error?: string }> {
-  const db = getAdminDb();
+  const db = requireAdminDb();
+
   try {
     const query = await db.collection('propertyTypes').where('name', '==', name).get();
     if (!query.empty) {
       return { success: false, error: 'A property type with this name already exists.' };
     }
+
     const docRef = await db.collection('propertyTypes').add({ name });
     revalidatePath('/admin/property-types');
+
     return { success: true, id: docRef.id };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
@@ -582,14 +635,18 @@ export async function updatePropertyTypeAction(
   id: string,
   name: string
 ): Promise<{ success: boolean; error?: string }> {
-  const db = getAdminDb();
+  const db = requireAdminDb();
+
   try {
     const query = await db.collection('propertyTypes').where('name', '==', name).limit(1).get();
     if (!query.empty && query.docs[0].id !== id) {
       return { success: false, error: 'Another property type with this name already exists.' };
     }
+
     await db.collection('propertyTypes').doc(id).update({ name });
+
     revalidatePath('/admin/property-types');
+
     return { success: true };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
@@ -603,10 +660,14 @@ export async function deletePropertyTypeAction(
   if (!id) {
     return { success: false, error: 'Property type ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
+
   try {
     await db.collection('propertyTypes').doc(id).delete();
+
     revalidatePath('/admin/property-types');
+
     return { success: true };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
@@ -623,19 +684,18 @@ export async function updateUnitsAction(
   if (!listingId) {
     return { success: false, error: 'Listing ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const unitsCollectionRef = db.collection('accommodations').doc(listingId).collection('units');
 
   try {
     const batch = db.batch();
     const existingUnitsSnapshot = await unitsCollectionRef.get();
 
-    // Delete all existing units
     existingUnitsSnapshot.docs.forEach((doc) => {
       batch.delete(doc.ref);
     });
 
-    // Add the new set of units
     units.forEach((unit) => {
       const { id, ...unitData } = unit;
       const unitRef = unitsCollectionRef.doc(id);
@@ -643,7 +703,10 @@ export async function updateUnitsAction(
     });
 
     await batch.commit();
+
     revalidatePath(`/admin/listings/${listingId}/edit/units`);
+    revalidatePath(`/accommodation/${listingId}`);
+
     return { success: true };
   } catch (error) {
     logger.error('Error updating units:', error);
@@ -659,7 +722,8 @@ export async function duplicateUnitAction(
   if (!listingId || !sourceUnitId) {
     return { success: false, error: 'Listing or Source Unit ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const unitsCollection = db.collection('accommodations').doc(listingId).collection('units');
   const sourceUnitRef = unitsCollection.doc(sourceUnitId);
 
@@ -672,16 +736,17 @@ export async function duplicateUnitAction(
     const sourceData = sourceUnitSnap.data() as BookableUnit;
 
     const newUnitRef = unitsCollection.doc();
-    const newUnitData = {
+    const newUnitData: Partial<BookableUnit> = {
       ...sourceData,
-      name: `${sourceData.name || 'Unit'} (Copy)`, // Ensure there's a base name
-      unitRef: '', // Blank ref, to be filled in by user
+      name: `${sourceData.name || 'Unit'} (Copy)`,
+      unitRef: '',
       status: 'Draft' as const,
     };
 
     await newUnitRef.set(newUnitData);
 
     revalidatePath(`/admin/listings/${listingId}/edit/units`);
+    revalidatePath(`/accommodation/${listingId}`);
 
     return { success: true, newUnitId: newUnitRef.id };
   } catch (error) {
@@ -699,27 +764,38 @@ export async function updateUnitAction(
   if (!listingId || !unitId) {
     return { success: false, error: 'Listing or Unit ID is missing.' };
   }
-  const db = getAdminDb();
+
+  const db = requireAdminDb();
   const listingRef = db.collection('accommodations').doc(listingId);
   const unitsCollection = listingRef.collection('units');
 
   try {
     if (unitData.currency) {
-      await listingRef.update({ currency: unitData.currency });
+      await listingRef.update({ currency: unitData.currency } as UpdateData<Accommodation>);
     }
 
     const { currency: _currency, ...unitSpecificData } = unitData;
+
     let finalUnitId = unitId;
-    let unitRef;
 
     if (unitId === 'new') {
-      unitRef = unitsCollection.doc();
+      const unitRef = unitsCollection.doc();
       finalUnitId = unitRef.id;
-      const dataToSet = { status: 'Draft', ...unitSpecificData };
+
+      // ✅ Ensure we never carry through a non-Draft status from client data
+      const { status: _status, ...unitSpecificDataNoStatus } = unitSpecificData as Partial<
+        Omit<BookableUnit, 'id'>
+      >;
+
+      const dataToSet: Partial<Omit<BookableUnit, 'id'>> = {
+        ...unitSpecificDataNoStatus,
+        status: 'Draft',
+      };
+
       await unitRef.set(dataToSet);
     } else if (Object.keys(unitSpecificData).length > 0) {
-      unitRef = unitsCollection.doc(unitId);
-      await unitRef.update(unitSpecificData as UpdateData);
+      const unitRef = unitsCollection.doc(unitId);
+      await unitRef.update(unitSpecificData as UpdateData<Omit<BookableUnit, 'id'>>);
     }
 
     revalidatePath('/admin/listings');
@@ -742,22 +818,19 @@ export async function updateLegalPageAction(
   pageId: 'terms-and-conditions' | 'privacy-policy',
   data: { content: string; versionNote?: string }
 ): Promise<{ success: boolean; error?: string }> {
-  const db = getAdminDb();
+  const db = requireAdminDb();
   const docRef = db.collection('legal_pages').doc(pageId);
 
   try {
-    const updateData: UpdateData = {
+    const updateData: Record<string, unknown> = {
       content: data.content,
       version: FieldValue.increment(1),
       lastModified: FieldValue.serverTimestamp(),
+      ...(data.versionNote ? { versionNote: data.versionNote } : {}),
     };
-    if (data.versionNote) {
-      updateData.versionNote = data.versionNote;
-    }
 
-    await docRef.update(updateData);
+    await docRef.update(updateData as FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData>);
 
-    // Revalidate paths to update cached data
     revalidatePath('/admin/settings/legal');
     revalidatePath('/account/privacy/terms');
     revalidatePath('/account/privacy/policy');

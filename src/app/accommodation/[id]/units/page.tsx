@@ -16,10 +16,11 @@ export default function SelectUnitPage({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { id } = params;
+  const { id } = use(params);
+  const resolvedSearchParams = use(searchParams);
 
   if (!id) {
     return (
@@ -56,7 +57,7 @@ export default function SelectUnitPage({
       units={unitsData}
       allInclusions={allInclusions}
       allAccessibilityFeatures={allAccessibilityFeatures}
-      searchParams={searchParams}
+      searchParams={resolvedSearchParams}
     />
   );
 }

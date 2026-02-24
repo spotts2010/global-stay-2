@@ -1,6 +1,8 @@
+// src/app/account/preferences/currency-language/page.tsx
+
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,9 +28,24 @@ import { useToast } from '@/hooks/use-toast';
 import { Languages } from '@/lib/icons';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 
+// ✅ Make currency a real union (instead of string) so setPreferences(data) typechecks.
+const CURRENCIES = ['AUD', 'USD', 'GBP'] as const;
+const LANGUAGES = ['en-US'] as const;
+
+type CurrencyValue = (typeof CURRENCIES)[number];
+type LanguageValue = (typeof LANGUAGES)[number];
+
+function isCurrencyValue(v: unknown): v is CurrencyValue {
+  return typeof v === 'string' && (CURRENCIES as readonly string[]).includes(v);
+}
+
+function isLanguageValue(v: unknown): v is LanguageValue {
+  return typeof v === 'string' && (LANGUAGES as readonly string[]).includes(v);
+}
+
 const settingsSchema = z.object({
-  language: z.string(),
-  currency: z.string(),
+  language: z.enum(LANGUAGES),
+  currency: z.enum(CURRENCIES),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -37,9 +54,18 @@ export default function CurrencyLanguagePage() {
   const { toast } = useToast();
   const { preferences, setPreferences, isEditing, setIsEditing } = useUserPreferences();
 
+  // ✅ Ensure defaults always match the schema unions (prevents invalid values like "EUR")
+  const formDefaults = useMemo<SettingsFormValues>(
+    () => ({
+      currency: isCurrencyValue(preferences?.currency) ? preferences.currency : 'AUD',
+      language: isLanguageValue(preferences?.language) ? preferences.language : 'en-US',
+    }),
+    [preferences]
+  );
+
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: preferences,
+    defaultValues: formDefaults,
   });
 
   const {
@@ -49,8 +75,8 @@ export default function CurrencyLanguagePage() {
 
   // Sync form with context state
   useEffect(() => {
-    reset(preferences);
-  }, [preferences, reset]);
+    reset(formDefaults);
+  }, [formDefaults, reset]);
 
   const onSubmit = (data: SettingsFormValues) => {
     setPreferences(data);
@@ -63,7 +89,7 @@ export default function CurrencyLanguagePage() {
   };
 
   const handleCancel = () => {
-    reset(preferences); // Reverts to the last saved state from context
+    reset(formDefaults); // Reverts to the last saved state from context
     setIsEditing(false);
   };
 
@@ -73,7 +99,7 @@ export default function CurrencyLanguagePage() {
         <div className="space-y-1.5">
           <CardTitle className="font-headline text-2xl flex items-center gap-2">
             <Languages className="h-6 w-6 text-primary" />
-            Currency & Language
+            Currency &amp; Language
           </CardTitle>
           <CardDescription>Manage your currency and language preferences here.</CardDescription>
         </div>
@@ -111,6 +137,7 @@ export default function CurrencyLanguagePage() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="language"

@@ -267,8 +267,10 @@ export default function UnitSelectionPageClient({
                   key={unit.id}
                   unit={unit}
                   nights={nights}
-                  inclusions={inclusions}
-                  accessibilityItems={accessibility}
+                  inclusions={(inclusions ?? []).filter((v): v is string => typeof v === 'string')}
+                  accessibilityItems={(accessibility ?? []).filter(
+                    (v): v is string => typeof v === 'string'
+                  )}
                   currency={accommodation.currency}
                   onOpenGallery={openGallery}
                 />

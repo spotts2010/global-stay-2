@@ -21,6 +21,8 @@ export async function fetchAccommodations(options?: {
 }): Promise<Accommodation[]> {
   try {
     const adminDb = getAdminDb();
+    if (!adminDb) return [];
+
     const accommodationsSnapshot = await adminDb.collection('accommodations').get();
     if (accommodationsSnapshot.empty) {
       return [];
@@ -61,8 +63,7 @@ export async function fetchAccommodations(options?: {
           unitsCount: unitsSnapshot.size,
         };
 
-        const { units: _units, ...rest } = accommodation;
-        return serializeFirestoreData(rest) as Accommodation;
+        return serializeFirestoreData(accommodation) as Accommodation;
       })
     );
 
@@ -83,6 +84,8 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
   if (!id) return null;
   try {
     const adminDb = getAdminDb();
+    if (!adminDb) return null;
+
     const docRef = adminDb.collection('accommodations').doc(id);
     const docSnap = await docRef.get();
 
@@ -122,8 +125,7 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
       unitsCount: unitsSnapshot.size,
     };
 
-    const { units: _units, ...rest } = accommodation;
-    return serializeFirestoreData(rest) as Accommodation;
+    return serializeFirestoreData(accommodation) as Accommodation;
   } catch (error) {
     logger.error(`Error fetching accommodation by id ${id} with Admin SDK:`, error);
     return null;
@@ -134,6 +136,8 @@ export async function fetchUnitsForAccommodation(accommodationId: string): Promi
   if (!accommodationId) return [];
   try {
     const adminDb = getAdminDb();
+    if (!adminDb) return [];
+
     const unitsSnapshot = await adminDb.collection(`accommodations/${accommodationId}/units`).get();
     if (unitsSnapshot.empty) {
       return [];
@@ -154,6 +158,8 @@ export async function fetchUnitById(
   if (!accommodationId || !unitId) return null;
   try {
     const adminDb = getAdminDb();
+    if (!adminDb) return null;
+
     const unitRef = adminDb
       .collection('accommodations')
       .doc(accommodationId)
@@ -176,16 +182,22 @@ export async function fetchPointsOfInterest(accommodationId: string): Promise<Pl
   if (!accommodationId) return [];
   try {
     const adminDb = getAdminDb();
+    if (!adminDb) return [];
+
     const accommodation = await fetchAccommodationById(accommodationId);
     if (!accommodation) return [];
 
     const poiSnapshot = await adminDb
       .collection(`accommodations/${accommodationId}/pointsOfInterest`)
       .get();
+
     if (poiSnapshot.empty) {
       return [];
     }
-    return poiSnapshot.docs.map((doc) => serializeFirestoreData({ id: doc.id, ...doc.data() }));
+
+    return poiSnapshot.docs.map(
+      (doc) => serializeFirestoreData({ id: doc.id, ...doc.data() }) as Place
+    );
   } catch (error) {
     logger.error(`Error fetching POIs for accommodation ${accommodationId} with Admin SDK:`, error);
     return [];
@@ -196,6 +208,8 @@ export async function fetchPointsOfInterest(accommodationId: string): Promise<Pl
 export async function fetchBedTypes(): Promise<BedType[]> {
   try {
     const adminDb = getAdminDb();
+    if (!adminDb) return [];
+
     const bedTypesSnapshot = await adminDb.collection('bedTypes').get();
     if (bedTypesSnapshot.empty) {
       return [];
@@ -214,6 +228,8 @@ export async function fetchBedTypes(): Promise<BedType[]> {
 export async function fetchSiteSettings() {
   try {
     const adminDb = getAdminDb();
+    if (!adminDb) return null;
+
     const docRef = adminDb.collection('siteSettings').doc('homePage');
     const docSnap = await docRef.get();
     if (docSnap.exists) {
@@ -230,6 +246,8 @@ export async function fetchSiteSettings() {
 async function fetchMasterList(collectionName: string): Promise<AmenityOrInclusion[]> {
   try {
     const adminDb = getAdminDb();
+    if (!adminDb) return [];
+
     const snapshot = await adminDb.collection(collectionName).get();
     if (snapshot.empty) {
       return [];
@@ -267,6 +285,8 @@ export async function fetchCollections(): Promise<Collection[]> {
 export async function fetchPropertyTypes(): Promise<PropertyType[]> {
   try {
     const adminDb = getAdminDb();
+    if (!adminDb) return [];
+
     const propertyTypesSnapshot = await adminDb.collection('propertyTypes').get();
     if (propertyTypesSnapshot.empty) {
       return [];
@@ -286,6 +306,8 @@ export async function fetchLegalPage(
   if (!id) return null;
   try {
     const adminDb = getAdminDb();
+    if (!adminDb) return null;
+
     const docRef = adminDb.collection('legal_pages').doc(id);
     const docSnap = await docRef.get();
 

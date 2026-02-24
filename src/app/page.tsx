@@ -4,15 +4,15 @@ import { Suspense } from 'react';
 import HomeContent from '@/components/HomeContent';
 import { Loader2 } from '@/lib/icons';
 import { fetchAccommodations } from '@/lib/firestore.server';
-import { Collection, Accommodation } from '@/lib/data';
+import type { Collection, Accommodation } from '@/lib/data';
 import placeholderImages from '@/lib/placeholder-images.json';
 
+type SearchParams = Record<string, string | string[] | undefined>;
+
 // This is now a SERVER component that passes initial data to the client.
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
+export default async function Home({ searchParams }: { searchParams?: Promise<SearchParams> }) {
+  const resolvedSearchParams = (await searchParams) ?? {};
+
   // Fetch initial data on the server.
   const accommodations: Accommodation[] = await fetchAccommodations({ publishedOnly: true });
   const collections: Collection[] = placeholderImages.collections;
@@ -28,7 +28,7 @@ export default async function Home({
       <HomeContent
         initialAccommodations={accommodations}
         initialCollections={collections}
-        searchParams={searchParams}
+        searchParams={resolvedSearchParams}
       />
     </Suspense>
   );

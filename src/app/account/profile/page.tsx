@@ -1,3 +1,5 @@
+// src/app/account/profile/page.tsx
+
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
@@ -43,14 +45,26 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 
+// IMPORTANT:
+// Your global Currency union likely includes "EUR" etc.
+// This profile form only supports these three right now.
+type ProfileCurrency = 'USD' | 'AUD' | 'GBP';
+const PROFILE_CURRENCIES = ['USD', 'AUD', 'GBP'] as const satisfies readonly ProfileCurrency[];
+
+const LANGUAGES = ['en-US'] as const;
+
+function isProfileCurrency(v: unknown): v is ProfileCurrency {
+  return typeof v === 'string' && (PROFILE_CURRENCIES as readonly string[]).includes(v);
+}
+
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(1, 'Mobile number is required'),
   address: z.string().min(1, 'Street address is required'),
   timezone: z.string().min(1, 'Timezone is required'),
-  currency: z.string(),
-  language: z.string(),
+  currency: z.enum(PROFILE_CURRENCIES),
+  language: z.enum(LANGUAGES),
   distanceUnit: z.enum(['km', 'miles']),
 });
 
@@ -70,9 +84,11 @@ export default function ProfilePage() {
       phone: '+61 0403688874',
       address: '2403/100 Duporth Avenue, Maroochydore, Queensland, Australia',
       timezone: 'Australia/Brisbane',
-      currency: preferences.currency,
-      language: preferences.language,
-      distanceUnit: preferences.distanceUnit,
+      currency: isProfileCurrency(preferences.currency) ? preferences.currency : 'AUD',
+      language: LANGUAGES.includes(preferences.language as any)
+        ? (preferences.language as 'en-US')
+        : 'en-US',
+      distanceUnit: preferences.distanceUnit === 'miles' ? 'miles' : 'km',
     }),
     [preferences]
   );
@@ -124,13 +140,21 @@ export default function ProfilePage() {
   };
 
   const onSubmit = (data: ProfileFormValues) => {
-    setPreferences(data); // Update the shared context
+    // Only update the preferences slice in context (prevents shape mismatch)
+    setPreferences({
+      ...preferences,
+      currency: data.currency,
+      language: data.language,
+      distanceUnit: data.distanceUnit,
+    });
+
     toast({
       title: 'Profile Updated',
       description: 'Your changes have been saved successfully.',
     });
+
     setIsEditing(false);
-    form.reset(data); // Resets the form's dirty state
+    form.reset(data);
   };
 
   const handleCancel = () => {
@@ -154,6 +178,7 @@ export default function ProfilePage() {
               </CardDescription>
             </div>
           </CardHeader>
+
           <CardContent className="space-y-8">
             {/* User Info Section */}
             <div className="flex items-start gap-6">
@@ -165,6 +190,7 @@ export default function ProfilePage() {
                       {getInitials(user.fullName)}
                     </AvatarFallback>
                   </Avatar>
+
                   {isEditing && (
                     <div
                       className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center cursor-pointer transition-opacity opacity-0 group-hover:opacity-100"
@@ -173,6 +199,7 @@ export default function ProfilePage() {
                       <Camera className="h-8 w-8 text-white" />
                     </div>
                   )}
+
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -221,6 +248,7 @@ export default function ProfilePage() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="phone"
@@ -240,6 +268,7 @@ export default function ProfilePage() {
                     )}
                   />
                 </div>
+
                 <FormField
                   control={form.control}
                   name="address"
@@ -288,6 +317,7 @@ export default function ProfilePage() {
             {/* Default Settings Section */}
             <div className="space-y-4">
               <h3 className="font-headline text-xl font-semibold">Default Settings</h3>
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
@@ -303,6 +333,7 @@ export default function ProfilePage() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="currency"
@@ -332,6 +363,7 @@ export default function ProfilePage() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="language"
@@ -355,6 +387,7 @@ export default function ProfilePage() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="distanceUnit"
@@ -386,6 +419,7 @@ export default function ProfilePage() {
               </div>
             </div>
           </CardContent>
+
           <CardFooter className="flex justify-start gap-2 pt-6">
             {isEditing ? (
               <>

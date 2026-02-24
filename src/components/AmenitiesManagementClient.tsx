@@ -222,9 +222,9 @@ export default function AmenitiesManagementClient({
               ...item,
               ...tempRowData,
               id: item.isNew ? newSystemTag : item.id,
-              isNew: false,
+              // ✅ don't add isNew here, since your final type doesn't include it
             };
-            delete newItemData.isNew;
+
             return newItemData;
           }
           return item;

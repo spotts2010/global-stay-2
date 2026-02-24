@@ -12,9 +12,11 @@ import { Breadcrumbs } from '@/components/Breadcrumbs';
 export default async function InclusionsPage({
   params,
 }: {
-  params: { id: string; unitId: string };
+  params: Promise<{ id: string; unitId: string }>;
 }) {
-  const listing = await fetchAccommodationById(params.id);
+  const { id, unitId } = await params;
+
+  const listing = await fetchAccommodationById(id);
 
   if (!listing) {
     return (
@@ -29,9 +31,9 @@ export default async function InclusionsPage({
     );
   }
 
-  const units = await fetchUnitsForAccommodation(params.id);
-  const unit = units.find((u) => u.id === params.unitId);
-  const unitName = unit ? unit.name : params.unitId === 'new' ? 'New Unit' : 'Unit';
+  const units = await fetchUnitsForAccommodation(id);
+  const unit = units.find((u) => u.id === unitId);
+  const unitName = unit ? unit.name : unitId === 'new' ? 'New Unit' : 'Unit';
 
   // Fetch master list of all available private inclusions
   const allPrivateInclusions = await fetchPrivateInclusions();

@@ -1,33 +1,37 @@
+// src/app/api/listings/[id]/upload/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminStorage } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/logger';
 
-// Disable the default body parser, as we're using formData
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-  const { id: listingId } = params;
+  const { id: listingId } = await params;
+
   if (!listingId) {
     return NextResponse.json({ success: false, error: 'Listing ID is missing.' }, { status: 400 });
   }
 
   try {
     const formData = await req.formData();
-    const files = formData.getAll('files') as File[];
-    const unitId = formData.get('unitId') as string | null;
+    const files = formData.getAll('files').filter((f): f is File => f instanceof File);
+    const unitId = formData.get('unitId');
+    const unitIdString = typeof unitId === 'string' && unitId.length > 0 ? unitId : null;
 
-    if (!files || files.length === 0) {
+    if (files.length === 0) {
       return NextResponse.json({ success: false, error: 'No files to upload.' }, { status: 400 });
     }
 
     const storage = getAdminStorage();
+    if (!storage) {
+      return NextResponse.json(
+        { success: false, error: 'Storage is not initialised.' },
+        { status: 500 }
+      );
+    }
+
     const bucket = storage.bucket();
     const urls: string[] = [];
 
@@ -39,8 +43,8 @@ export async function POST(
       let basePath = `listings/${listingId}`;
       if (listingId === 'site') {
         basePath = 'site';
-      } else if (unitId) {
-        basePath = `listings/${listingId}/units/${unitId}`;
+      } else if (unitIdString) {
+        basePath = `listings/${listingId}/units/${unitIdString}`;
       }
 
       const destination = `${basePath}/${Date.now()}-${originalFilename}`;
@@ -48,14 +52,13 @@ export async function POST(
       const fileUpload = bucket.file(destination);
       await fileUpload.save(buffer, {
         public: true,
-        contentType: file.type,
+        contentType: file.type || 'application/octet-stream',
         metadata: {
           cacheControl: 'public, max-age=31536000',
         },
       });
 
-      const publicUrl = fileUpload.publicUrl();
-      urls.push(publicUrl);
+      urls.push(fileUpload.publicUrl());
     }
 
     return NextResponse.json({ success: true, urls });

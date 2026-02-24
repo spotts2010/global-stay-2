@@ -138,7 +138,7 @@ export default function UnitsPageClient({
     return `/admin/listings/${listing.id}/edit/units/${unitId}/basic-info?${params.toString()}`;
   };
 
-  const handleBookingTypeChange = (value: string) => {
+  const handleBookingTypeChange = (value: 'room' | 'bed' | 'hybrid') => {
     setBookingType(value);
     setIsBookingTypeDirty(value !== listing.bookingType);
   };

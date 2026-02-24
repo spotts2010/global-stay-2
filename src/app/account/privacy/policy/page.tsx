@@ -1,5 +1,4 @@
 // src/app/account/privacy/policy/page.tsx
-'use server';
 
 import { fetchLegalPage } from '@/lib/firestore.server';
 import { LegalPage } from '@/lib/data';

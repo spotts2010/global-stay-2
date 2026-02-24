@@ -56,3 +56,5 @@ database_export/
 firestore.rules
 storage.rules
 .eslintcache
+playwright-report/
+playwright-report/
