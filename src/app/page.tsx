@@ -3,7 +3,7 @@ import 'server-only';
 import { Suspense } from 'react';
 import HomeContent from '@/components/HomeContent';
 import { Loader2 } from '@/lib/icons';
-import { fetchAccommodations } from '@/lib/firestore.server';
+import { fetchHomepageAccommodations } from '@/lib/firestore.server';
 import type { Collection, Accommodation } from '@/lib/data';
 import placeholderImages from '@/lib/placeholder-images.json';
 
@@ -14,7 +14,7 @@ export default async function Home({ searchParams }: { searchParams?: Promise<Se
   const resolvedSearchParams = (await searchParams) ?? {};
 
   // Fetch initial data on the server.
-  const accommodations: Accommodation[] = await fetchAccommodations({ publishedOnly: true });
+  const accommodations: Accommodation[] = await fetchHomepageAccommodations({ limit: 12 });
   const collections: Collection[] = placeholderImages.collections;
 
   return (

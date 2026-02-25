@@ -89,9 +89,8 @@ const Header = () => {
     setIsModalOpen(false);
   };
 
-  // Mocked support ticket count for demonstration
-  const supportTicketCount = 2;
-  const totalUnreadCount = unreadCount + supportTicketCount;
+  // Support ticket count
+  const totalUnreadCount = unreadCount;
 
   const getInitials = (name: string) =>
     name

@@ -80,6 +80,32 @@ export async function fetchAccommodations(options?: {
   }
 }
 
+export async function fetchHomepageAccommodations(options?: {
+  limit?: number;
+}): Promise<Accommodation[]> {
+  try {
+    const adminDb = getAdminDb();
+    if (!adminDb) return [];
+
+    const limit = options?.limit ?? 12;
+
+    const snapshot = await adminDb
+      .collection('accommodations')
+      .where('status', '==', 'Published')
+      .limit(limit)
+      .get();
+
+    if (snapshot.empty) return [];
+
+    return snapshot.docs.map(
+      (doc) => serializeFirestoreData({ id: doc.id, ...doc.data() }) as Accommodation
+    );
+  } catch (error) {
+    logger.error('Error fetching homepage accommodations with Admin SDK:', error);
+    return [];
+  }
+}
+
 export async function fetchAccommodationById(id: string): Promise<Accommodation | null> {
   if (!id) return null;
   try {
