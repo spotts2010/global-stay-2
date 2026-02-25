@@ -240,7 +240,7 @@ const Header = () => {
 
               {/* Favorites */}
               <Button asChild variant="outline" size="sm" className="hidden sm:flex">
-                <Link href="/favorites" className="relative">
+                <Link href="/account/my-stays/favorites" className="relative">
                   <Heart className="mr-2 h-4 w-4" />
                   Favorites
                   {favorites?.length > 0 ? (
@@ -253,7 +253,7 @@ const Header = () => {
 
               {/* Notifications / Support */}
               <Button asChild variant="outline" size="sm" className="hidden sm:flex">
-                <Link href="/account/notifications" className="relative">
+                <Link href="/account/notifications/view" className="relative">
                   <Ticket className="mr-2 h-4 w-4" />
                   Inbox
                   {totalUnreadCount > 0 ? (
