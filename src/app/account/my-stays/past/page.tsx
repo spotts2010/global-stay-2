@@ -1,55 +1,67 @@
 // src/app/account/my-stays/past/page.tsx
-'use client';
 
-import { useEffect, useState } from 'react';
+export const runtime = 'nodejs';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { fetchPastBookings } from '@/lib/firestore';
-import type { EnrichedBooking } from '@/lib/data';
-import { Loader2 } from '@/lib/icons';
-import { BookingCard } from '@/components/BookingCard';
+import { fetchPastBookings } from '@/lib/firestore.server';
 
-export default function PastStaysPage() {
-  const [bookings, setBookings] = useState<EnrichedBooking[]>([]);
-  const [loading, setLoading] = useState(true);
+type AnyBooking = {
+  id: string;
+  accommodation?: string;
+  checkIn?: string;
+  checkOut?: string;
+  guests?: number;
+  total?: number | string;
+};
 
-  useEffect(() => {
-    const getPastBookings = async () => {
-      setLoading(true);
-      // In a real app, you'd get the logged-in user's ID
-      const userId = 'user1';
-      const fetchedBookings = await fetchPastBookings(userId);
-
-      setBookings(fetchedBookings);
-      setLoading(false);
-    };
-    getPastBookings();
-  }, []);
+export default async function PastStaysPage() {
+  const bookings = (await fetchPastBookings('me')) as unknown as AnyBooking[];
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="space-y-1.5">
-          <CardTitle className="font-headline text-2xl">Past Stays</CardTitle>
-          <CardDescription>A record of your previous adventures.</CardDescription>
+    <div className="mx-auto w-full max-w-5xl space-y-6 p-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold">Past stays</h1>
+        <p className="text-sm text-muted-foreground">Your previous bookings and stay history.</p>
+      </div>
+
+      {bookings.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>No past stays</CardTitle>
+            <CardDescription>When you complete a booking, it will appear here.</CardDescription>
+          </CardHeader>
+        </Card>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {bookings.map((b) => (
+            <Card key={b.id}>
+              <CardHeader>
+                <CardTitle className="line-clamp-1">{b.accommodation ?? 'Accommodation'}</CardTitle>
+                <CardDescription className="line-clamp-1">&nbsp;</CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Check-in</span>
+                  <span>{b.checkIn ?? '-'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Check-out</span>
+                  <span>{b.checkOut ?? '-'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Guests</span>
+                  <span>{typeof b.guests === 'number' ? b.guests : '-'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Total</span>
+                  <span>{b.total ?? '-'}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : bookings.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bookings.map((booking) => (
-              <BookingCard key={booking.id} booking={booking} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
-            <p>You have no past stays recorded.</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }

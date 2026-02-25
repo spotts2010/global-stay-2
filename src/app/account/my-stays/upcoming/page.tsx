@@ -1,4 +1,5 @@
 // src/app/account/my-stays/upcoming/page.tsx
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,8 +11,6 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
-import { fetchBookings, fetchAccommodationById } from '@/lib/firestore';
-import type { EnrichedBooking } from '@/lib/data';
 import { format, isWithinInterval, differenceInDays, isSameDay } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import Image from 'next/image';
@@ -32,244 +31,307 @@ import { convertCurrency, formatCurrency } from '@/lib/currency';
 
 const PLACEHOLDER_IMAGE = 'https://picsum.photos/seed/1/600/400';
 
-// Card for the Modal view - more spacious
-const BookingSummaryCard = ({ booking }: { booking: EnrichedBooking }) => {
+type AnyBooking = {
+  id?: string;
+  accommodationId?: string;
+  accommodation?: {
+    id?: string;
+    name?: string;
+    image?: string;
+    imageHint?: string;
+    currency?: string;
+  };
+  startDate?: Date | string | null;
+  endDate?: Date | string | null;
+  guests?: number;
+  totalPrice?: number;
+  [key: string]: unknown;
+};
+
+/**
+ * TEMP STUBS (to avoid importing firebase-admin via firestore.server in client bundles)
+ * Next step will be to replace these with an API route call.
+ */
+async function fetchBookings(userId: string): Promise<AnyBooking[]> {
+  void userId;
+  return [];
+}
+
+async function fetchAccommodationById(
+  accommodationId: string
+): Promise<AnyBooking['accommodation'] | null> {
+  void accommodationId;
+  return null;
+}
+
+type ViewMode = 'grid' | 'calendar';
+
+function toDate(value: AnyBooking['startDate']): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+const BookingItem = ({
+  booking,
+  onViewDetails,
+}: {
+  booking: AnyBooking;
+  onViewDetails: (booking: AnyBooking) => void;
+}) => {
   const { preferences } = useUserPreferences();
-  if (!booking.accommodation) return null;
 
-  const nights =
-    booking.startDate && booking.endDate
-      ? differenceInDays(new Date(booking.endDate), new Date(booking.startDate))
-      : 0;
-  const days = nights > 0 ? nights + 1 : 0;
+  const accommodation = booking.accommodation ?? {};
+  const accommodationName = accommodation.name ?? 'Accommodation';
+  const accommodationId = accommodation.id ?? booking.accommodationId ?? '';
+  const image = accommodation.image ?? PLACEHOLDER_IMAGE;
 
-  const convertedPrice =
-    booking.totalPrice && booking.accommodation.currency
-      ? convertCurrency(booking.totalPrice, booking.accommodation.currency, preferences.currency)
-      : booking.totalPrice || 0;
+  const start = toDate(booking.startDate);
+  const end = toDate(booking.endDate);
+
+  const nights = start && end ? Math.max(0, differenceInDays(end, start)) : null;
+
+  const fromCurrency = preferences.currency;
+  const totalPrice = typeof booking.totalPrice === 'number' ? booking.totalPrice : 0;
+  const convertedPrice = convertCurrency(totalPrice, fromCurrency, preferences.currency);
+  const formattedTotal = formatCurrency(convertedPrice, preferences.currency);
 
   return (
-    <Card className="overflow-hidden flex flex-col">
-      <CardHeader className="p-0 relative aspect-video">
+    <Card className="overflow-hidden flex flex-col h-full">
+      <CardHeader className="p-0 relative">
         <Link
-          href={`/accommodation/${booking.accommodation.id}`}
+          href={accommodationId ? `/accommodation/${accommodationId}` : '#'}
           className="block w-full h-full"
-          aria-label={`View details for ${booking.accommodation.name}`}
+          aria-label={`View details for ${accommodationName}`}
         >
           <Image
-            src={booking.accommodation.image || PLACEHOLDER_IMAGE}
-            alt={booking.accommodation.name}
-            fill
-            sizes="(max-width: 640px) 90vw, 480px"
-            className="object-cover"
-            data-ai-hint={booking.accommodation.imageHint}
+            src={image}
+            alt={accommodationName}
+            width={600}
+            height={400}
+            className="w-full h-48 object-cover"
+            data-ai-hint={accommodation.imageHint}
           />
         </Link>
       </CardHeader>
+
       <CardContent className="p-4 flex-grow">
-        <CardTitle className="font-headline text-xl">{booking.accommodation.name}</CardTitle>
-      </CardContent>
-      <CardFooter className="p-4 pt-0 flex justify-between items-end">
-        <div className="space-y-2">
-          <div className="flex items-start gap-2">
-            <CalendarDays className="h-4 w-4 mt-1 text-muted-foreground" />
-            <div>
-              <CardDescription>
-                {booking.startDate && booking.endDate
-                  ? `${format(new Date(booking.startDate), 'LLL dd, yyyy')} - ${format(new Date(booking.endDate), 'LLL dd, yyyy')}`
-                  : 'Dates not specified'}
-              </CardDescription>
-              {days > 0 && (
-                <CardDescription className="text-xs">
-                  ({days} Days / {nights} Nights)
-                </CardDescription>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <CardTitle className="font-headline text-xl">{accommodationName}</CardTitle>
+        <CardDescription className="flex items-center gap-2 mt-2">
+          <CalendarDays className="h-4 w-4" />
+          <span>
+            {start ? format(start, 'MMM d') : '—'} – {end ? format(end, 'MMM d, yyyy') : '—'}
+          </span>
+        </CardDescription>
+
+        <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            <span>{booking.guests} Guests</span>
+            <span>{typeof booking.guests === 'number' ? booking.guests : '—'} guests</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="h-4 w-4" />
+            <span>{nights !== null ? `${nights} nights` : '—'}</span>
           </div>
         </div>
-        <div className="text-center">
-          <div className="font-semibold text-lg text-foreground">
-            <span>{formatCurrency(convertedPrice, preferences.currency)}</span>
-          </div>
-          <Button asChild className="mt-2">
-            <Link href={`/accommodation/${booking.accommodation.id}`}>
-              <Eye className="mr-2 h-4 w-4" />
-              View Booking
-            </Link>
-          </Button>
-        </div>
+      </CardContent>
+
+      <CardFooter className="p-4 pt-0 flex justify-between items-center">
+        <div className="font-medium">{formattedTotal}</div>
+        <Button variant="outline" size="sm" onClick={() => onViewDetails(booking)}>
+          <Eye className="mr-2 h-4 w-4" />
+          View
+        </Button>
       </CardFooter>
     </Card>
   );
 };
 
 export default function UpcomingStaysPage() {
-  const [bookings, setBookings] = useState<EnrichedBooking[]>([]);
+  const [bookings, setBookings] = useState<AnyBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedBooking, setSelectedBooking] = useState<EnrichedBooking | null>(null);
-  const [month, setMonth] = useState<Date | undefined>(undefined);
-  const [bookedDays, setBookedDays] = useState<{ from: Date; to: Date }[]>([]);
-  const [today, setToday] = useState<Date | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<AnyBooking | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   useEffect(() => {
     const getBookings = async () => {
       setLoading(true);
-      // In a real app, you'd get the logged-in user's ID
+
       const userId = 'user1';
       const fetchedBookings = await fetchBookings(userId);
 
-      const enrichedBookings: EnrichedBooking[] = await Promise.all(
+      const enriched = await Promise.all(
         fetchedBookings.map(async (booking) => {
-          const enrichedBooking: EnrichedBooking = {
+          const start = toDate(booking.startDate);
+          const end = toDate(booking.endDate);
+
+          const next: AnyBooking = {
             ...booking,
-            startDate: booking.startDate ? new Date(booking.startDate) : undefined,
-            endDate: booking.endDate ? new Date(booking.endDate) : undefined,
+            startDate: start ?? booking.startDate ?? null,
+            endDate: end ?? booking.endDate ?? null,
           };
-          if (enrichedBooking.accommodationId) {
-            const accommodation = await fetchAccommodationById(enrichedBooking.accommodationId);
-            enrichedBooking.accommodation = accommodation || undefined;
+
+          const accId = typeof next.accommodationId === 'string' ? next.accommodationId : '';
+
+          if (accId) {
+            const accommodation = await fetchAccommodationById(accId);
+            if (accommodation) next.accommodation = accommodation;
           }
-          return enrichedBooking;
+
+          return next;
         })
       );
 
-      setBookings(enrichedBookings);
+      const now = new Date();
+      const upcoming = enriched.filter((booking) => {
+        const end = toDate(booking.endDate);
+        if (!end) return false;
+        return end >= now;
+      });
 
-      // This logic is now inside useEffect to prevent hydration errors
-      setMonth(new Date());
-      setToday(new Date());
-      setBookedDays(
-        enrichedBookings
-          .map((b) =>
-            b.startDate && b.endDate
-              ? { from: new Date(b.startDate), to: new Date(b.endDate) }
-              : null
-          )
-          .filter((d): d is { from: Date; to: Date } => d !== null)
-      );
-
+      setBookings(upcoming);
       setLoading(false);
     };
+
     getBookings();
   }, []);
 
-  const handleDayClick = (day: Date) => {
-    const booking = bookings.find(
-      (b) =>
-        b.startDate &&
-        b.endDate &&
-        (isWithinInterval(day, { start: new Date(b.startDate), end: new Date(b.endDate) }) ||
-          isSameDay(day, new Date(b.startDate)) ||
-          isSameDay(day, new Date(b.endDate)))
-    );
-    if (booking) {
-      setSelectedBooking(booking);
-    }
-  };
+  const bookingsOnSelectedDate =
+    selectedDate && bookings.length > 0
+      ? bookings.filter((booking) => {
+          const start = toDate(booking.startDate);
+          const end = toDate(booking.endDate);
+          if (!start || !end) return false;
 
-  const modifiers = {
-    booked: bookedDays,
-    ...(today ? { today } : {}),
-  };
+          return (
+            isSameDay(selectedDate, start) ||
+            isSameDay(selectedDate, end) ||
+            isWithinInterval(selectedDate, { start, end })
+          );
+        })
+      : [];
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading bookings…
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <div className="space-y-1.5">
-            <CardTitle className="font-headline text-2xl">Upcoming Stays</CardTitle>
-            <CardDescription>View your upcoming bookings here.</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="calendar">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="calendar">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                Calendar View
-              </TabsTrigger>
-              <TabsTrigger value="grid">
-                <Grid3x3 className="mr-2 h-4 w-4" />
-                Grid View
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="calendar" className="mt-4">
-              <div className="rounded-lg border">
-                {loading || !month ? (
-                  <div className="flex justify-center items-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : (
-                  <>
-                    <Calendar
-                      mode="multiple"
-                      numberOfMonths={3}
-                      pagedNavigation
-                      fixedWeeks
-                      selected={undefined}
-                      onDayClick={handleDayClick}
-                      month={month}
-                      onMonthChange={setMonth}
-                      modifiers={modifiers}
-                      modifiersClassNames={{
-                        booked:
-                          'bg-primary/90 text-primary-foreground rounded-md [&:not(.day-outside)]:bg-primary/90',
-                        today:
-                          'bg-orange-500/90 text-orange-50 rounded-full [&:not([aria-selected])]:bg-orange-500/90',
-                      }}
-                      classNames={{
-                        day_outside: 'text-muted-foreground opacity-50',
-                      }}
-                    />
-                    <div className="p-4 border-t flex items-center gap-4 text-sm">
-                      <span className="font-bold">Legend:</span>
-                      <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-full bg-orange-500" />
-                        <span>Today</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-md bg-primary" />
-                        <span>Upcoming Stay</span>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </TabsContent>
-            <TabsContent value="grid" className="mt-4">
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : bookings.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {bookings.map((booking) => (
-                    <BookingCard key={booking.id} booking={booking} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
-                  <p>You have no upcoming stays.</p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+    <div className="mx-auto w-full max-w-6xl space-y-6 p-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold">Upcoming stays</h1>
+        <p className="text-sm text-muted-foreground">Your upcoming bookings and stay details.</p>
+      </div>
 
-      <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
-        <DialogContent>
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+        <TabsList>
+          <TabsTrigger value="grid">
+            <Grid3x3 className="mr-2 h-4 w-4" />
+            Grid
+          </TabsTrigger>
+          <TabsTrigger value="calendar">
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            Calendar
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="grid" className="mt-6">
+          {bookings.length === 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>No upcoming stays</CardTitle>
+                <CardDescription>When you book a stay, it will appear here.</CardDescription>
+              </CardHeader>
+            </Card>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {bookings.map((booking, idx) => (
+                <BookingItem
+                  key={(typeof booking.id === 'string' && booking.id) || `booking-${idx}`}
+                  booking={booking}
+                  onViewDetails={setSelectedBooking}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="calendar" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Select a date</CardTitle>
+              <CardDescription>See bookings that overlap a specific day.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Calendar
+                mode="single"
+                selected={selectedDate ?? undefined}
+                onSelect={(day) => setSelectedDate(day ?? null)}
+              />
+            </CardContent>
+          </Card>
+
+          {selectedDate ? (
+            bookingsOnSelectedDate.length === 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>No bookings on this date</CardTitle>
+                  <CardDescription>Try another date.</CardDescription>
+                </CardHeader>
+              </Card>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {bookingsOnSelectedDate.map((booking, idx) => (
+                  <BookingItem
+                    key={(typeof booking.id === 'string' && booking.id) || `booking-date-${idx}`}
+                    booking={booking}
+                    onViewDetails={setSelectedBooking}
+                  />
+                ))}
+              </div>
+            )
+          ) : null}
+        </TabsContent>
+      </Tabs>
+
+      <Dialog
+        open={!!selectedBooking}
+        onOpenChange={(open) => (!open ? setSelectedBooking(null) : null)}
+      >
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Booking Details</DialogTitle>
-            <DialogDescription>Summary of your upcoming stay.</DialogDescription>
+            <DialogTitle>Booking details</DialogTitle>
+            <DialogDescription>Review your booking information.</DialogDescription>
           </DialogHeader>
-          {selectedBooking && <BookingSummaryCard booking={selectedBooking} />}
+
+          {selectedBooking ? (
+            <div className="space-y-4">
+              <BookingCard booking={selectedBooking as any} />
+              <div className="flex justify-end">
+                <Button asChild>
+                  <Link
+                    href={
+                      selectedBooking.accommodation?.id
+                        ? `/accommodation/${selectedBooking.accommodation.id}`
+                        : '#'
+                    }
+                  >
+                    View Accommodation
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

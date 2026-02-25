@@ -1,3 +1,5 @@
+// src/lib/firestore.ts
+
 'use client';
 
 import {
@@ -7,14 +9,14 @@ import {
   getDoc as getDocClient,
   type FirestoreError,
 } from 'firebase/firestore';
-import { db } from './firebase-config'; // CLIENT SDK for client-side actions
+import { db } from './firebase-db';
 import type { Accommodation, EnrichedBooking, Booking, Place, BookableUnit } from './data';
 import { isBefore } from 'date-fns';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { logger } from './logger';
 
-// This file should now ONLY contain client-side or shared Firestore logic.
+// This file should ONLY contain client-side Firestore logic.
 
 export async function fetchAccommodations(options?: {
   publishedOnly?: boolean;
@@ -22,9 +24,8 @@ export async function fetchAccommodations(options?: {
   const accommodationsRef = collection(db, 'accommodations');
   return getDocsClient(accommodationsRef)
     .then((accommodationsSnapshot) => {
-      if (accommodationsSnapshot.empty) {
-        return [];
-      }
+      if (accommodationsSnapshot.empty) return [];
+
       let accommodations = accommodationsSnapshot.docs.map(
         (doc) => ({ id: doc.id, ...doc.data() }) as Accommodation
       );
@@ -37,82 +38,72 @@ export async function fetchAccommodations(options?: {
     })
     .catch((error: FirestoreError) => {
       logger.error('Error fetching accommodations:', error);
-      const permissionError = new FirestorePermissionError({
-        path: accommodationsRef.path,
-        operation: 'list',
-      });
-      errorEmitter.emit('permission-error', permissionError);
-      return []; // Return empty array on client-side errors
+      errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({ path: accommodationsRef.path, operation: 'list' })
+      );
+      return [];
     });
 }
 
-// Client-side function remains for components that need it
 export async function fetchAccommodationById(id: string): Promise<Accommodation | null> {
   if (!id) return null;
+
   const docRef = doc(db, 'accommodations', id);
   return getDocClient(docRef)
     .then((docSnap) => {
-      if (!docSnap.exists()) {
-        return null;
-      }
+      if (!docSnap.exists()) return null;
       return { id: docSnap.id, ...docSnap.data() } as Accommodation;
     })
     .catch((error: FirestoreError) => {
       logger.error(`Error fetching accommodation by id ${id}:`, error);
-      const permissionError = new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'get',
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({ path: docRef.path, operation: 'get' })
+      );
       return null;
     });
 }
 
 export async function fetchUnitsForAccommodation(accommodationId: string): Promise<BookableUnit[]> {
   if (!accommodationId) return [];
+
   const unitsRef = collection(db, `accommodations/${accommodationId}/units`);
   return getDocsClient(unitsRef)
     .then((unitsSnapshot) => {
-      if (unitsSnapshot.empty) {
-        return [];
-      }
+      if (unitsSnapshot.empty) return [];
       return unitsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as BookableUnit);
     })
     .catch((error: FirestoreError) => {
       logger.error(`Error fetching units for accommodation ${accommodationId}:`, error);
-      const permissionError = new FirestorePermissionError({
-        path: unitsRef.path,
-        operation: 'list',
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({ path: unitsRef.path, operation: 'list' })
+      );
       return [];
     });
 }
 
 export async function fetchPointsOfInterest(accommodationId: string): Promise<Place[]> {
   if (!accommodationId) return [];
+
   const poiRef = collection(db, `accommodations/${accommodationId}/pointsOfInterest`);
   return getDocsClient(poiRef)
     .then((poiSnapshot) => {
-      if (poiSnapshot.empty) {
-        return [];
-      }
+      if (poiSnapshot.empty) return [];
       return poiSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Place);
     })
     .catch((error: FirestoreError) => {
       logger.error(`Error fetching POIs for accommodation ${accommodationId}:`, error);
-      const permissionError = new FirestorePermissionError({
-        path: poiRef.path,
-        operation: 'list',
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({ path: poiRef.path, operation: 'list' })
+      );
       return [];
     });
 }
 
-// NOTE: These booking functions are placeholders.
-// In a real app, you would have more complex logic, user authentication,
-// and likely store bookings in a user-specific subcollection.
+// NOTE: placeholder mock data for client-only/demo flows
 const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking1',
@@ -151,10 +142,7 @@ export async function fetchBookings(userId: string): Promise<EnrichedBooking[]> 
   const enrichedBookings: EnrichedBooking[] = await Promise.all(
     userBookings.map(async (booking) => {
       const accommodation = await fetchAccommodationById(booking.accommodationId || '');
-      return {
-        ...booking,
-        accommodation: accommodation || undefined,
-      };
+      return { ...booking, accommodation: accommodation || undefined };
     })
   );
 
@@ -169,33 +157,23 @@ export async function fetchPastBookings(userId: string): Promise<EnrichedBooking
   const enrichedBookings: EnrichedBooking[] = await Promise.all(
     userBookings.map(async (booking) => {
       const accommodation = await fetchAccommodationById(booking.accommodationId || '');
-      return {
-        ...booking,
-        accommodation: accommodation || undefined,
-      };
+      return { ...booking, accommodation: accommodation || undefined };
     })
   );
 
   return enrichedBookings;
 }
 
-// Client-side function to get site settings
 export async function fetchSiteSettings() {
   const docRef = doc(db, 'siteSettings', 'homePage');
   return getDocClient(docRef)
-    .then((docSnap) => {
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-      return null;
-    })
+    .then((docSnap) => (docSnap.exists() ? docSnap.data() : null))
     .catch((error: FirestoreError) => {
       logger.error('Error fetching site settings:', error);
-      const permissionError = new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'get',
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({ path: docRef.path, operation: 'get' })
+      );
       return null;
     });
 }

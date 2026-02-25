@@ -3,16 +3,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
-import type { FirebaseError } from 'firebase/app';
-import { auth, googleProvider } from '@/lib/firebase-client';
+import { auth } from '@/lib/firebase-client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from '@/lib/icons';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -38,7 +34,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export default function LoginPage() {
   const router = useRouter();
-  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,17 +41,13 @@ export default function LoginPage() {
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
+
     try {
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
       await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: 'Login Successful', description: 'Welcome back!' });
       router.push('/');
     } catch (error: unknown) {
-      const firebaseError = error as FirebaseError;
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: firebaseError.message,
-      });
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -64,17 +55,15 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+
     try {
-      await signInWithPopup(auth, googleProvider);
-      toast({ title: 'Login Successful', description: 'Welcome!' });
+      const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
+      const provider = new GoogleAuthProvider();
+
+      await signInWithPopup(auth, provider);
       router.push('/');
     } catch (error: unknown) {
-      const firebaseError = error as FirebaseError;
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: firebaseError.message,
-      });
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -82,12 +71,17 @@ export default function LoginPage() {
 
   return (
     <div className="container mx-auto flex items-center justify-center min-h-[80vh] px-4 pb-16">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="font-headline text-2xl">Welcome Back</CardTitle>
-          <CardDescription>Enter your credentials to access your account.</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="w-full max-w-sm rounded-xl border bg-card text-card-foreground shadow">
+        <div className="flex flex-col space-y-1.5 p-6 text-center">
+          <h1 className="font-headline text-2xl font-semibold leading-none tracking-tight">
+            Welcome Back
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Enter your credentials to access your account.
+          </p>
+        </div>
+
+        <div className="p-6 pt-0">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -101,6 +95,7 @@ export default function LoginPage() {
                 disabled={isLoading}
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -112,10 +107,12 @@ export default function LoginPage() {
                 disabled={isLoading}
               />
             </div>
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Login
             </Button>
+
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -124,7 +121,9 @@ export default function LoginPage() {
                 <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
               </div>
             </div>
+
             <Button
+              type="button"
               variant="outline"
               className="w-full"
               onClick={handleGoogleSignIn}
@@ -134,14 +133,15 @@ export default function LoginPage() {
               Sign in with Google
             </Button>
           </form>
+
           <div className="mt-4 text-center text-sm">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" className="underline hover:text-primary">
               Sign up
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

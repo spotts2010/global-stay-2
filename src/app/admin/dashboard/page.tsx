@@ -1,8 +1,11 @@
 // src/app/admin/dashboard/page.tsx
+
+'use client';
+
+import dynamic from 'next/dynamic';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import StatCard from '@/components/admin/StatCard';
-import UserGrowthChart from '@/components/admin/UserGrowthChart';
-import RevenueChart from '@/components/admin/RevenueChart';
 import RecentActivity from '@/components/admin/RecentActivity';
 import TopPerformingTable from '@/components/admin/TopPerformingTable';
 import SystemStatus from '@/components/admin/SystemStatus';
@@ -14,8 +17,11 @@ import {
   Briefcase,
   Activity,
   BarChart,
-  AreaChart,
 } from '@/lib/icons';
+
+const DashboardChartsClient = dynamic(() => import('@/components/admin/DashboardChartsClient'), {
+  ssr: false,
+});
 
 export default function AdminDashboardPage() {
   return (
@@ -51,7 +57,6 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Main Charts */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -61,19 +66,7 @@ export default function AdminDashboardPage() {
             <CardDescription>New user registrations over the past 6 months.</CardDescription>
           </CardHeader>
           <CardContent>
-            <UserGrowthChart />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AreaChart className="h-5 w-5 text-primary" />
-              Revenue
-            </CardTitle>
-            <CardDescription>Revenue trends over the past 6 months.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RevenueChart />
+            <DashboardChartsClient />
           </CardContent>
         </Card>
       </div>

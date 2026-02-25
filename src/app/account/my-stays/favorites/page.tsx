@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import AccommodationCard from '@/components/AccommodationCard';
 import { useFavorites } from '@/context/FavoritesContext';
 import { Heart } from '@/lib/icons';
-import { fetchAccommodationById } from '@/lib/firestore';
 import type { Accommodation } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -18,16 +17,23 @@ export default function FavoritesPage() {
   useEffect(() => {
     const loadAccommodations = async () => {
       setLoading(true);
-      const favoriteAccommodations = (
-        await Promise.all(favorites.map((id) => fetchAccommodationById(id)))
-      ).filter((a): a is Accommodation => a !== null);
-      setAccommodations(favoriteAccommodations);
+
+      const res = await fetch('/api/account/favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: favorites }),
+      });
+
+      const data = await res.json();
+      setAccommodations(Array.isArray(data?.accommodations) ? data.accommodations : []);
+
       setLoading(false);
     };
 
     if (favorites.length > 0) {
       loadAccommodations();
     } else {
+      setAccommodations([]);
       setLoading(false);
     }
   }, [favorites]);

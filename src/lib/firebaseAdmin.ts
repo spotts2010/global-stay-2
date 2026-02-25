@@ -1,10 +1,8 @@
 // src/lib/firebaseAdmin.ts
-import 'server-only';
 
-import admin from 'firebase-admin';
-import type { Firestore } from 'firebase-admin/firestore';
-import type { Storage } from 'firebase-admin/storage';
-import fs from 'fs';
+import { cert, getApps, initializeApp, type App } from 'firebase-admin/app';
+import { getFirestore, type Firestore } from 'firebase-admin/firestore';
+import { getStorage, type Storage } from 'firebase-admin/storage';
 import { logger } from './logger';
 
 function isBuildOrPrerender(): boolean {
@@ -15,15 +13,33 @@ function isBuildOrPrerender(): boolean {
   );
 }
 
-function initializeAdminApp(): boolean {
-  if (admin.apps.length > 0) return true;
+let _app: App | null = null;
+let _db: Firestore | null = null;
+let _storage: Storage | null = null;
 
-  // Load .env files only in local/dev execution (avoids side effects in build/hosting)
-  if (process.env.NODE_ENV !== 'production') {
+function parseServiceAccountFromEnv(value: string): unknown {
+  // Try JSON first
+  try {
+    return JSON.parse(value);
+  } catch {
+    // Fallback: treat as file path (lazy require to avoid bundling)
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const dotenv = require('dotenv') as typeof import('dotenv');
-    dotenv.config({ path: '.env.local' });
-    dotenv.config({ path: '.env' });
+    const fs = require('fs') as typeof import('fs');
+
+    if (!fs.existsSync(value)) {
+      throw new Error('FIREBASE_ADMIN_KEY must be valid JSON content or an existing file path.');
+    }
+
+    const raw = fs.readFileSync(value, 'utf8');
+    return JSON.parse(raw);
+  }
+}
+
+function initializeAdminApp(): boolean {
+  if (_app) return true;
+  if (getApps().length > 0) {
+    _app = getApps()[0]!;
+    return true;
   }
 
   const keyString = process.env.FIREBASE_ADMIN_KEY;
@@ -39,46 +55,16 @@ function initializeAdminApp(): boolean {
 
   // Runtime path: be strict
   if (!keyString) {
-    throw new Error(
-      'FIREBASE_ADMIN_KEY environment variable is not set. Provide the JSON key content directly or a file path.'
-    );
+    throw new Error('FIREBASE_ADMIN_KEY environment variable is not set (must be JSON content).');
   }
   if (!storageBucket) {
     throw new Error('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET environment variable is not set.');
   }
 
-  let serviceAccount: unknown;
+  const serviceAccount = parseServiceAccountFromEnv(keyString);
 
-  try {
-    // Try JSON first
-    serviceAccount = JSON.parse(keyString);
-  } catch {
-    // Fallback: treat as file path
-    if (!fs.existsSync(keyString)) {
-      if (isBuildOrPrerender()) {
-        logger.warn(
-          `Firebase Admin SDK not initialised during build/prerender (key file not found at path: ${keyString}).`
-        );
-        return false;
-      }
-      throw new Error(`Firebase Admin JSON key not found at path: ${keyString}`);
-    }
-
-    try {
-      serviceAccount = JSON.parse(fs.readFileSync(keyString, 'utf8'));
-    } catch (err) {
-      if (isBuildOrPrerender()) {
-        logger.warn(
-          `Firebase Admin SDK not initialised during build/prerender (failed to parse key file at path: ${keyString}).`
-        );
-        return false;
-      }
-      throw err;
-    }
-  }
-
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+  _app = initializeApp({
+    credential: cert(serviceAccount as any),
     storageBucket,
   });
 
@@ -92,13 +78,17 @@ function initializeAdminApp(): boolean {
 export function getAdminDb(): Firestore | null {
   const ok = initializeAdminApp();
   if (!ok) return null;
-  return admin.firestore();
+  if (_db) return _db;
+  _db = getFirestore(_app!);
+  return _db;
 }
 
 export function getAdminStorage(): Storage | null {
   const ok = initializeAdminApp();
   if (!ok) return null;
-  return admin.storage();
+  if (_storage) return _storage;
+  _storage = getStorage(_app!);
+  return _storage;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -107,16 +97,12 @@ export function getAdminStorage(): Storage | null {
 
 export function requireAdminDb(): Firestore {
   const db = getAdminDb();
-  if (!db) {
-    throw new Error('Firebase Admin DB is not available in this environment.');
-  }
+  if (!db) throw new Error('Firebase Admin DB is not available in this environment.');
   return db;
 }
 
 export function requireAdminStorage(): Storage {
   const storage = getAdminStorage();
-  if (!storage) {
-    throw new Error('Firebase Admin Storage is not available in this environment.');
-  }
+  if (!storage) throw new Error('Firebase Admin Storage is not available in this environment.');
   return storage;
 }

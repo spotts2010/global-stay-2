@@ -1,5 +1,4 @@
 // src/lib/firestore.server.ts
-import 'server-only'; // Ensures this file is never included in a client bundle
 
 import { getAdminDb } from './firebaseAdmin';
 import type { Accommodation, BedType, Place, Collection, PropertyType, LegalPage } from './data';
@@ -7,6 +6,7 @@ import { serializeFirestoreData } from './serialize';
 import placeholderImages from './placeholder-images.json';
 import type { BookableUnit } from '@/components/UnitsPageClient';
 import { logger } from './logger';
+import type { EnrichedBooking } from './data';
 
 export type AmenityOrInclusion = {
   id: string;
@@ -155,6 +155,70 @@ export async function fetchAccommodationById(id: string): Promise<Accommodation 
   } catch (error) {
     logger.error(`Error fetching accommodation by id ${id} with Admin SDK:`, error);
     return null;
+  }
+}
+
+export async function fetchBookings(userId: string): Promise<EnrichedBooking[]> {
+  if (!userId) return [];
+
+  try {
+    const adminDb = getAdminDb();
+    if (!adminDb) return [];
+
+    const snapshot = await adminDb.collection('bookings').where('userId', '==', userId).get();
+
+    if (snapshot.empty) return [];
+
+    const bookings = snapshot.docs.map((doc) =>
+      serializeFirestoreData({ id: doc.id, ...doc.data() })
+    ) as EnrichedBooking[];
+
+    const enriched: EnrichedBooking[] = await Promise.all(
+      bookings.map(async (booking) => {
+        const accommodation = await fetchAccommodationById(booking.accommodationId || '');
+
+        return {
+          ...booking,
+          accommodation: accommodation || undefined,
+        };
+      })
+    );
+
+    return enriched;
+  } catch (error) {
+    logger.error('Error fetching bookings with Admin SDK:', error);
+    return [];
+  }
+}
+
+export async function fetchPastBookings(userId: string): Promise<EnrichedBooking[]> {
+  if (!userId) return [];
+
+  try {
+    const adminDb = getAdminDb();
+    if (!adminDb) return [];
+
+    const snapshot = await adminDb.collection('bookings').where('userId', '==', userId).get();
+
+    if (snapshot.empty) return [];
+
+    const now = new Date();
+
+    const bookings = snapshot.docs
+      .map((doc) => serializeFirestoreData({ id: doc.id, ...doc.data() }) as EnrichedBooking)
+      .filter((b) => b.endDate && new Date(b.endDate) < now);
+
+    const enriched: EnrichedBooking[] = await Promise.all(
+      bookings.map(async (booking) => {
+        const accommodation = await fetchAccommodationById(booking.accommodationId || '');
+        return { ...booking, accommodation: accommodation || undefined };
+      })
+    );
+
+    return enriched;
+  } catch (error) {
+    logger.error('Error fetching past bookings with Admin SDK:', error);
+    return [];
   }
 }
 

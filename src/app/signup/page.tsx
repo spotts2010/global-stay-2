@@ -5,9 +5,8 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import type { FirebaseError } from 'firebase/app';
-import { auth, googleProvider } from '@/lib/firebase-client';
+import { auth } from '@/lib/firebase-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -44,19 +43,22 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignUp = async (event: React.FormEvent) => {
+  const handleSignup = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
+
     try {
+      const { createUserWithEmailAndPassword } = await import('firebase/auth');
+
       await createUserWithEmailAndPassword(auth, email, password);
-      // In a real app, you might also want to update the user's profile with their name here
-      toast({ title: 'Account Created', description: 'Welcome to Global Stay 2.0!' });
+
+      toast({ title: 'Account Created', description: 'Welcome!' });
       router.push('/');
-    } catch (error) {
+    } catch (error: unknown) {
       const firebaseError = error as FirebaseError;
       toast({
         variant: 'destructive',
-        title: 'Sign-up Failed',
+        title: 'Signup Failed',
         description: firebaseError.message,
       });
     } finally {
@@ -66,11 +68,16 @@ export default function SignupPage() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+
     try {
-      await signInWithPopup(auth, googleProvider);
+      const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
+      const provider = new GoogleAuthProvider();
+
+      await signInWithPopup(auth, provider);
+
       toast({ title: 'Account Created', description: 'Welcome!' });
       router.push('/');
-    } catch (error) {
+    } catch (error: unknown) {
       const firebaseError = error as FirebaseError;
       toast({
         variant: 'destructive',
@@ -90,7 +97,7 @@ export default function SignupPage() {
           <CardDescription>Join Global Stay 2.0 to start your journey.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignUp} className="space-y-4">
+          <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
