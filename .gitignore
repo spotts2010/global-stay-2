@@ -58,3 +58,6 @@ storage.rules
 .eslintcache
 playwright-report/
 playwright-report/
+
+# local secrets
+firebase-admin-key.json
