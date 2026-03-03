@@ -1,7 +1,7 @@
 // src/app/admin/listings/[id]/edit/units/[unitId]/pricing/page.tsx
 import 'server-only';
 
-import PricingPageClient from '@/components/PricingPageClient';
+import PricingClientLoader from '@/components/admin/listings/units/pricing-client-loader';
 import { BookableUnit } from '@/components/UnitsPageClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchAccommodationById, fetchUnitsForAccommodation } from '@/lib/firestore.server';
@@ -58,5 +58,5 @@ export default async function PricingPage({ params }: PageProps) {
     );
   }
 
-  return <PricingPageClient listing={listing} unit={unit as BookableUnit} />;
+  return <PricingClientLoader listing={listing} unit={unit as BookableUnit} />;
 }

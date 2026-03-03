@@ -2,7 +2,7 @@
 import 'server-only';
 import { fetchBedTypes, fetchUnitsForAccommodation } from '@/lib/firestore.server';
 import type { BedType } from '@/lib/data';
-import OccupancyLayoutClient from '@/components/OccupancyLayoutClient';
+import OccupancyLayoutClientLoader from '@/components/admin/listings/units/occupancy-layout-client-loader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { BookableUnit } from '@/components/UnitsPageClient';
 
@@ -38,5 +38,7 @@ export default async function OccupancyLayoutPage({
     unit = units.find((u) => u.id === unitId) || null;
   }
 
-  return <OccupancyLayoutClient listingId={listingId} unit={unit} bedTypes={sortedBedTypes} />;
+  return (
+    <OccupancyLayoutClientLoader listingId={listingId} unit={unit} bedTypes={sortedBedTypes} />
+  );
 }

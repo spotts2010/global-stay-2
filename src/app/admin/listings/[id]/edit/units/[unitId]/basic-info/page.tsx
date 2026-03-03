@@ -2,7 +2,7 @@
 import 'server-only';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchAccommodationById, fetchUnitsForAccommodation } from '@/lib/firestore.server';
-import BasicInfoClient from '@/components/BasicInfoClient';
+import BasicInfoClientLoader from '@/components/admin/listings/units/basic-info-client-loader';
 import { BookableUnit } from '@/components/UnitsPageClient';
 
 // This is now a SERVER component responsible for data fetching
@@ -47,5 +47,5 @@ export default async function BasicInfoPage({
     unit = units.find((u) => u.id === unitId);
   }
 
-  return <BasicInfoClient listing={listing} unit={unit} />;
+  return <BasicInfoClientLoader listing={listing} unit={unit} />;
 }
