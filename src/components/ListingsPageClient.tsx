@@ -1,8 +1,8 @@
 // src/components/ListingsPageClient.tsx
+
 'use client';
 
 import React, { useState, useEffect, useMemo, useTransition } from 'react';
-import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,19 +14,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Copy,
-  PlusCircle,
-  ListFilter,
-  FilePen,
-  Trash2,
-  Check,
-  RotateCcw,
-  Loader2,
-  ArrowUp,
-  ArrowDown,
-  FaArchive,
-  ImageIcon,
-} from '@/lib/icons';
+  MdContentCopy as Copy,
+  MdAddCircle as PlusCircle,
+  MdFilterList as ListFilter,
+  MdEdit as FilePen,
+  MdDelete as Trash2,
+  MdCheck as Check,
+  MdRotateLeft as RotateCcw,
+  MdArrowUpward as ArrowUp,
+  MdArrowDownward as ArrowDown,
+  MdImage as ImageIcon,
+} from 'react-icons/md';
+
+import { FaArchive } from 'react-icons/fa';
+import { BiLoaderAlt } from 'react-icons/bi';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,7 +65,7 @@ import {
   updateAccommodationStatusAction,
   duplicateListingAction,
   deleteListingAction,
-} from '@/app/actions';
+} from '@/app/admin/listings/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -74,7 +75,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
+
+const Image = dynamic(() => import('next/image'), { ssr: false });
 
 type ListingStatus = 'All' | 'Published' | 'Draft' | 'Archived';
 type SortKey = 'name' | 'price' | 'status' | 'lastModified';
@@ -473,7 +477,7 @@ export default function ListingsPageClient({
                               disabled={isPending}
                             >
                               {isPending && pendingAction === property.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <BiLoaderAlt className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Copy className="h-4 w-4" />
                               )}
@@ -493,7 +497,7 @@ export default function ListingsPageClient({
                                 disabled={!canPublish || isPending}
                               >
                                 {isPending && pendingAction === property.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  <BiLoaderAlt className="h-4 w-4 animate-spin" />
                                 ) : (
                                   <Check className="h-4 w-4" />
                                 )}
@@ -516,7 +520,7 @@ export default function ListingsPageClient({
                                 disabled={isPending}
                               >
                                 {isPending && pendingAction === property.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  <BiLoaderAlt className="h-4 w-4 animate-spin" />
                                 ) : (
                                   <RotateCcw className="h-4 w-4" />
                                 )}
@@ -572,7 +576,7 @@ export default function ListingsPageClient({
                                 disabled={isPending}
                               >
                                 {isPending && pendingAction === property.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  <BiLoaderAlt className="h-4 w-4 animate-spin" />
                                 ) : (
                                   <FaArchive className="h-4 w-4" />
                                 )}
