@@ -1,6 +1,8 @@
+// src/components/PointsOfInterest.tsx
 'use client';
 
-import React, { useState, useEffect, useRef, useTransition, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import React, { useMemo, useState, useTransition } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,17 +30,23 @@ import {
   FilePen,
   Check,
   X,
-  MapPin,
   HiOutlineLocationMarker,
 } from '@/lib/icons';
 import type { Accommodation, Place, PoiCategory } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { updatePointsOfInterestAction } from '@/app/actions';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
-import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Input } from './ui/input';
+
+const PlacesAutocomplete = dynamic(() => import('@/components/pois/places-autocomplete'), {
+  ssr: false,
+  loading: () => (
+    <div className="relative w-full">
+      <div className="h-10 w-full rounded-md border border-input bg-white" />
+    </div>
+  ),
+});
 
 // Helper for distance calculation
 function getDistance(
@@ -266,50 +274,6 @@ const PoiRow = ({
   );
 };
 
-function PlacesAutocomplete({
-  onPlaceSelected,
-}: {
-  onPlaceSelected: (place: google.maps.places.PlaceResult | null) => void;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const places = useMapsLibrary('places');
-
-  useEffect(() => {
-    if (!places || !inputRef.current) return;
-    const ac = new places.Autocomplete(inputRef.current, {
-      fields: [
-        'place_id',
-        'name',
-        'formatted_address',
-        'geometry.location',
-        'types',
-        'address_components',
-      ],
-    });
-    const listener = ac.addListener('place_changed', () => {
-      onPlaceSelected(ac.getPlace());
-    });
-    return () => listener.remove();
-  }, [places, onPlaceSelected]);
-
-  return (
-    <div className="relative w-full">
-      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-      <Input
-        ref={inputRef}
-        className="pl-10 bg-white"
-        placeholder="Search for a place on Google Maps..."
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') e.preventDefault();
-        }}
-        onChange={(e) => {
-          if (!e.target.value) onPlaceSelected(null);
-        }}
-      />
-    </div>
-  );
-}
-
 export default function PointsOfInterest({
   listing,
   initialPlaces,
@@ -493,114 +457,112 @@ export default function PointsOfInterest({
   );
 
   return (
-    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''} libraries={['places']}>
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-            <div className="mb-4 sm:mb-0 space-y-1.5">
-              <CardTitle className="flex items-center gap-2">
-                <HiOutlineLocationMarker className="h-5 w-5 text-primary" />
-                Places & Points of Interest
-              </CardTitle>
-              <CardDescription>
-                Add and manage nearby attractions, restaurants, and transport links.
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={handleSaveChanges} disabled={isPending}>
-                {isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Save Changes
-              </Button>
-            </div>
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+          <div className="mb-4 sm:mb-0 space-y-1.5">
+            <CardTitle className="flex items-center gap-2">
+              <HiOutlineLocationMarker className="h-5 w-5 text-primary" />
+              Places & Points of Interest
+            </CardTitle>
+            <CardDescription>
+              Add and manage nearby attractions, restaurants, and transport links.
+            </CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-8 flex w-full flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex w-full md:w-1/2 items-center gap-2">
-              <PlacesAutocomplete onPlaceSelected={setSelectedPlace} />
-              <Button onClick={handleAddPlace} disabled={!selectedPlace}>
-                Add Place
-              </Button>
-            </div>
-            <div className="w-full md:w-auto flex justify-end">
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full md:w-[280px]">
-                  <SelectValue placeholder="Filter by category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">
+          <div className="flex items-center gap-2">
+            <Button onClick={handleSaveChanges} disabled={isPending}>
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-8 flex w-full flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex w-full md:w-1/2 items-center gap-2">
+            <PlacesAutocomplete onPlaceSelected={setSelectedPlace} />
+            <Button onClick={handleAddPlace} disabled={!selectedPlace}>
+              Add Place
+            </Button>
+          </div>
+          <div className="w-full md:w-auto flex justify-end">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-full md:w-[280px]">
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">
+                  <div className="flex items-center justify-between w-full">
+                    <span>All Categories</span>
+                    <Badge variant="secondary" className="ml-4 px-1.5 py-0">
+                      {categoryCounts['All']}
+                    </Badge>
+                  </div>
+                </SelectItem>
+                {sortedPoiCategories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
                     <div className="flex items-center justify-between w-full">
-                      <span>All Categories</span>
+                      <span>{cat}</span>
                       <Badge variant="secondary" className="ml-4 px-1.5 py-0">
-                        {categoryCounts['All']}
+                        {categoryCounts[cat] || 0}
                       </Badge>
                     </div>
                   </SelectItem>
-                  {sortedPoiCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      <div className="flex items-center justify-between w-full">
-                        <span>{cat}</span>
-                        <Badge variant="secondary" className="ml-4 px-1.5 py-0">
-                          {categoryCounts[cat] || 0}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+        </div>
 
-          <div className="border rounded-lg bg-card">
-            <Table>
-              <TableHeader>
+        <div className="border rounded-lg bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <SortableHeader sortKey="name">Place</SortableHeader>
+                <SortableHeader sortKey="category" className="w-72">
+                  Category
+                </SortableHeader>
+                <SortableHeader sortKey="distance" className="w-32 hidden sm:table-cell">
+                  Distance
+                </SortableHeader>
+                <SortableHeader sortKey="visible" className="w-24 text-center">
+                  Visible
+                </SortableHeader>
+                <TableHead className="w-32 text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedAndFilteredPlaces.length > 0 ? (
+                sortedAndFilteredPlaces.map((place) => (
+                  <PoiRow
+                    key={place.id}
+                    place={place}
+                    preferences={preferences}
+                    editingRowId={editingRowId}
+                    tempCategory={tempCategory}
+                    onEditClick={handleEditClick}
+                    onSaveEdit={handleSaveEdit}
+                    onCancelEdit={handleCancelEdit}
+                    onCategoryChange={setTempCategory}
+                    onVisibilityChange={handleVisibilityChange}
+                    onDelete={handleDelete}
+                  />
+                ))
+              ) : (
                 <TableRow>
-                  <SortableHeader sortKey="name">Place</SortableHeader>
-                  <SortableHeader sortKey="category" className="w-72">
-                    Category
-                  </SortableHeader>
-                  <SortableHeader sortKey="distance" className="w-32 hidden sm:table-cell">
-                    Distance
-                  </SortableHeader>
-                  <SortableHeader sortKey="visible" className="w-24 text-center">
-                    Visible
-                  </SortableHeader>
-                  <TableHead className="w-32 text-right">Actions</TableHead>
+                  <TableCell colSpan={6} className="text-center py-4">
+                    No points of interest found for the selected category.
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedAndFilteredPlaces.length > 0 ? (
-                  sortedAndFilteredPlaces.map((place) => (
-                    <PoiRow
-                      key={place.id}
-                      place={place}
-                      preferences={preferences}
-                      editingRowId={editingRowId}
-                      tempCategory={tempCategory}
-                      onEditClick={handleEditClick}
-                      onSaveEdit={handleSaveEdit}
-                      onCancelEdit={handleCancelEdit}
-                      onCategoryChange={setTempCategory}
-                      onVisibilityChange={handleVisibilityChange}
-                      onDelete={handleDelete}
-                    />
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
-                      No points of interest found for the selected category.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </APIProvider>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

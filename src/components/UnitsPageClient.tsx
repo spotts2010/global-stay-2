@@ -1,6 +1,7 @@
 // src/components/UnitsPageClient.tsx
 'use client';
 
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,16 +22,10 @@ import {
 import { Label } from '@/components/ui/label';
 import {
   Bed,
-  FilePen,
   PlusCircle,
-  Trash2,
   Users,
   Loader2,
   Save,
-  Copy,
-  FaArchive,
-  RotateCcw,
-  Check,
   ArrowUp,
   ArrowDown,
   MdOutlineDoorFront,
@@ -45,20 +40,8 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { updateAccommodationAction, updateUnitsAction, duplicateUnitAction } from '@/app/actions';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { formatCurrency } from '@/lib/currency';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 export type BookableUnit = {
   id: string;
@@ -118,6 +101,10 @@ export default function UnitsPageClient({
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
     key: 'unitRef',
     direction: 'asc',
+  });
+
+  const UnitActionsCell = dynamic(() => import('@/components/units/unit-actions-cell'), {
+    ssr: false,
   });
 
   const [bookableUnits, setBookableUnits] = useState<BookableUnit[]>(
@@ -394,7 +381,7 @@ export default function UnitsPageClient({
                     <TableBody>
                       {sortedUnits.length > 0 ? (
                         sortedUnits.map((unit) => {
-                          const canPublish = unit.unitRef && unit.unitRef.trim() !== '';
+                          const canPublish = !!unit.unitRef?.trim();
                           const isDuplicatingThis = isDuplicating && unit.id === unit.id; // Example logic
                           return (
                             <TableRow key={unit.id}>
@@ -444,131 +431,18 @@ export default function UnitsPageClient({
                                 </Badge>
                               </TableCell>
                               <TableCell className="text-right">
-                                <TooltipProvider>
-                                  <div className="flex items-center justify-end gap-2">
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          asChild
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                        >
-                                          <Link href={getEditUrl(unit.id)}>
-                                            <FilePen className="h-4 w-4" />
-                                          </Link>
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Edit Unit</TooltipContent>
-                                    </Tooltip>
-
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          onClick={() => handleDuplicateUnit(unit.id)}
-                                          disabled={isDuplicating}
-                                        >
-                                          {isDuplicatingThis ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                          ) : (
-                                            <Copy className="h-4 w-4" />
-                                          )}
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Duplicate Unit</TooltipContent>
-                                    </Tooltip>
-
-                                    {unit.status === 'Draft' ? (
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="outline"
-                                            size="icon"
-                                            className="h-8 w-8 text-green-600"
-                                            onClick={() => handleStatusChange(unit.id, 'Published')}
-                                            disabled={!canPublish}
-                                          >
-                                            <Check className="h-4 w-4" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          {canPublish
-                                            ? 'Publish Unit'
-                                            : 'A unique Unit Ref is required to publish.'}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    ) : (
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="outline"
-                                            size="icon"
-                                            className="h-8 w-8 text-amber-600"
-                                            onClick={() => handleStatusChange(unit.id, 'Draft')}
-                                          >
-                                            <RotateCcw className="h-4 w-4" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Return to Draft</TooltipContent>
-                                      </Tooltip>
-                                    )}
-
-                                    {unit.status === 'Draft' ? (
-                                      <AlertDialog>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <AlertDialogTrigger asChild>
-                                              <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-destructive"
-                                              >
-                                                <Trash2 className="h-4 w-4" />
-                                              </Button>
-                                            </AlertDialogTrigger>
-                                          </TooltipTrigger>
-                                          <TooltipContent>Delete Unit</TooltipContent>
-                                        </Tooltip>
-                                        <AlertDialogContent>
-                                          <AlertDialogHeader>
-                                            <AlertDialogTitle>
-                                              Are you absolutely sure?
-                                            </AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                              This action cannot be undone. This will permanently
-                                              delete the "{unit.name}" unit.
-                                            </AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction
-                                              onClick={() => handleDeleteUnit(unit.id)}
-                                            >
-                                              Continue
-                                            </AlertDialogAction>
-                                          </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                      </AlertDialog>
-                                    ) : (
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 text-destructive"
-                                            onClick={() => handleStatusChange(unit.id, 'Archived')}
-                                          >
-                                            <FaArchive className="h-4 w-4" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Archive Unit</TooltipContent>
-                                      </Tooltip>
-                                    )}
-                                  </div>
-                                </TooltipProvider>
+                                <UnitActionsCell
+                                  editHref={getEditUrl(unit.id)}
+                                  unitName={unit.name}
+                                  unitId={unit.id}
+                                  canPublish={canPublish}
+                                  status={unit.status}
+                                  isDuplicating={isDuplicating}
+                                  isDuplicatingThis={isDuplicatingThis}
+                                  onDuplicate={handleDuplicateUnit}
+                                  onStatusChange={handleStatusChange}
+                                  onDelete={handleDeleteUnit}
+                                />
                               </TableCell>
                             </TableRow>
                           );

@@ -1,4 +1,5 @@
 // src/components/NewListingPageClient.tsx
+
 'use client';
 
 import { ArrowLeft } from '@/lib/icons';
@@ -7,11 +8,11 @@ import NewListingClient from '@/components/NewListingClient';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { APIProvider } from '@vis.gl/react-google-maps';
 
 function BackButton() {
   const searchParams = useSearchParams();
   const backLink = `/admin/listings?${searchParams.toString()}`;
+
   return (
     <Button asChild variant="outline">
       <Link href={backLink}>
@@ -32,13 +33,14 @@ export default function NewListingPageClient() {
             Fill out the form to add a new accommodation to your listings.
           </p>
         </div>
+
         <Suspense>
           <BackButton />
         </Suspense>
       </div>
-      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
-        <NewListingClient />
-      </APIProvider>
+
+      {/* Maps provider moved down into map boundary */}
+      <NewListingClient />
     </div>
   );
 }

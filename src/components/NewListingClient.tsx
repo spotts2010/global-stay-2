@@ -30,12 +30,16 @@ import {
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Save, Loader2, MapPin, SquarePen } from '@/lib/icons';
-import React, { useState, useTransition, useRef } from 'react';
+import { Save, Loader2, SquarePen } from '@/lib/icons';
+import { useState, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createListingAction } from '@/app/actions';
-import { Map, AdvancedMarker, useMapsLibrary } from '@vis.gl/react-google-maps';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
+
+const MapSection = dynamic(() => import('@/components/maps/new-listing-map-boundary'), {
+  ssr: false,
+});
 
 const addressSchema = z.object({
   formatted: z.string().optional(),
@@ -113,46 +117,6 @@ function formatPlaceResult(place: google.maps.places.PlaceResult) {
   return { ...structured, searchIndex };
 }
 
-function AddressAutocomplete({
-  onPlaceSelected,
-  initialValue,
-}: {
-  onPlaceSelected: (place: google.maps.places.PlaceResult | null) => void;
-  initialValue: string;
-}) {
-  const places = useMapsLibrary('places');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  React.useEffect(() => {
-    if (!places || !inputRef.current) return;
-
-    const autocomplete = new places.Autocomplete(inputRef.current, {
-      fields: ['place_id', 'name', 'formatted_address', 'geometry', 'types', 'address_components'],
-    });
-
-    const listener = autocomplete.addListener('place_changed', () => {
-      onPlaceSelected(autocomplete.getPlace());
-    });
-
-    return () => listener.remove();
-  }, [places, onPlaceSelected]);
-
-  return (
-    <div className="relative w-full">
-      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-      <Input
-        ref={inputRef}
-        defaultValue={initialValue}
-        className="pl-10 bg-white"
-        placeholder="Search for an address"
-        onChange={(e) => {
-          if (!e.target.value) onPlaceSelected(null);
-        }}
-      />
-    </div>
-  );
-}
-
 function hasLatLng(value: unknown): value is { formatted: string; lat: number; lng: number } {
   return (
     !!value &&
@@ -162,34 +126,6 @@ function hasLatLng(value: unknown): value is { formatted: string; lat: number; l
     'lng' in value &&
     typeof (value as any).lat === 'number' &&
     typeof (value as any).lng === 'number'
-  );
-}
-
-function MapView({
-  markerPosition,
-  onMarkerDragEnd,
-  mapKey,
-}: {
-  markerPosition: Position | null;
-  onMarkerDragEnd: (e: google.maps.MapMouseEvent) => void;
-  mapKey: number;
-}) {
-  return (
-    <div style={{ height: '400px', width: '100%' }} className="rounded-lg overflow-hidden border">
-      <Map
-        key={mapKey}
-        mapId="DEMO_MAP_ID"
-        style={{ width: '100%', height: '100%' }}
-        defaultCenter={markerPosition || { lat: -25.2744, lng: 133.7751 }}
-        defaultZoom={markerPosition ? 15 : 4}
-        gestureHandling="auto"
-        disableDefaultUI={false}
-      >
-        {markerPosition && (
-          <AdvancedMarker position={markerPosition} draggable onDragEnd={onMarkerDragEnd} />
-        )}
-      </Map>
-    </div>
   );
 }
 
@@ -214,13 +150,17 @@ export default function NewListingClient() {
   const [markerPosition, setMarkerPosition] = useState<Position | null>(null);
 
   const handlePlaceSelected = (place: google.maps.places.PlaceResult | null) => {
-    if (!place) return;
+    if (!place) {
+      form.setValue('location', '', { shouldDirty: true });
+      form.setValue('address', {} as any, { shouldDirty: true });
+      setMarkerPosition(null);
+      setMapKey((k) => k + 1);
+      return;
+    }
 
     const structuredAddress = formatPlaceResult(place);
 
-    // ✅ Narrow before reading lat/lng (formatPlaceResult returns a union)
     if (!hasLatLng(structuredAddress)) {
-      // still set the formatted location if available
       const formatted =
         structuredAddress &&
         typeof structuredAddress === 'object' &&
@@ -244,18 +184,19 @@ export default function NewListingClient() {
   };
 
   const handleMarkerDragEnd = (e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
-      const newPosition = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-      setMarkerPosition(newPosition);
-      form.setValue('address.lat', newPosition.lat, { shouldDirty: true });
-      form.setValue('address.lng', newPosition.lng, { shouldDirty: true });
-    }
+    if (!e.latLng) return;
+
+    const newPosition = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+    setMarkerPosition(newPosition);
+    form.setValue('address.lat', newPosition.lat, { shouldDirty: true });
+    form.setValue('address.lng', newPosition.lng, { shouldDirty: true });
   };
 
   const handleSave = (formData: PropertyFormValues) => {
     startTransition(async () => {
       const { location: _, ...dataToSave } = formData;
       const result = await createListingAction(dataToSave);
+
       if (result.success && result.id) {
         toast({
           title: 'Listing Created',
@@ -283,6 +224,7 @@ export default function NewListingClient() {
             </CardTitle>
             <CardDescription>Enter the main details for your new property listing.</CardDescription>
           </CardHeader>
+
           <CardContent className="space-y-6">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-grow-[3]">
@@ -300,6 +242,7 @@ export default function NewListingClient() {
                   )}
                 />
               </div>
+
               <div className="flex-grow-[2]">
                 <FormField
                   control={form.control}
@@ -327,6 +270,7 @@ export default function NewListingClient() {
                   )}
                 />
               </div>
+
               <div className="flex-grow-[1]">
                 <FormField
                   control={form.control}
@@ -359,6 +303,7 @@ export default function NewListingClient() {
                 />
               </div>
             </div>
+
             <FormField
               control={form.control}
               name="description"
@@ -372,35 +317,31 @@ export default function NewListingClient() {
                 </FormItem>
               )}
             />
+
             <div className="space-y-4">
-              <div className="space-y-2">
-                <FormLabel>Location</FormLabel>
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem className="flex-grow">
-                      <FormControl>
-                        <AddressAutocomplete
-                          onPlaceSelected={handlePlaceSelected}
-                          initialValue={field.value}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="space-y-2">
-                <FormLabel>Map View</FormLabel>
-                <MapView
-                  markerPosition={markerPosition}
-                  onMarkerDragEnd={handleMarkerDragEnd}
-                  mapKey={mapKey}
-                />
-              </div>
+              <FormLabel>Location</FormLabel>
+
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem className="flex-grow">
+                    <FormControl>
+                      <MapSection
+                        initialValue={field.value}
+                        markerPosition={markerPosition}
+                        mapKey={mapKey}
+                        onPlaceSelected={handlePlaceSelected}
+                        onMarkerDragEnd={handleMarkerDragEnd}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </CardContent>
+
           <CardFooter>
             <Button type="submit" disabled={isPending || !form.formState.isDirty}>
               {isPending ? (

@@ -1,27 +1,12 @@
+// src/components/PhotosPageClient.tsx
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  rectSortingStrategy,
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import dynamic from 'next/dynamic';
+import React, { useEffect, useState, useTransition } from 'react';
+
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -30,88 +15,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Loader2, ImageIcon, UploadCloud, Save, Trash2, GripVertical, Camera } from '@/lib/icons';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
 import { useToast } from '@/hooks/use-toast';
-import type { Accommodation } from '@/lib/data';
 import { updateAccommodationAction } from '@/app/actions';
-import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import type { Accommodation } from '@/lib/data';
+import { Camera, ImageIcon, Loader2, Save, UploadCloud } from '@/lib/icons';
 
-const SortablePhoto = ({
-  id,
-  index,
-  onDelete,
-}: {
-  id: string;
-  index: number;
-  onDelete: (id: string) => void;
-}) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} className="relative w-40 h-40 rounded-lg group touch-none">
-      <Image
-        src={id}
-        alt={`Property image ${index + 1}`}
-        fill
-        sizes="160px"
-        className="object-cover rounded-lg"
-      />
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-2 right-2 cursor-grab p-1 text-white opacity-60 hover:opacity-100 rounded-md bg-black/30 z-10"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical className="h-5 w-5" />
-      </div>
-      {index === 0 && (
-        <Badge variant="secondary" className="absolute top-2 left-2 bg-black/60 text-white z-10">
-          Cover
-        </Badge>
-      )}
-      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-end p-2 rounded-lg">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="icon" className="h-8 w-8">
-              <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Delete</span>
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will mark the image for deletion. Click "Save Changes" to make it permanent.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => onDelete(id)}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    </div>
-  );
-};
+const PhotosDndGrid = dynamic(() => import('@/components/photos/photos-dnd-grid'), {
+  ssr: false,
+  loading: () => <div className="text-sm text-muted-foreground">Loading gallery…</div>,
+});
 
 export default function PhotosPageClient({ listing }: { listing: Accommodation }) {
   const { toast } = useToast();
@@ -122,13 +37,6 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
   const [isPending, startTransition] = useTransition();
   const [isDirty, setIsDirty] = useState(false);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   useEffect(() => {
     // Compare arrays by value, not by reference. Do NOT sort, as order is important.
     const imagesString = JSON.stringify(images);
@@ -136,23 +44,13 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
     setIsDirty(imagesString !== listingImagesString);
   }, [images, listing.images]);
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (active.id !== over?.id) {
-      setImages((items) => {
-        const oldIndex = items.indexOf(active.id as string);
-        const newIndex = items.indexOf(over!.id as string);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  }
-
   const handleDeleteImage = (imageToDelete: string) => {
     setImages((prev) => prev.filter((img) => img !== imageToDelete));
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
+
     const validFiles: File[] = [];
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -167,12 +65,15 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
         validFiles.push(file);
       }
     });
+
     setFilesToUpload(validFiles);
   };
 
   const handleUploadImages = async () => {
     if (filesToUpload.length === 0) return;
+
     setIsUploading(true);
+
     const formData = new FormData();
     filesToUpload.forEach((file) => formData.append('files', file));
 
@@ -181,19 +82,38 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
         method: 'POST',
         body: formData,
       });
-      const result = await res.json();
 
-      if (res.ok && result.success && Array.isArray(result.urls)) {
-        setImages((prev) => [...prev, ...result.urls]);
+      const result: unknown = await res.json();
+
+      const ok =
+        res.ok &&
+        typeof result === 'object' &&
+        result !== null &&
+        'success' in result &&
+        (result as { success?: unknown }).success === true &&
+        'urls' in result &&
+        Array.isArray((result as { urls?: unknown }).urls);
+
+      if (ok) {
+        const urls = (result as { urls: string[] }).urls;
+
+        setImages((prev) => [...prev, ...urls]);
         toast({
           title: 'Images Ready',
-          description: `Added ${result.urls.length} new image(s). Click Save Changes.`,
+          description: `Added ${urls.length} new image(s). Click Save Changes.`,
         });
+
         setFilesToUpload([]);
         setIsAddModalOpen(false);
-      } else {
-        throw new Error(result.error || 'Unknown upload error');
+        return;
       }
+
+      const errorMsg =
+        typeof result === 'object' && result !== null && 'error' in result
+          ? String((result as { error?: unknown }).error || 'Unknown upload error')
+          : 'Unknown upload error';
+
+      throw new Error(errorMsg);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -208,18 +128,21 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
   const handleSaveChanges = () => {
     startTransition(async () => {
       const result = await updateAccommodationAction(listing.id, { images });
+
       if (result.success) {
         toast({ title: 'Changes Saved', description: 'Photo gallery updated.' });
+
         // After saving, update the original listing data to match the new state
         listing.images = [...images];
         setIsDirty(false);
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Save Failed',
-          description: result.error || 'Unknown error',
-        });
+        return;
       }
+
+      toast({
+        variant: 'destructive',
+        title: 'Save Failed',
+        description: result.error || 'Unknown error',
+      });
     });
   };
 
@@ -244,6 +167,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
                 Drag and drop to reorder images. First image is the cover photo.
               </CardDescription>
             </div>
+
             <Button onClick={handleSaveChanges} disabled={isPending || !isDirty}>
               {isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -256,26 +180,21 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
         </CardHeader>
 
         <CardContent>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={images} strategy={rectSortingStrategy}>
-              <div className="flex flex-wrap gap-4">
-                {images.map((img, index) => (
-                  <SortablePhoto key={img} id={img} index={index} onDelete={handleDeleteImage} />
-                ))}
-                <div
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="w-40 h-40 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer text-muted-foreground hover:bg-accent"
-                >
-                  <Camera className="h-8 w-8" />
-                  <span className="text-xs mt-2 text-center">Add Images</span>
-                </div>
-              </div>
-            </SortableContext>
-          </DndContext>
+          <div className="flex flex-wrap gap-4">
+            <PhotosDndGrid
+              images={images}
+              onReorder={(next) => setImages(next)}
+              onDelete={handleDeleteImage}
+            />
+
+            <div
+              onClick={() => setIsAddModalOpen(true)}
+              className="w-40 h-40 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer text-muted-foreground hover:bg-accent"
+            >
+              <Camera className="h-8 w-8" />
+              <span className="text-xs mt-2 text-center">Add Images</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -287,9 +206,11 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
               Recommended dimensions: 1920x1080px. Max file size: 5MB per image.
             </DialogDescription>
           </DialogHeader>
+
           <div className="grid gap-4 py-4">
             <div className="grid w-full items-center gap-1.5">
               <Label htmlFor="picture">Pictures</Label>
+
               <div className="flex h-10 w-full rounded-md border border-input bg-white text-sm">
                 <Label
                   htmlFor="picture"
@@ -297,6 +218,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
                 >
                   Choose Files
                 </Label>
+
                 <Input
                   id="picture"
                   type="file"
@@ -305,6 +227,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
                   className="hidden"
                   accept="image/png, image/jpeg, image/webp"
                 />
+
                 <div className="flex flex-1 items-center px-3 text-muted-foreground">
                   {filesToUpload.length > 0
                     ? `${filesToUpload.length} file(s) selected`
@@ -313,6 +236,7 @@ export default function PhotosPageClient({ listing }: { listing: Accommodation }
               </div>
             </div>
           </div>
+
           <DialogFooter>
             <Button
               onClick={handleUploadImages}
