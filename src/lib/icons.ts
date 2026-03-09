@@ -1,10 +1,19 @@
 // Filepath: src/lib/icons.ts
 // Centralized React Icons for the project
-import { FaPaypal, FaGoogle, FaApple, FaFacebook, FaArchive } from 'react-icons/fa';
+import {
+  FaPaypal,
+  FaGoogle,
+  FaApple,
+  FaFacebook,
+  FaArchive,
+  FaTwitter,
+  FaLinkedin,
+  FaWhatsapp,
+} from 'react-icons/fa';
 import { BsDatabaseFillLock } from 'react-icons/bs';
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapse } from 'react-icons/tb';
 import { HiOutlineLocationMarker } from 'react-icons/hi';
-import { MdOutlineDoorFront } from 'react-icons/md';
+import { MdOutlineDoorFront, MdShare } from 'react-icons/md';
 import { BiLoaderAlt } from 'react-icons/bi';
 
 // Material Design Icons
@@ -263,6 +272,9 @@ export {
   FaGoogle,
   FaApple,
   FaFacebook,
+  FaTwitter,
+  FaLinkedin,
+  FaWhatsapp,
   BsDatabaseFillLock as Database,
   FaArchive,
   TbLayoutSidebarLeftCollapse,
@@ -271,4 +283,5 @@ export {
   MdOutlineDoorFront,
   MdForum as Forum,
   BiLoaderAlt,
+  MdShare,
 };

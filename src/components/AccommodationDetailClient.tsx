@@ -33,6 +33,7 @@ import {
 import { Skeleton } from './ui/skeleton';
 import { BookableUnit } from './UnitsPageClient';
 import { Progress } from '@/components/ui/progress';
+import ShareButton from './ShareButton';
 
 // --- Helper Functions & Components ---
 
@@ -348,10 +349,13 @@ export default function AccommodationDetailClient({
                   <span>{getPropertyTypeLabel(accommodation.starRating, accommodation.type)}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4" />
+                  <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
                   <span>
                     {accommodation.rating} ({accommodation.reviewsCount} reviews)
                   </span>
+                </div>
+                <div className="flex items-center pt-1 sm:pt-0">
+                  <ShareButton title={accommodation.name} />
                 </div>
               </div>
             </div>
