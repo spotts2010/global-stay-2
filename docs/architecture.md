@@ -14,10 +14,11 @@ The application follows the Next.js App Router paradigm, leveraging Server Compo
 
 ## 2. Firebase Integration
 
-The project uses a hybrid Firebase strategy:
+Firebase data access follows a hybrid approach:
 
-- **Firebase Client SDK**: Powering real-time updates and authentication state within the browser. We use custom hooks (`useCollection`, `useDoc`, `useUser`) to interface with Firestore and Auth.
-- **Firebase Admin SDK**: Employed within **Server Actions** and **API Routes** for secure write operations, status updates, and storage management where direct client access is either restricted or requires validation.
+- **Server-side:**: Firestore is accessed through server utilities (e.g. `fetchAccommodationById`, `fetchUnitsForAccommodation`) using the Firebase Admin SDK.
+- **Client-side:**: Interactive features may subscribe to Firestore or perform reads using the Firebase Client SDK when real-time updates are required.
+- This separation ensures sensitive operations remain server-side while interactive UI remains responsive.
 
 ## 3. Firestore Database Usage
 
@@ -67,4 +68,18 @@ The image management system is designed for robustness:
 
 - **Providers**: Email/Password and Google OAuth.
 - **State Management**: The `useUser` hook and `useAuth` hook provide reactive access to the user object throughout the client tree.
-- **Protection**: Route-level protection is handled by client-side redirects in protected layouts (e.g., ensuring a user is a "Host" before accessing `/admin`).
+- **Protection**: Authentication uses Firebase Authentication with Email/Password and Google OAuth. User state is accessed through React context providers and client hooks. Sensitive operations (writes, admin updates) are executed through server actions using the Firebase Admin SDK to prevent client-side privilege escalation.
+
+## 9. Feature Domain Separation
+
+To improve performance and maintainability, large UI features are isolated into domain folders.
+
+Examples:
+
+- `src/components/maps/`
+- `src/components/photos/`
+- `src/components/pois/`
+- `src/components/units/`
+
+Each domain folder contains feature-specific components, dialogs, and utilities.
+Route files remain thin and primarily compose these domain modules.

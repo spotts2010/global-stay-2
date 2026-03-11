@@ -8,7 +8,7 @@ Global Stay 2.0 employs a "Thin Route, Heavy Feature" architecture to ensure rap
 
 To keep the initial JavaScript payload small, we strictly control what is included in the main route bundle:
 
-- **Icon Tree-Shaking**: All iconography is centralized in `src/lib/icons.ts`. This allows the build system to tree-shake unused icons and prevents redundant library imports across different pages.
+- **Icon Tree-Shaking**: All icon imports are centralized in `src/lib/icons.ts`. This prevents scattered library imports across the codebase and ensures consistent icon usage. It also reduces accidental bundle duplication from importing different icon libraries directly in multiple files.
 - **Dependency Isolation**: Heavy libraries (e.g., `@vis.gl/react-google-maps`, `@dnd-kit/core`) are never imported at the top level of a route file.
 
 ## 2. Dynamic Imports & Lazy Loading
@@ -66,3 +66,52 @@ When adding new functionality, follow these rules to maintain performance:
 3. **Use a Loader**: Wrap the heavy component in a dynamic import with a meaningful loading state (Skeleton).
 4. **Keep Context Local**: Do not wrap the entire app in a provider if the feature is only used on one page. Use local providers or pass props.
 5. **Minimize Inline JSX**: Avoid large chunks of JSX for dialogs or drawers directly inside a `map()` or `TableRow`. Extract these into child components.
+
+## 7. Maximum Component Size Guideline
+
+Components should remain below ~400–500 lines whenever possible.
+
+If a component grows beyond this threshold:
+
+- extract dialogs
+- extract table cells
+- extract map modules
+- extract heavy UI logic
+
+This ensures maintainability and prevents bundle growth.
+
+## 8. Google Maps Provider Rule
+
+The Google Maps `APIProvider` from `@vis.gl/react-google-maps` must only be instantiated once at the highest necessary component level.
+
+### Correct Pattern
+
+A single provider should wrap all components that require Google Maps:
+
+```
+<APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
+  <MapComponent />
+</APIProvider>
+```
+
+### Incorrect Pattern
+
+Avoid nesting providers inside multiple components:
+
+```
+<MapComponent>
+  <APIProvider>...</APIProvider>
+</MapComponent>
+```
+
+Nested providers can cause:
+
+- duplicate Google Maps script loading
+- increased bundle size
+- inconsistent map state
+- unnecessary re-renders
+
+### Project Rule
+
+All map components should assume the `APIProvider` already exists higher in the component tree.  
+Feature components inside `src/components/maps/` should **never instantiate their own APIProvider**.
