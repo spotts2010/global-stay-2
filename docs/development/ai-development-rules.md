@@ -1,4 +1,4 @@
-<!-- docs/ai-development-rules.md -->
+<!-- docs/development/ai-development-rules.md -->
 
 # AI Development Rules
 

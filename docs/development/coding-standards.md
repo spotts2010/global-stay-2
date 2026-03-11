@@ -33,15 +33,25 @@ Incorrect:
 
 ---
 
-### Filepath Comments
+### Filepath Header Convention
 
-Always include a filepath comment at the top of every new or updated file.
+All new or modified files should include a filepath header comment at the top of the file.
 
-Example:
+Use the comment syntax appropriate for the file type.
 
-```ts
-// src/components/units/unit-actions-cell.tsx
-```
+Markdown:
+
+<!-- docs/path/to/file.md -->
+
+TypeScript / JavaScript:
+
+// src/path/to/file.tsx
+
+CSS:
+
+/_ src/path/to/file.css _/
+
+These headers help developers and AI tools maintain correct file placement and architecture awareness.
 
 ---
 
