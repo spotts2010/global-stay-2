@@ -33,7 +33,7 @@ import {
 import { Skeleton } from './ui/skeleton';
 import { BookableUnit } from './UnitsPageClient';
 import { Progress } from '@/components/ui/progress';
-import ShareButton from './ShareButton';
+import ShareButton from '@/components/share/share-button';
 
 // --- Helper Functions & Components ---
 
