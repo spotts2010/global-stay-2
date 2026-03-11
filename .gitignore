@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
 
 # next.js
 /.next/
@@ -19,47 +21,38 @@
 # misc
 .DS_Store
 *.pem
+.eslintcache
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+firebase-debug.log
+firebase-emulators.log
+firestore-debug.log
 
 # local env files
 .env
 .env*.local
+
+# local secrets
 firebase-admin-key.json
 
 # vercel
-.vercel
+/.vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 # ui state
-.config/
-
-# tests
-/playwright-report/
-/test-results/
-
-# Firebase
-auth.json
-firebase-debug.log
-firebase-emulators.log
+/.config
 
 # Firebase Studio
-.firebase/
-database_export/
-firestore.rules
-storage.rules
-.eslintcache
-playwright-report/
-playwright-report/
-.idx/
-firestore-debug.log
+/.firebase
+/database_export
+/.idx
 
-# local secrets
-firebase-admin-key.json
+# local auth export
+auth.json
