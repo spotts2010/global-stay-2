@@ -39,6 +39,7 @@ Guides and standards for contributors.
 - [**Project Structure**](./development/project-structure.md)
 - [**Coding Standards**](./development/coding-standards.md)
 - [**Component Architecture**](./development/component-architecture.md)
+- [**AI Development Rules**](./ai-development-rules.md)
 
 ## Performance
 
