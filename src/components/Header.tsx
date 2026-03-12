@@ -17,6 +17,7 @@ import {
   Settings,
   Ticket,
   User,
+  Bell,
 } from '@/lib/icons';
 
 import { useFavorites } from '@/context/FavoritesContext';
@@ -237,40 +238,21 @@ const Header = () => {
                 </DialogContent>
               </Dialog>
 
-              {/* Favorites */}
-              <Button asChild variant="outline" size="sm" className="hidden sm:flex">
-                <Link href="/account/my-stays/favorites" className="relative">
-                  <Heart className="mr-2 h-4 w-4" />
-                  Favorites
-                  {favorites?.length > 0 ? (
-                    <Badge className="ml-2" variant="secondary">
-                      {favorites.length}
-                    </Badge>
-                  ) : null}
-                </Link>
-              </Button>
-
-              {/* Notifications / Support */}
-              <Button asChild variant="outline" size="sm" className="hidden sm:flex">
-                <Link href="/account/notifications/view" className="relative">
-                  <Ticket className="mr-2 h-4 w-4" />
-                  Inbox
-                  {totalUnreadCount > 0 ? (
-                    <Badge className="ml-2" variant="secondary">
-                      {totalUnreadCount}
-                    </Badge>
-                  ) : null}
-                </Link>
-              </Button>
-
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-10 px-2">
+                  <Button variant="ghost" className="relative h-10 px-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src="" alt={user.name} />
                       <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                     </Avatar>
+
+                    {totalUnreadCount > 0 ? (
+                      <span className="absolute right-1 top-1 flex h-3 w-3">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                        <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
+                      </span>
+                    ) : null}
                   </Button>
                 </DropdownMenuTrigger>
 
@@ -285,37 +267,69 @@ const Header = () => {
                   <DropdownMenuItem asChild>
                     <Link href="/account/profile">
                       <User className="mr-2 h-4 w-4" />
-                      My Profile
+                      My Account
                     </Link>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem asChild>
-                    <Link href="/account/preferences/currency-language">
+                    <Link href="/account/notifications/view">
+                      <Bell className="mr-2 h-4 w-4" />
+                      Notifications
+                      {totalUnreadCount > 0 ? (
+                        <Badge className="ml-auto" variant="destructive">
+                          {totalUnreadCount}
+                        </Badge>
+                      ) : null}
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/my-stays/upcoming">
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      My Stays
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/my-stays/favorites">
+                      <Heart className="mr-2 h-4 w-4" />
+                      Saved Places
+                      {favorites?.length > 0 ? (
+                        <Badge className="ml-auto" variant="secondary">
+                          {favorites.length}
+                        </Badge>
+                      ) : null}
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/support/tickets">
+                      <Ticket className="mr-2 h-4 w-4" />
+                      Support Tickets
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/settings">
                       <Settings className="mr-2 h-4 w-4" />
-                      Preferences
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem asChild>
-                    <Link href="/account">
-                      <Dashboard className="mr-2 h-4 w-4" />
-                      Dashboard
+                      Settings
                     </Link>
                   </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Creator &amp; Admin</DropdownMenuLabel>
 
                   <DropdownMenuItem asChild>
-                    <Link href="/admin">
-                      <Briefcase className="mr-2 h-4 w-4" />
-                      Admin
+                    <Link href="/admin/dashboard">
+                      <Dashboard className="mr-2 h-4 w-4" />
+                      Dashboard
                     </Link>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem asChild>
                     <Link href="/admin/listings">
                       <ListingsIcon className="mr-2 h-4 w-4" />
-                      Listings
+                      Manage Listings
                     </Link>
                   </DropdownMenuItem>
 
