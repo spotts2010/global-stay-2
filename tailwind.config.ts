@@ -1,3 +1,4 @@
+// tailwind.config.ts
 import type { Config } from 'tailwindcss';
 import tailwindcssAnimate from 'tailwindcss-animate';
 import tailwindcssTypography from '@tailwindcss/typography';
@@ -19,6 +20,7 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
+        sans: ['var(--font-quicksand)', 'sans-serif'],
         body: ['var(--font-quicksand)', 'sans-serif'],
         headline: ['var(--font-quicksand)', 'sans-serif'],
         code: ['monospace'],

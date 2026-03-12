@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -9,6 +10,7 @@ import { Quicksand } from 'next/font/google';
 
 const quicksand = Quicksand({
   subsets: ['latin'],
+  display: 'swap',
   variable: '--font-quicksand',
 });
 
@@ -23,9 +25,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${quicksand.variable}`} suppressHydrationWarning>
+    <html lang="en" className={quicksand.variable} suppressHydrationWarning>
       <head />
-      <body className={cn('font-body antialiased bg-background text-foreground')}>
+      <body className={cn(quicksand.className, 'antialiased bg-background text-foreground')}>
         <ClientProviders>
           <div className="relative flex min-h-screen flex-col">
             <Header />
